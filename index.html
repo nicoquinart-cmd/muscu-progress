@@ -72,6 +72,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div id="profileSetupOverlay" class="hidden" style="position:fixed;inset:0;background:#f3f4f6;z-index:10001;overflow:auto;padding:18px">
+  <div style="max-width:520px;margin:20px auto">
+    <div class="card hero">
+      <div class="sub">Ton profil sportif</div>
+      <h2 style="color:white;margin-top:4px">Quelques informations avant de commencer</h2>
+      <div class="sub">Elles servent notamment à personnaliser les estimations de dépense énergétique.</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Prénom / nom affiché</label><input id="setupDisplayName" type="text"></div>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><label>Âge</label><input id="setupAge" type="number" min="13" max="100"></div>
+        <div class="field"><label>Sexe</label>
+          <select id="setupSex">
+            <option value="">Choisir…</option>
+            <option value="female">Femme</option>
+            <option value="male">Homme</option>
+            <option value="other">Autre / non renseigné</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><label>Poids (kg)</label><input id="setupWeight" type="number" min="30" max="300" step="0.1"></div>
+        <div class="field"><label>Taille (cm)</label><input id="setupHeight" type="number" min="120" max="230" step="1"></div>
+      </div>
+      <button class="btn full" style="margin-top:16px" onclick="saveRequiredProfile()">Enregistrer et continuer</button>
+      <div id="setupProfileMsg" class="sub" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
 <div id="sessionLoading" style="position:fixed;inset:0;background:#f3f4f6;z-index:10000;display:flex;align-items:center;justify-content:center">
   <div class="card" style="max-width:360px;text-align:center">
     <div style="font-size:36px">⏳</div>
@@ -82,7 +111,7 @@
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.1.3</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -118,7 +147,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.1.3</span>
+        <span class="pill" style="background:white;color:#111827">v2.2</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -141,10 +170,11 @@
         <button class="btn secondary small" onclick="closeCardioShortcut()">✕</button>
       </div>
       <div class="row">
-        <div class="field"><label>Durée (min)</label><input id="quickCardioDuration" type="number" min="1" step="5" placeholder="30"></div>
-        <div id="quickCardioInclineField" class="field"><label>Inclinaison (%)</label><input id="quickCardioIncline" type="number" min="0" step="0.5" placeholder="5"></div>
-        <div id="quickCardioSpeedField" class="field"><label>Vitesse (km/h)</label><input id="quickCardioSpeed" type="number" min="0" step="0.1" placeholder="5.8"></div>
+        <div class="field"><label>Durée (min)</label><input id="quickCardioDuration" oninput="updateQuickCardioCalories()" type="number" min="1" step="5" placeholder="30"></div>
+        <div id="quickCardioInclineField" class="field"><label>Inclinaison (%)</label><input id="quickCardioIncline" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.5" placeholder="5"></div>
+        <div id="quickCardioSpeedField" class="field"><label>Vitesse (km/h)</label><input id="quickCardioSpeed" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.1" placeholder="5.8"></div>
       </div>
+      <div id="quickCardioCalories" class="hint" style="margin-top:12px">🔥 Estimation : renseigne la durée.</div>
       <button class="btn full" style="margin-top:12px" onclick="saveCardioShortcut()">💾 Enregistrer</button>
     </div>
 
@@ -306,6 +336,12 @@
       <div class="hint" style="margin-top:12px">Tu peux laisser vide si tu ne fais pas de tapis pendant cette séance.</div>
     </div>
 
+    <div class="card">
+      <div class="row between">
+        <div><strong>⏱️ Durée de la séance</strong><div class="sub">Calculée automatiquement depuis le démarrage.</div></div>
+        <div><strong id="workoutElapsed">0 min</strong><div id="workoutCaloriesPreview" class="sub">🔥 ~0 kcal</div></div>
+      </div>
+    </div>
     <button class="btn full" onclick="finishWorkout()">✓ Terminer la séance</button>
   </section>
 
@@ -326,15 +362,16 @@
         <div class="field"><label>Date</label><input id="fitnessDate" type="date"></div>
         <div class="field">
           <label>Nom du cours</label>
-          <input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="Ex. BodyPump, Cycling, Yoga...">
+          <input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="Ex. BodyPump, Cycling, Yoga..." oninput="updateFitnessCaloriesPreview()">
           <datalist id="fitnessCourseSuggestions">
             <option value="BodyPump"><option value="Cycling"><option value="RPM"><option value="Yoga">
             <option value="Pilates"><option value="BodyAttack"><option value="BodyCombat"><option value="CAF">
             <option value="Stretching"><option value="Cross Training">
           </datalist>
         </div>
-        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45"></div>
+        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45" oninput="updateFitnessCaloriesPreview()"></div>
       </div>
+      <div id="fitnessCaloriesPreview" class="hint" style="margin-top:12px">🔥 Estimation : renseigne le cours et la durée.</div>
       <button class="btn" style="margin-top:12px" onclick="saveFitnessClass()">Enregistrer le cours</button>
     </div>
 
@@ -565,14 +602,45 @@
     </div>
   </section>
 
+
+  <section id="profile" class="page">
+    <div class="card hero">
+      <div class="sub">Profil sportif</div>
+      <h2 style="color:white;margin-top:4px">👤 Mon profil</h2>
+      <div class="sub">Ces données servent au suivi et aux estimations de calories.</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Prénom / nom affiché</label><input id="profileDisplayName" type="text"></div>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><label>Âge</label><input id="profileAge" type="number" min="13" max="100"></div>
+        <div class="field"><label>Sexe</label>
+          <select id="profileSex">
+            <option value="">Choisir…</option>
+            <option value="female">Femme</option>
+            <option value="male">Homme</option>
+            <option value="other">Autre / non renseigné</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><label>Poids (kg)</label><input id="profileWeight" type="number" min="30" max="300" step="0.1"></div>
+        <div class="field"><label>Taille (cm)</label><input id="profileHeight" type="number" min="120" max="230"></div>
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="saveProfilePage()">💾 Enregistrer</button>
+    </div>
+  </section>
+
 <section id="more" class="page">
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.1.3</div>
+      <div class="sub">Muscu Progress • 2.2</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
+    <div class="card" onclick="showPage('profile')" style="cursor:pointer">
+      <div class="row between"><div><h2>👤 Mon profil</h2><div class="sub">Âge, sexe, poids et taille</div></div><strong>›</strong></div>
+    </div>
     <div class="card" onclick="showPage('calories')" style="cursor:pointer">
       <div class="row between"><div><h2>🔥 Calories</h2><div class="sub">Estimer la dépense d’une activité</div></div><strong>›</strong></div>
     </div>
@@ -745,6 +813,8 @@ async function handleSession(session){
   currentUser=session.user;
   document.getElementById("authOverlay").classList.add("hidden");
   await ensureProfile();
+  await loadCurrentProfile();
+  showRequiredProfileIfNeeded();
   setSyncStatus("Synchronisation…");
   await syncFromCloud();
 }
@@ -760,10 +830,10 @@ async function syncFromCloud(){
     ]);
     if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;if(f.error)throw f.error;if(pl.error)throw pl.error;
     db={
-      workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual})),
+      workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual,duration_minutes:x.duration_minutes||null,calories_estimate:x.calories_estimate||null,duration_minutes:x.duration_minutes==null?null:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
       pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()})),
-      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes)})),
+      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
@@ -796,7 +866,7 @@ async function syncAllToCloud(){
       const r=await supa.from("pushups").insert(rows);if(r.error)throw r.error;
     }
     if(db.fitness.length){
-      const rows=db.fitness.map(x=>({user_id:currentUser.id,class_date:x.date,class_name:x.name,duration_minutes:x.duration}));
+      const rows=db.fitness.map(x=>({user_id:currentUser.id,class_date:x.date,class_name:x.name,duration_minutes:x.duration,calories_estimate:x.calories_estimate||null}));
       const r=await supa.from("fitness_classes").insert(rows);if(r.error)throw r.error;
     }
     if(db.planning.length){
@@ -916,7 +986,7 @@ function renderAdminUsers(){
         </div>
       </div>
       <div class="row between" style="margin-top:8px">
-        <div class="sub">${count} séance${count>1?"s":""} • ${u.active===false?"Accès désactivé":"Accès actif"}</div>
+        <div class="sub">${count} séance${count>1?"s":""} • ${u.age||"?"} ans • ${u.weight_kg||"?"} kg • ${u.height_cm||"?"} cm • ${u.active===false?"Accès désactivé":"Accès actif"}</div>
         <div class="row">
           <button class="btn secondary small" onclick="adminSaveUser('${u.user_id}')">Enregistrer</button>
           <button class="btn secondary small" onclick="adminToggleUser('${u.user_id}',${u.active!==false})">${u.active===false?"Réactiver":"Désactiver"}</button>
@@ -1107,6 +1177,178 @@ async function initAuth(){
   }
 }
 
+
+let workoutStartedAt=null;
+let workoutElapsedTimer=null;
+
+function profileWeightKg(){
+  const p=currentProfile||{};
+  if(p.weight_kg!=null && Number(p.weight_kg)>0) return Number(p.weight_kg);
+  const ms=[...(db.measurements||[])].reverse();
+  const w=ms.find(x=>x.weight!=null)?.weight;
+  return w!=null?Number(w):null;
+}
+
+function profileIsComplete(p=currentProfile){
+  return !!(p && Number(p.age)>=13 && p.sex && Number(p.weight_kg)>0 && Number(p.height_cm)>0);
+}
+
+function activityKcalFromMET(met, minutes){
+  const weight=profileWeightKg();
+  if(!weight || !minutes || minutes<=0) return null;
+  return Math.max(1,Math.round(met*3.5*weight/200*minutes));
+}
+
+function fitnessMET(name){
+  const n=String(name||"").toLowerCase();
+  if(n.includes("rpm")||n.includes("cycling")||n.includes("bike")) return 8.0;
+  if(n.includes("bodycombat")||n.includes("combat")) return 7.5;
+  if(n.includes("bodyattack")||n.includes("attack")||n.includes("cross")) return 8.0;
+  if(n.includes("bodypump")||n.includes("pump")) return 6.0;
+  if(n.includes("caf")) return 5.5;
+  if(n.includes("yoga")) return 2.8;
+  if(n.includes("pilates")) return 3.0;
+  if(n.includes("stretch")) return 2.3;
+  return 6.0;
+}
+
+function treadmillMET(speedKmh,inclinePct){
+  const speed=Number(speedKmh)||0;
+  const grade=(Number(inclinePct)||0)/100;
+  if(speed<=0) return 3.5;
+  const mMin=speed*1000/60;
+  const vo2=speed<8
+    ? (0.1*mMin + 1.8*mMin*grade + 3.5)
+    : (0.2*mMin + 0.9*mMin*grade + 3.5);
+  return Math.max(2, vo2/3.5);
+}
+
+function estimateFitnessCalories(name,duration){
+  return activityKcalFromMET(fitnessMET(name),Number(duration)||0);
+}
+function estimateTreadmillCalories(duration,speed,incline){
+  return activityKcalFromMET(treadmillMET(speed,incline),Number(duration)||0);
+}
+function estimateRowerCalories(duration){
+  return activityKcalFromMET(7.0,Number(duration)||0);
+}
+function estimateStrengthCalories(duration){
+  return activityKcalFromMET(5.0,Number(duration)||0);
+}
+
+function caloriesText(kcal){
+  return kcal==null ? "Calories non estimées" : `~${kcal} kcal`;
+}
+
+async function loadProfileIntoForms(){
+  if(!currentProfile) return;
+  const map={
+    profileDisplayName:currentProfile.display_name||"",
+    profileAge:currentProfile.age||"",
+    profileSex:currentProfile.sex||"",
+    profileWeight:currentProfile.weight_kg||"",
+    profileHeight:currentProfile.height_cm||""
+  };
+  Object.entries(map).forEach(([id,val])=>{const e=document.getElementById(id);if(e)e.value=val;});
+}
+
+function showRequiredProfileIfNeeded(){
+  if(!currentUser||profileIsComplete()) return;
+  const o=document.getElementById("profileSetupOverlay");
+  if(!o)return;
+  const vals={
+    setupDisplayName:currentProfile?.display_name||"",
+    setupAge:currentProfile?.age||"",
+    setupSex:currentProfile?.sex||"",
+    setupWeight:currentProfile?.weight_kg||profileWeightKg()||"",
+    setupHeight:currentProfile?.height_cm||""
+  };
+  Object.entries(vals).forEach(([id,val])=>{const e=document.getElementById(id);if(e)e.value=val;});
+  o.classList.remove("hidden");
+}
+
+async function persistSportProfile(displayName,age,sex,weight,height){
+  const payload={
+    display_name:displayName||currentProfile?.display_name||currentUser?.email?.split("@")[0]||"Utilisateur",
+    age:Number(age),
+    sex,
+    weight_kg:Number(weight),
+    height_cm:Number(height)
+  };
+  if(payload.age<13||!payload.sex||payload.weight_kg<=0||payload.height_cm<=0) throw new Error("Complète l’âge, le sexe, le poids et la taille.");
+  const {error}=await supa.from("profiles").update(payload).eq("user_id",currentUser.id);
+  if(error) throw error;
+  currentProfile={...(currentProfile||{}),...payload};
+
+  const existing=(db.measurements||[]).find(x=>x.date===todayISO());
+  if(existing) existing.weight=payload.weight_kg;
+  else (db.measurements||[]).push({date:todayISO(),weight:payload.weight_kg,waist:null});
+  saveLocalDB();
+  return payload;
+}
+
+async function saveRequiredProfile(){
+  const msg=document.getElementById("setupProfileMsg");
+  try{
+    await persistSportProfile(
+      document.getElementById("setupDisplayName").value.trim(),
+      document.getElementById("setupAge").value,
+      document.getElementById("setupSex").value,
+      document.getElementById("setupWeight").value,
+      document.getElementById("setupHeight").value
+    );
+    document.getElementById("profileSetupOverlay")?.classList.add("hidden");
+    if(msg)msg.textContent="";
+    syncAllToCloud();
+  }catch(e){if(msg)msg.textContent=e.message;}
+}
+
+async function saveProfilePage(){
+  try{
+    await persistSportProfile(
+      document.getElementById("profileDisplayName").value.trim(),
+      document.getElementById("profileAge").value,
+      document.getElementById("profileSex").value,
+      document.getElementById("profileWeight").value,
+      document.getElementById("profileHeight").value
+    );
+    alert("Profil enregistré.");
+    syncAllToCloud();
+  }catch(e){alert(e.message);}
+}
+
+function startWorkoutClock(){
+  workoutStartedAt=Date.now();
+  clearInterval(workoutElapsedTimer);
+  const tick=()=>{
+    if(!workoutStartedAt)return;
+    const mins=Math.max(1,Math.round((Date.now()-workoutStartedAt)/60000));
+    const el=document.getElementById("workoutElapsed");
+    const cal=document.getElementById("workoutCaloriesPreview");
+    if(el)el.textContent=`${mins} min`;
+    if(cal)cal.textContent=`🔥 ${caloriesText(estimateStrengthCalories(mins))}`;
+  };
+  tick(); workoutElapsedTimer=setInterval(tick,30000);
+}
+
+function updateFitnessCaloriesPreview(){
+  const e=document.getElementById("fitnessCaloriesPreview"); if(!e)return;
+  const name=document.getElementById("fitnessName")?.value||"";
+  const d=Number(document.getElementById("fitnessDuration")?.value)||0;
+  const kcal=estimateFitnessCalories(name,d);
+  e.textContent=d?`🔥 Estimation : ${caloriesText(kcal)}`:"🔥 Estimation : renseigne le cours et la durée.";
+}
+
+function updateQuickCardioCalories(){
+  const e=document.getElementById("quickCardioCalories"); if(!e)return;
+  const d=Number(document.getElementById("quickCardioDuration")?.value)||0;
+  if(!d){e.textContent="🔥 Estimation : renseigne la durée.";return;}
+  const kcal=quickCardioType==="rower"
+    ? estimateRowerCalories(d)
+    : estimateTreadmillCalories(d,document.getElementById("quickCardioSpeed")?.value,document.getElementById("quickCardioIncline")?.value);
+  e.textContent=`🔥 Estimation : ${caloriesText(kcal)}`;
+}
+
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 function showPage(id,btn){
@@ -1114,7 +1356,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness(); if(id==="planning")renderPlanning();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -1138,6 +1380,7 @@ let currentWorkoutExercises=[];
 
 function renderWorkout(code){
   currentSession=code;
+  startWorkoutClock();
   const picker=document.getElementById("sessionPicker");
   if(code==="Libre"){
     currentWorkoutExercises=[];
@@ -1237,8 +1480,19 @@ function finishWorkout(){
   const incline=Number(document.getElementById("treadmillIncline")?.value)||0;
   const speed=Number(document.getElementById("treadmillSpeed")?.value)||0;
   const treadmill = duration>0 ? {duration,incline,speed} : null;
+  const workoutDuration=Math.max(1,Math.round((Date.now()-(workoutStartedAt||Date.now()))/60000));
+  const calories_estimate=estimateStrengthCalories(workoutDuration);
 
-  db.workouts.push({date:todayISO(),session:currentSession,exercises,treadmill});
+  db.workouts.push({
+    date:todayISO(),
+    session:currentSession,
+    exercises,
+    treadmill,
+    duration_minutes:workoutDuration,
+    calories_estimate
+  });
+  clearInterval(workoutElapsedTimer);
+  workoutStartedAt=null;
   saveDB();
 
   const d=document.getElementById("treadmillDuration");
@@ -1301,38 +1555,42 @@ function updateDashboard(){
 function renderHistory(){
   const box=document.getElementById("historyList");
   if(!box)return;
-
   const items=[];
 
   (db.workouts||[]).forEach(w=>{
-    let title=PROGRAM[w.session]?.title||(w.session==="Libre"?"✨ Séance libre":w.session==="Tapis"?"🏃 Tapis":w.session==="Rameur"?"🚣 Rameur":"Séance "+(w.session||""));
+    let title=PROGRAM[w.session]?.title||(w.session==="Libre"?"✨ Séance libre":w.session==="Tapis"?"🏃 Tapis":w.session==="Rameur"?"🚣 Rameur":"🏋️ Séance "+(w.session||""));
     let detail=(w.exercises||[]).map(e=>e.name).join(" • ");
-    if(w.treadmill) detail=`Tapis ${w.treadmill.duration} min • ${w.treadmill.incline||0}% • ${w.treadmill.speed||0} km/h`;
-    if(w.cardio?.type==="rower") detail=`Rameur ${w.cardio.duration||0} min`;
-    items.push({date:w.date,title,detail});
+    if(w.treadmill) detail=`${w.treadmill.duration} min • ${w.treadmill.incline||0}% • ${w.treadmill.speed||0} km/h`;
+    if(w.cardio?.type==="rower") detail=`${w.cardio.duration||w.duration_minutes||0} min`;
+    if(!w.treadmill&&!w.cardio&&w.duration_minutes) detail=`${w.duration_minutes} min${detail?" • "+detail:""}`;
+    if(w.calories_estimate!=null) detail+=`${detail?" • ":""}🔥 ~${Math.round(w.calories_estimate)} kcal`;
+    items.push({date:w.date,sort:w.created_at||w.date,title,detail,type:"workout"});
   });
 
   (db.fitness||[]).forEach(f=>{
+    const kcal=f.calories_estimate!=null?f.calories_estimate:estimateFitnessCalories(f.name,f.duration);
     items.push({
-      date:f.date,
+      date:f.date,sort:f.created_at||f.date,type:"fitness",
       title:`🧘 ${f.name||"Fitness"}`,
-      detail:`${f.duration||0} min • ~${estimateCalories("fitness",Number(f.duration)||0,latestWeight(),"moderate")} kcal`
+      detail:`${f.duration||0} min${kcal!=null?` • 🔥 ~${Math.round(kcal)} kcal`:""}`
     });
   });
 
-  items.sort((a,b)=>b.date.localeCompare(a.date));
+  const pushByDate={};
+  (db.pushups||[]).forEach(p=>pushByDate[p.date]=(pushByDate[p.date]||0)+Number(p.count||0));
+  Object.entries(pushByDate).forEach(([date,count])=>{
+    items.push({date,sort:date,type:"pushups",title:"💪 Challenge Pompes",detail:`${count} pompe${count>1?"s":""}`});
+  });
 
-  box.innerHTML=items.length
-    ?items.map(x=>`<div class="history-item">
+  items.sort((a,b)=>String(b.sort).localeCompare(String(a.sort)));
+  box.innerHTML=items.length?items.map(x=>`
+    <div class="history-item">
       <div class="row between">
-        <strong>${x.title}</strong>
-        <span class="pill">${x.date}</span>
+        <strong>${x.title}</strong><span class="pill">${x.date}</span>
       </div>
       <div class="sub" style="margin-top:6px">${x.detail||""}</div>
-    </div>`).join("")
-    :'<div class="sub">Aucune activité enregistrée.</div>';
+    </div>`).join(""):'<div class="sub">Aucune activité enregistrée.</div>';
 }
-
 function isoDate(d){
   return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
 }
@@ -1402,21 +1660,27 @@ function saveCardioShortcut(){
 
   const date=todayISO();
   if(quickCardioType==="rower"){
+    const calories_estimate=estimateRowerCalories(duration);
     db.workouts.push({
       date,
       session:"Rameur",
       exercises:[],
       cardio:{type:"rower",duration},
+      duration_minutes:duration,
+      calories_estimate,
       manual:true
     });
   }else{
     const incline=Number(document.getElementById("quickCardioIncline").value)||0;
     const speed=Number(document.getElementById("quickCardioSpeed").value)||0;
+    const calories_estimate=estimateTreadmillCalories(duration,speed,incline);
     db.workouts.push({
       date,
       session:"Tapis",
       exercises:[],
       treadmill:{duration,incline,speed},
+      duration_minutes:duration,
+      calories_estimate,
       manual:true
     });
   }
@@ -1839,7 +2103,8 @@ function saveFitnessClass(){
   const duration=parseInt(document.getElementById("fitnessDuration").value,10);
   if(!name){alert("Indique le nom du cours.");return;}
   if(!duration||duration<1){alert("Indique la durée du cours.");return;}
-  db.fitness.push({date,name,duration});
+  const calories_estimate=estimateFitnessCalories(name,duration);
+  db.fitness.push({date,name,duration,calories_estimate});
   document.getElementById("fitnessName").value="";
   document.getElementById("fitnessDuration").value="";
   saveDB();
@@ -2014,7 +2279,7 @@ renderWorkout("A"); updateDashboard(); v133RenderHome(); v131RenderHome(); rende
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();
   const w=arr.find(x=>x.weight!=null)?.weight;
-  return w!=null?Number(w):70;
+  return profileWeightKg()||70;
 }
 
 function getMET(activity,intensity){
