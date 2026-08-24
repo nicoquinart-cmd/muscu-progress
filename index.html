@@ -45,7 +45,7 @@
     .check{height:38px;border-radius:10px;border:1px solid var(--line);background:white;cursor:pointer}
     .check.done{background:var(--ok);color:white;border-color:var(--ok)}
     .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
-    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
+    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(6,1fr)}
     .tab{padding:11px 4px 15px;border:0;background:transparent;font-size:12px;color:var(--muted);cursor:pointer}
     .tab.active{color:var(--ink);font-weight:800}
     .page{display:none}.page.active{display:block}
@@ -312,6 +312,72 @@
       </div>
     </div>
   </section>
+
+  <section id="admin" class="page">
+    <div class="card hero">
+      <div class="sub">Portail administration</div>
+      <h2 style="color:white;margin-top:4px">Muscu Progress Admin</h2>
+      <div class="sub">Gestion des utilisateurs, exercices, machines et séances modèles.</div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat"><strong id="adminUsersCount">0</strong><span>utilisateurs</span></div>
+      <div class="card stat"><strong id="adminExercisesCount">0</strong><span>exercices actifs</span></div>
+      <div class="card stat"><strong id="adminTemplatesCount">0</strong><span>séances modèles</span></div>
+      <div class="card stat"><strong id="adminWorkoutsCount">0</strong><span>séances enregistrées</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Utilisateurs</h2>
+      <div id="adminUsersList" class="sub">Chargement…</div>
+    </div>
+
+    <div class="card">
+      <h2>Créer un exercice / une machine</h2>
+      <div class="row">
+        <div class="field"><label>Nom</label><input id="adminExerciseName" placeholder="Ex. Shoulder Press"></div>
+        <div class="field"><label>Groupe musculaire</label><input id="adminExerciseMuscle" placeholder="Ex. Épaules"></div>
+        <div class="field">
+          <label>Type</label>
+          <select id="adminExerciseType">
+            <option value="machine">Machine</option>
+            <option value="cable">Poulie</option>
+            <option value="cardio">Cardio</option>
+            <option value="bodyweight">Poids du corps</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><label>Séries par défaut</label><input id="adminExerciseSets" type="number" min="1" value="3"></div>
+        <div class="field"><label>Répétitions cible</label><input id="adminExerciseTarget" value="10–12"></div>
+        <div class="field"><label>Repos (s)</label><input id="adminExerciseRest" type="number" min="0" value="60"></div>
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="adminCreateExercise()">Créer l’exercice</button>
+      <div id="adminExerciseMsg" class="sub" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Catalogue exercices</h2>
+      <div id="adminExercisesList" class="sub">Chargement…</div>
+    </div>
+
+    <div class="card">
+      <h2>Créer une séance modèle</h2>
+      <div class="row">
+        <div class="field"><label>Nom</label><input id="adminTemplateName" placeholder="Ex. Haut du corps A"></div>
+        <div class="field"><label>Description</label><input id="adminTemplateDesc" placeholder="Ex. Pecs • épaules • triceps"></div>
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="adminCreateTemplate()">Créer la séance</button>
+      <div id="adminTemplateMsg" class="sub" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Séances modèles</h2>
+      <div id="adminTemplatesList" class="sub">Chargement…</div>
+    </div>
+  </section>
+
 </div>
 
 <nav class="tabs">
@@ -321,6 +387,7 @@
     <button class="tab" onclick="showPage('pushups',this)">Pompes</button>
     <button class="tab" onclick="showPage('progress',this)">Progrès</button>
     <button class="tab" onclick="showPage('history',this)">Historique</button>
+    <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)">Admin</button>
   </div>
 </nav>
 
@@ -394,6 +461,7 @@ async function handleSession(session){
   if(!session?.user)return;
   currentUser=session.user;
   document.getElementById("authOverlay").classList.add("hidden");
+  await ensureProfile();
   setSyncStatus("Synchronisation…");
   await syncFromCloud();
 }
@@ -464,6 +532,197 @@ async function migrateLocalToCloud(){
   saveLocalDB(); await syncAllToCloud();
   el.textContent="Import terminé. Tes données locales sont maintenant dans le cloud.";
 }
+
+let currentProfile=null;
+let adminCache={users:[],exercises:[],templates:[],workouts:[]};
+
+async function loadCurrentProfile(){
+  if(!currentUser) return null;
+  const {data,error}=await supa.from("profiles").select("*").eq("user_id",currentUser.id).maybeSingle();
+  if(error){ console.error("Profile error",error); return null; }
+  currentProfile=data;
+  const adminTab=document.getElementById("adminTab");
+  if(adminTab) adminTab.classList.toggle("hidden", currentProfile?.role!=="admin");
+  return currentProfile;
+}
+
+async function ensureProfile(){
+  if(!currentUser)return;
+  const {data}=await supa.from("profiles").select("user_id").eq("user_id",currentUser.id).maybeSingle();
+  if(!data){
+    await supa.from("profiles").insert({
+      user_id:currentUser.id,
+      email:currentUser.email,
+      display_name:(currentUser.email||"").split("@")[0],
+      role:"user"
+    });
+  }
+  await loadCurrentProfile();
+}
+
+async function adminGuard(){
+  if(!currentProfile) await loadCurrentProfile();
+  if(currentProfile?.role!=="admin"){
+    alert("Accès administrateur non autorisé.");
+    return false;
+  }
+  return true;
+}
+
+async function loadAdminDashboard(){
+  if(!(await adminGuard())) return;
+  const [u,e,t,w]=await Promise.all([
+    supa.from("profiles").select("*").order("created_at",{ascending:false}),
+    supa.from("exercises").select("*").order("name"),
+    supa.from("workout_templates").select("*").order("name"),
+    supa.from("workouts").select("id,user_id,workout_date,session_type").order("workout_date",{ascending:false})
+  ]);
+  if(u.error||e.error||t.error||w.error){
+    console.error(u.error||e.error||t.error||w.error);
+    return;
+  }
+  adminCache={users:u.data||[],exercises:e.data||[],templates:t.data||[],workouts:w.data||[]};
+
+  document.getElementById("adminUsersCount").textContent=adminCache.users.length;
+  document.getElementById("adminExercisesCount").textContent=adminCache.exercises.filter(x=>x.active!==false).length;
+  document.getElementById("adminTemplatesCount").textContent=adminCache.templates.length;
+  document.getElementById("adminWorkoutsCount").textContent=adminCache.workouts.length;
+
+  renderAdminUsers();
+  renderAdminExercises();
+  renderAdminTemplates();
+}
+
+function renderAdminUsers(){
+  const box=document.getElementById("adminUsersList");
+  if(!box)return;
+  if(!adminCache.users.length){box.innerHTML="Aucun utilisateur.";return;}
+  box.innerHTML=adminCache.users.map(u=>{
+    const count=adminCache.workouts.filter(w=>w.user_id===u.user_id).length;
+    return `<div class="history-item">
+      <div class="row between">
+        <div><strong>${u.display_name||u.email||"Utilisateur"}</strong><div class="sub">${u.email||""}</div></div>
+        <span class="pill">${u.role||"user"}</span>
+      </div>
+      <div class="sub" style="margin-top:6px">${count} séance${count>1?"s":""}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderAdminExercises(){
+  const box=document.getElementById("adminExercisesList");
+  if(!box)return;
+  if(!adminCache.exercises.length){box.innerHTML="Aucun exercice.";return;}
+  box.innerHTML=adminCache.exercises.map(e=>`
+    <div class="history-item">
+      <div class="row between">
+        <div>
+          <strong>${e.name}</strong>
+          <div class="sub">${e.muscle_group||"—"} • ${e.equipment_type||"—"} • ${e.default_sets||3} × ${e.default_target||"10–12"} • repos ${e.rest_seconds||60}s</div>
+        </div>
+        <button class="btn secondary small" onclick="adminToggleExercise('${e.id}',${e.active!==false})">${e.active!==false?"Désactiver":"Activer"}</button>
+      </div>
+    </div>`).join("");
+}
+
+function renderAdminTemplates(){
+  const box=document.getElementById("adminTemplatesList");
+  if(!box)return;
+  if(!adminCache.templates.length){box.innerHTML="Aucune séance modèle.";return;}
+  box.innerHTML=adminCache.templates.map(t=>`
+    <div class="history-item">
+      <div class="row between">
+        <div><strong>${t.name}</strong><div class="sub">${t.description||""}</div></div>
+        <button class="btn secondary small" onclick="adminEditTemplate('${t.id}')">Gérer</button>
+      </div>
+    </div>`).join("");
+}
+
+async function adminCreateExercise(){
+  if(!(await adminGuard()))return;
+  const name=document.getElementById("adminExerciseName").value.trim();
+  if(!name){alert("Indique un nom.");return;}
+  const row={
+    name,
+    muscle_group:document.getElementById("adminExerciseMuscle").value.trim()||null,
+    equipment_type:document.getElementById("adminExerciseType").value,
+    default_sets:Number(document.getElementById("adminExerciseSets").value)||3,
+    default_target:document.getElementById("adminExerciseTarget").value.trim()||"10–12",
+    rest_seconds:Number(document.getElementById("adminExerciseRest").value)||60,
+    active:true,
+    created_by:currentUser.id
+  };
+  const {error}=await supa.from("exercises").insert(row);
+  const msg=document.getElementById("adminExerciseMsg");
+  if(error){msg.textContent="Erreur : "+error.message;return;}
+  msg.textContent="Exercice créé.";
+  document.getElementById("adminExerciseName").value="";
+  await loadAdminDashboard();
+}
+
+async function adminToggleExercise(id,isActive){
+  if(!(await adminGuard()))return;
+  const {error}=await supa.from("exercises").update({active:!isActive}).eq("id",id);
+  if(error){alert(error.message);return;}
+  await loadAdminDashboard();
+}
+
+async function adminCreateTemplate(){
+  if(!(await adminGuard()))return;
+  const name=document.getElementById("adminTemplateName").value.trim();
+  if(!name){alert("Indique un nom.");return;}
+  const {error}=await supa.from("workout_templates").insert({
+    name,
+    description:document.getElementById("adminTemplateDesc").value.trim()||null,
+    active:true,
+    created_by:currentUser.id
+  });
+  const msg=document.getElementById("adminTemplateMsg");
+  if(error){msg.textContent="Erreur : "+error.message;return;}
+  msg.textContent="Séance modèle créée.";
+  document.getElementById("adminTemplateName").value="";
+  document.getElementById("adminTemplateDesc").value="";
+  await loadAdminDashboard();
+}
+
+async function adminEditTemplate(templateId){
+  if(!(await adminGuard()))return;
+  const template=adminCache.templates.find(t=>t.id===templateId);
+  const {data:links,error}=await supa.from("workout_template_exercises")
+    .select("*,exercises(*)").eq("template_id",templateId).order("position");
+  if(error){alert(error.message);return;}
+
+  const current=(links||[]).map(x=>x.exercises?.name).filter(Boolean).join(", ")||"aucun";
+  const names=prompt(`Exercices actuels : ${current}\n\nSaisis les noms des exercices à affecter, séparés par des virgules :`);
+  if(names===null)return;
+  const wanted=names.split(",").map(x=>x.trim()).filter(Boolean);
+  const chosen=[];
+  for(const n of wanted){
+    const ex=adminCache.exercises.find(e=>e.name.toLowerCase()===n.toLowerCase());
+    if(ex) chosen.push(ex);
+  }
+  await supa.from("workout_template_exercises").delete().eq("template_id",templateId);
+  if(chosen.length){
+    const rows=chosen.map((e,i)=>({
+      template_id:templateId,
+      exercise_id:e.id,
+      position:i+1,
+      sets:e.default_sets||3,
+      target_reps:e.default_target||"10–12",
+      rest_seconds:e.rest_seconds||60
+    }));
+    const {error:insErr}=await supa.from("workout_template_exercises").insert(rows);
+    if(insErr){alert(insErr.message);return;}
+  }
+  alert(`Séance "${template?.name||""}" mise à jour.`);
+}
+
+const originalShowPage=showPage;
+showPage=function(id,btn){
+  originalShowPage(id,btn);
+  if(id==="admin") loadAdminDashboard();
+}
+
 async function initAuth(){
   const {data}=await supa.auth.getSession();
   if(data.session)await handleSession(data.session);
