@@ -74,7 +74,7 @@
 <body>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v13.3</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v13.3.1</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -110,7 +110,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v13.3</span>
+        <span class="pill" style="background:white;color:#111827">v13.3.1</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -492,7 +492,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • v13.3</div>
+      <div class="sub">Muscu Progress • v13.3.1</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1672,6 +1672,7 @@ function drawPushupChart(){
 }
 
 function drawChart(canvas){
+  if(!canvas) return;
   const ctx=canvas.getContext("2d"), W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
   ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
@@ -1698,7 +1699,12 @@ function drawChart(canvas){
     ctx.fillStyle=si===0?"#111827":"#6b7280";ctx.font="12px sans-serif";ctx.fillText(s.label,40,16+si*16);
   });
 }
-function drawCharts(){ drawChart(document.getElementById("homeChart")); drawChart(document.getElementById("progressChart")); }
+function drawCharts(){
+  const home=document.getElementById("homeChart");
+  const progress=document.getElementById("progressChart");
+  if(home) drawChart(home);
+  if(progress) drawChart(progress);
+}
 
 function startTimer(sec){
   clearInterval(timerId); let t=sec; const el=document.getElementById("timer");
