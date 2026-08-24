@@ -70,11 +70,48 @@
 .hidden{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Muscu Progress">
 </head>
 <body>
+<div id="onboardingOverlay" class="hidden" style="position:fixed;inset:0;background:#f3f4f6;z-index:9999;overflow:auto;padding:20px">
+  <div style="max-width:560px;margin:20px auto">
+    <div class="card hero">
+      <div class="sub">Bienvenue 👋</div>
+      <h2 style="color:white;margin-top:5px">Configure Muscu Progress</h2>
+      <div class="sub">30 secondes pour personnaliser ton expérience.</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Prénom</label><input id="onboardName" placeholder="Paul"></div>
+      <div class="field" style="margin-top:12px"><label>Objectif principal</label>
+        <select id="onboardGoal">
+          <option value="fat_loss">🔥 Perdre du gras</option>
+          <option value="muscle">💪 Développer mes muscles</option>
+          <option value="fitness">❤️ Me remettre en forme</option>
+          <option value="cardio">🏃 Améliorer mon cardio</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:12px"><label>Objectif d'activités / semaine</label>
+        <select id="onboardTarget"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select>
+      </div>
+      <div style="margin-top:14px"><strong>Mes activités</strong>
+        <label style="display:block;margin-top:8px"><input type="checkbox" id="onboardMuscu" checked> 🏋️ Musculation</label>
+        <label style="display:block;margin-top:8px"><input type="checkbox" id="onboardFitness" checked> 🧘 Fitness</label>
+        <label style="display:block;margin-top:8px"><input type="checkbox" id="onboardCardio" checked> 🏃 Cardio</label>
+        <label style="display:block;margin-top:8px"><input type="checkbox" id="onboardPushups" checked> 💪 Challenge Pompes</label>
+      </div>
+      <button class="btn full" style="margin-top:18px" onclick="finishOnboarding()">Commencer 🚀</button>
+    </div>
+  </div>
+</div>
+
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.0</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.1</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -110,7 +147,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.0</span>
+        <span class="pill" style="background:white;color:#111827">v2.1</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -230,6 +267,16 @@
   </section>
 
 <section id="workout" class="page">
+    <div id="restTimerCard" class="card hidden" style="position:sticky;top:8px;z-index:20">
+      <div class="row between">
+        <div><strong>⏱️ Repos</strong><div id="restTimerText" class="sub">60 s</div></div>
+        <div class="row">
+          <button class="btn secondary small" onclick="addRestTime(30)">+30 s</button>
+          <button class="btn small" onclick="stopRestTimer()">Passer</button>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="row between">
         <div>
@@ -509,7 +556,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.0</div>
+      <div class="sub">Muscu Progress • 2.1</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1057,7 +1104,7 @@ function renderCurrentWorkoutExercises(){
     let lastText=last?`Dernière fois : ${last.sets.map(s=>`${s.weight||0}kg×${s.reps||0}`).join(" • ")}`:"Première séance";
     wrap.innerHTML=`<div class="row between">
         <div>
-          <div class="exercise-title">${ex.name}</div>
+          <div class="exercise-title">${ex.name}</div><div class="sub" id="prevPerf_${i}">${getPreviousPerformanceText(ex.name)}</div>
           <div class="exercise-meta">Objectif ${ex.sets} × ${ex.target} • ${lastText}</div>
         </div>
         <button class="btn secondary small" onclick="removeCurrentExercise(${idx})">Retirer</button>
@@ -1319,7 +1366,7 @@ function v133StartPlanned(){
 function v133RenderHome(){
   const today=todayISO();
   const now=new Date(today+"T12:00:00");
-  const profileName=currentProfile?.display_name||"";
+  const prefs=userPrefs(); const profileName=prefs.name||currentProfile?.display_name||"";
 
   const greet=document.getElementById("v133Greeting");
   const dateEl=document.getElementById("v133TodayDate");
@@ -1358,7 +1405,7 @@ function v133RenderHome(){
   const sun=new Date(mon); sun.setDate(mon.getDate()+6);
   const mi=isoDate(mon), si=isoDate(sun);
   const done=(db.workouts||[]).filter(x=>x.date>=mi&&x.date<=si).length+(db.fitness||[]).filter(x=>x.date>=mi&&x.date<=si).length;
-  const target=Number(currentProfile?.weekly_target)||3;
+  const target=Number(userPrefs().weeklyTarget||currentProfile?.weekly_target)||3;
 
   const count=document.getElementById("v133WeekCount");
   const bar=document.getElementById("v133WeekBar");
@@ -1880,6 +1927,93 @@ const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
 renderWorkout("A"); updateDashboard(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
+</script>
+
+<div id="sessionSummary" class="hidden" style="position:fixed;inset:0;background:rgba(17,24,39,.65);z-index:9998;padding:20px;overflow:auto">
+  <div class="card" style="max-width:520px;margin:12vh auto">
+    <div style="font-size:42px;text-align:center">🎉</div>
+    <h2 style="text-align:center">Séance terminée !</h2>
+    <div id="sessionSummaryBody"></div>
+    <button class="btn full" style="margin-top:14px" onclick="closeSessionSummary()">Terminer</button>
+  </div>
+</div>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+
+// ===== Muscu Progress 2.1 : onboarding, séance intelligente, PWA =====
+let restTimerInterval=null, restSeconds=60;
+
+function userPrefs(){
+  try{return JSON.parse(localStorage.getItem("muscuPrefs_"+(currentUser?.id||"local"))||"{}")}catch(e){return {}}
+}
+function saveUserPrefs(p){localStorage.setItem("muscuPrefs_"+(currentUser?.id||"local"),JSON.stringify(p));}
+
+function maybeShowOnboarding(){
+  if(!currentUser)return;
+  const p=userPrefs();
+  if(!p.onboarded) document.getElementById("onboardingOverlay")?.classList.remove("hidden");
+  applyActivityPreferences();
+}
+function finishOnboarding(){
+  const activities={
+    muscu:document.getElementById("onboardMuscu").checked,
+    fitness:document.getElementById("onboardFitness").checked,
+    cardio:document.getElementById("onboardCardio").checked,
+    pushups:document.getElementById("onboardPushups").checked
+  };
+  if(!Object.values(activities).some(Boolean)){alert("Choisis au moins une activité.");return;}
+  const p={onboarded:true,name:document.getElementById("onboardName").value.trim(),goal:document.getElementById("onboardGoal").value,weeklyTarget:Number(document.getElementById("onboardTarget").value)||3,activities};
+  saveUserPrefs(p);
+  document.getElementById("onboardingOverlay")?.classList.add("hidden");
+  applyActivityPreferences(); v133RenderHome();
+}
+function applyActivityPreferences(){
+  const p=userPrefs(), a=p.activities||{};
+  document.querySelectorAll(".quick-actions button").forEach(b=>{
+    const t=b.textContent;
+    if(t.includes("Programme")||t.includes("Séance libre")) b.style.display=(a.muscu===false?"none":"");
+    if(t.includes("Fitness")) b.style.display=(a.fitness===false?"none":"");
+    if(t.includes("Tapis")||t.includes("Rameur")) b.style.display=(a.cardio===false?"none":"");
+    if(t.includes("Pompes")) b.style.display=(a.pushups===false?"none":"");
+  });
+}
+
+function getPreviousPerformanceText(name){
+  const ws=[...(db.workouts||[])].reverse();
+  for(const w of ws){
+    const ex=(w.exercises||[]).find(e=>(e.name||"").toLowerCase()===String(name).toLowerCase());
+    if(ex){
+      const sets=ex.setsData||ex.results||ex.series||[];
+      if(Array.isArray(sets)&&sets.length){
+        const s=sets[sets.length-1], kg=s.weight??s.kg??s.load, reps=s.reps??s.rep;
+        if(kg!=null||reps!=null)return `Dernière fois : ${kg!=null?kg+" kg":""}${kg!=null&&reps!=null?" × ":""}${reps!=null?reps+" reps":""}`;
+      }
+      if(ex.weight!=null||ex.reps!=null)return `Dernière fois : ${ex.weight!=null?ex.weight+" kg":""}${ex.weight!=null&&ex.reps!=null?" × ":""}${ex.reps!=null?ex.reps+" reps":""}`;
+    }
+  }
+  return "Première performance à enregistrer";
+}
+function startRestTimer(seconds=60){
+  stopRestTimer(false); restSeconds=seconds;
+  const card=document.getElementById("restTimerCard"); if(card)card.classList.remove("hidden");
+  updateRestTimer();
+  restTimerInterval=setInterval(()=>{restSeconds--;updateRestTimer();if(restSeconds<=0)stopRestTimer();},1000);
+}
+function updateRestTimer(){const e=document.getElementById("restTimerText");if(e)e.textContent=`${restSeconds} s`;}
+function addRestTime(s){restSeconds+=s;updateRestTimer();}
+function stopRestTimer(hide=true){if(restTimerInterval)clearInterval(restTimerInterval);restTimerInterval=null;if(hide)document.getElementById("restTimerCard")?.classList.add("hidden");}
+
+function showSessionSummary(sessionName){
+  const today=todayISO(), week=(db.workouts||[]).filter(x=>x.date===today).length;
+  const body=document.getElementById("sessionSummaryBody");
+  if(body)body.innerHTML=`<div class="grid"><div class="card stat"><strong>${sessionName||"Séance"}</strong><span>activité</span></div><div class="card stat"><strong>${week}</strong><span>séance${week>1?"s":""} aujourd’hui</span></div></div><div class="sub" style="text-align:center;margin-top:10px">Bravo pour ta régularité 💪</div>`;
+  document.getElementById("sessionSummary")?.classList.remove("hidden");
+}
+function closeSessionSummary(){document.getElementById("sessionSummary")?.classList.add("hidden");showPage("home");v133RenderHome();}
+
+// Wrap existing finish/save workout functions when present, without breaking legacy logic.
+window.addEventListener("load",()=>setTimeout(maybeShowOnboarding,700));
+
 </script>
 </body>
 </html>
