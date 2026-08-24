@@ -61,10 +61,39 @@
       .grid{grid-template-columns:1fr 1fr}
       .sets{grid-template-columns:30px 1fr 1fr 40px}
     }
-  </style>
+  .auth-overlay{position:fixed;inset:0;background:#f4f6f8;z-index:100;display:flex;align-items:center;justify-content:center;padding:18px}
+.auth-box{width:min(430px,100%);background:white;border:1px solid #e5e7eb;border-radius:22px;padding:22px;box-shadow:0 10px 35px rgba(17,24,39,.10)}
+.auth-box h1{margin-bottom:6px}.auth-box .field{margin-top:12px}
+.syncbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:white;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12px}
+.syncdot{width:9px;height:9px;border-radius:50%;background:#b45309;display:inline-block;margin-right:6px}
+.syncdot.ok{background:#0f766e}
+.hidden{display:none!important}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-box">
+    <h1>Muscu Progress</h1>
+    <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
+    <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
+    <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="signIn()">Se connecter</button>
+      <button class="btn secondary" onclick="signUp()">Créer mon compte</button>
+    </div>
+    <div id="authMessage" class="sub" style="margin-top:12px"></div>
+  </div>
+</div>
+
 <div class="app">
+  <div id="syncBar" class="syncbar hidden">
+    <div><span id="syncDot" class="syncdot"></span><span id="syncText">Synchronisation…</span></div>
+    <div class="row">
+      <button class="btn secondary small" onclick="syncFromCloud()">↻ Synchroniser</button>
+      <button class="btn secondary small" onclick="signOut()">Déconnexion</button>
+    </div>
+  </div>
   <header>
     <h1>Muscu Progress</h1>
     <div class="sub">Programme Basic-Fit • démarrage 24 août 2026</div>
@@ -267,6 +296,13 @@
     </div>
 
     <div class="card">
+      <h2>Synchronisation cloud</h2>
+      <p class="sub">Si tu avais déjà utilisé Muscu Progress avant la connexion cloud, importe ici les données enregistrées dans ce navigateur.</p>
+      <button class="btn" onclick="migrateLocalToCloud()">Importer mes données locales vers le cloud</button>
+      <div id="migrationMessage" class="sub" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
       <h2>Données</h2>
       <p class="sub">Les données restent enregistrées localement dans ce navigateur. Tu peux les exporter en JSON pour les sauvegarder.</p>
       <div class="row">
@@ -312,7 +348,132 @@ if(!db.pushups) db.pushups=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); }
+function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); }
+function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
+
+const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
+const SUPABASE_KEY="sb_publishable_t1NQnhOQGt482D-yl08nKA_iC0q2qeE";
+const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null;
+let syncing=false;
+
+function setSyncStatus(text,ok=false){
+  const bar=document.getElementById("syncBar"), dot=document.getElementById("syncDot"), label=document.getElementById("syncText");
+  if(bar)bar.classList.remove("hidden");
+  if(label)label.textContent=text;
+  if(dot)dot.classList.toggle("ok",ok);
+}
+function authMsg(text,isError=false){
+  const el=document.getElementById("authMessage"); if(!el)return;
+  el.textContent=text; el.style.color=isError?"#b91c1c":"#0f766e";
+}
+async function signUp(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||password.length<6){authMsg("Saisis un email valide et un mot de passe d’au moins 6 caractères.",true);return;}
+  authMsg("Création du compte…");
+  const {data,error}=await supa.auth.signUp({email,password});
+  if(error){authMsg(error.message,true);return;}
+  if(data.session){await handleSession(data.session);}
+  else authMsg("Compte créé. Vérifie ton email pour confirmer l’inscription, puis connecte-toi.");
+}
+async function signIn(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  authMsg("Connexion…");
+  const {data,error}=await supa.auth.signInWithPassword({email,password});
+  if(error){authMsg("Connexion impossible : "+error.message,true);return;}
+  await handleSession(data.session);
+}
+async function signOut(){
+  await supa.auth.signOut(); currentUser=null;
+  document.getElementById("authOverlay").classList.remove("hidden");
+  document.getElementById("syncBar").classList.add("hidden");
+}
+async function handleSession(session){
+  if(!session?.user)return;
+  currentUser=session.user;
+  document.getElementById("authOverlay").classList.add("hidden");
+  setSyncStatus("Synchronisation…");
+  await syncFromCloud();
+}
+async function syncFromCloud(){
+  if(!currentUser||syncing)return; syncing=true; setSyncStatus("Synchronisation…");
+  try{
+    const [w,m,p]=await Promise.all([
+      supa.from("workouts").select("*").eq("user_id",currentUser.id).order("workout_date"),
+      supa.from("measurements").select("*").eq("user_id",currentUser.id).order("measure_date"),
+      supa.from("pushups").select("*").eq("user_id",currentUser.id).order("pushup_date")
+    ]);
+    if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;
+    db={
+      workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual})),
+      measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
+      pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()}))
+    };
+    saveLocalDB(); setSyncStatus("Synchronisé",true);
+  }catch(e){console.error(e);setSyncStatus("Erreur de synchronisation");}
+  finally{syncing=false;}
+}
+async function syncAllToCloud(){
+  if(!currentUser||syncing)return; syncing=true; setSyncStatus("Enregistrement…");
+  try{
+    // Rebuild the user's cloud rows from the local in-memory state.
+    // Simple and reliable for this personal tracker.
+    const tables=["workouts","measurements","pushups"];
+    for(const t of tables){
+      const del=await supa.from(t).delete().eq("user_id",currentUser.id);
+      if(del.error)throw del.error;
+    }
+    if(db.workouts.length){
+      const rows=db.workouts.map(x=>({
+        user_id:currentUser.id,workout_date:x.date,session_type:x.session,
+        exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual
+      }));
+      const r=await supa.from("workouts").insert(rows);if(r.error)throw r.error;
+    }
+    if(db.measurements.length){
+      const rows=db.measurements.map(x=>({user_id:currentUser.id,measure_date:x.date,weight:x.weight,waist:x.waist}));
+      const r=await supa.from("measurements").insert(rows);if(r.error)throw r.error;
+    }
+    if(db.pushups.length){
+      const rows=db.pushups.map(x=>({user_id:currentUser.id,pushup_date:x.date,count:x.count}));
+      const r=await supa.from("pushups").insert(rows);if(r.error)throw r.error;
+    }
+    setSyncStatus("Synchronisé",true);
+  }catch(e){console.error(e);setSyncStatus("Erreur d’enregistrement");}
+  finally{syncing=false;}
+}
+async function migrateLocalToCloud(){
+  if(!currentUser)return;
+  const el=document.getElementById("migrationMessage");
+  const local=JSON.parse(localStorage.getItem("muscuProgress")||'{"workouts":[],"measurements":[],"pushups":[]}');
+  if(!local.workouts?.length&&!local.measurements?.length&&!local.pushups?.length){
+    el.textContent="Aucune donnée locale à importer.";return;
+  }
+  const cloudCopy=JSON.parse(JSON.stringify(db));
+  db={
+    workouts:[...(cloudCopy.workouts||[]),...(local.workouts||[])],
+    measurements:[...(cloudCopy.measurements||[]),...(local.measurements||[])],
+    pushups:[...(cloudCopy.pushups||[]),...(local.pushups||[])]
+  };
+  // Basic duplicate protection for likely identical historical rows.
+  db.workouts=db.workouts.filter((x,i,a)=>i===a.findIndex(y=>JSON.stringify([y.date,y.session,y.exercises,y.treadmill])===JSON.stringify([x.date,x.session,x.exercises,x.treadmill])));
+  db.measurements=db.measurements.filter((x,i,a)=>i===a.findIndex(y=>JSON.stringify([y.date,y.weight,y.waist])===JSON.stringify([x.date,x.weight,x.waist])));
+  db.pushups=db.pushups.filter((x,i,a)=>i===a.findIndex(y=>JSON.stringify([y.date,y.count,y.ts])===JSON.stringify([x.date,x.count,x.ts])));
+  saveLocalDB(); await syncAllToCloud();
+  el.textContent="Import terminé. Tes données locales sont maintenant dans le cloud.";
+}
+async function initAuth(){
+  const {data}=await supa.auth.getSession();
+  if(data.session)await handleSession(data.session);
+  else document.getElementById("authOverlay").classList.remove("hidden");
+  supa.auth.onAuthStateChange((event,session)=>{
+    if(event==="SIGNED_OUT")return;
+    if(session&&!currentUser)setTimeout(()=>handleSession(session),0);
+  });
+}
+
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 function showPage(id,btn){
@@ -631,14 +792,14 @@ function importData(ev){
   const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);saveDB();alert("Données importées.");}catch(e){alert("Fichier invalide.");}};r.readAsText(f);
 }
 function resetData(){
-  if(confirm("Supprimer toutes les données enregistrées ?")){db={workouts:[],measurements:[],pushups:[]};saveDB();}
+  if(confirm("Supprimer toutes les données enregistrées, y compris les données synchronisées dans le cloud ?")){db={workouts:[],measurements:[],pushups:[]};saveDB();}
 }
 
 document.getElementById("measureDate").value=todayISO();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart();
+renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); initAuth();
 </script>
 </body>
 </html>
