@@ -45,7 +45,7 @@
     .check{height:38px;border-radius:10px;border:1px solid var(--line);background:white;cursor:pointer}
     .check.done{background:var(--ok);color:white;border-color:var(--ok)}
     .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
-    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(7,1fr)}
+    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(8,1fr)}
     .tab{padding:11px 4px 15px;border:0;background:transparent;font-size:12px;color:var(--muted);cursor:pointer}
     .tab.active{color:var(--ink);font-weight:800}
     .page{display:none}.page.active{display:block}
@@ -119,6 +119,18 @@
       <div class="card stat"><strong id="statPushupsMonth">0</strong><span>pompes ce mois</span></div>
       <div class="card stat"><strong id="statPushupsToday">0</strong><span>pompes aujourd’hui</span></div>
       <div class="card stat"><strong id="statFitnessMonth">0</strong><span>min fitness ce mois</span></div>
+    </div>
+
+
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="sub">Aujourd’hui</div>
+          <h2 id="todayPlanTitle">Aucune activité planifiée</h2>
+          <div id="todayPlanDetail" class="sub"></div>
+        </div>
+        <button class="btn secondary small" onclick="showPage('planning',document.querySelectorAll('.tab')[4])">Voir le planning</button>
+      </div>
     </div>
 
     <div class="card">
@@ -237,6 +249,65 @@
     <div class="card">
       <h2>Historique des cours</h2>
       <div id="fitnessHistory"></div>
+    </div>
+  </section>
+
+
+  <section id="planning" class="page">
+    <div class="card hero">
+      <div class="sub">Organisation de la semaine</div>
+      <h2 style="color:white;margin-top:4px">Planning</h2>
+      <div class="sub">Visualise et planifie précisément les 14 prochains jours.</div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <button class="btn secondary small" onclick="changePlanningRange(-14)">← 14 jours</button>
+        <strong id="planningRangeLabel"></strong>
+        <button class="btn secondary small" onclick="changePlanningRange(14)">14 jours →</button>
+      </div>
+    </div>
+
+    <div id="planningDays"></div>
+
+    <div class="card">
+      <h2>Ajouter / modifier une activité</h2>
+      <div class="row">
+        <div class="field"><label>Date</label><input id="planDate" type="date"></div>
+        <div class="field">
+          <label>Type</label>
+          <select id="planType" onchange="updatePlanningForm()">
+            <option value="workout">Musculation</option>
+            <option value="treadmill">Tapis</option>
+            <option value="fitness">Fitness</option>
+            <option value="rest">Repos</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="planWorkoutFields" class="row" style="margin-top:10px">
+        <div class="field">
+          <label>Séance</label>
+          <select id="planWorkoutSession">
+            <option value="A">Séance A</option>
+            <option value="B">Séance B</option>
+            <option value="C">Séance C</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="planTreadmillFields" class="row hidden" style="margin-top:10px">
+        <div class="field"><label>Durée (min)</label><input id="planTreadmillDuration" type="number" min="1" step="5" placeholder="Ex. 30"></div>
+        <div class="field"><label>Inclinaison (%)</label><input id="planTreadmillIncline" type="number" min="0" step="0.5" placeholder="Ex. 5"></div>
+        <div class="field"><label>Vitesse (km/h)</label><input id="planTreadmillSpeed" type="number" min="0" step="0.1" placeholder="Ex. 5.8"></div>
+      </div>
+
+      <div id="planFitnessFields" class="row hidden" style="margin-top:10px">
+        <div class="field"><label>Nom du cours</label><input id="planFitnessName" placeholder="Ex. BodyPump"></div>
+        <div class="field"><label>Durée (min)</label><input id="planFitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45"></div>
+      </div>
+
+      <button class="btn" style="margin-top:12px" onclick="savePlanningItem()">Enregistrer dans le planning</button>
     </div>
   </section>
 
@@ -426,6 +497,7 @@
     <button class="tab" onclick="showPage('workout',this)">Séance</button>
     <button class="tab" onclick="showPage('pushups',this)">Pompes</button>
     <button class="tab" onclick="showPage('fitness',this)">Fitness</button>
+    <button class="tab" onclick="showPage('planning',this)">Planning</button>
     <button class="tab" onclick="showPage('progress',this)">Progrès</button>
     <button class="tab" onclick="showPage('history',this)">Historique</button>
     <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)">Admin</button>
@@ -454,10 +526,11 @@ if(!db.workouts) db.workouts=[];
 if(!db.measurements) db.measurements=[];
 if(!db.pushups) db.pushups=[];
 if(!db.fitness) db.fitness=[];
+if(!db.planning) db.planning=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); drawCharts(); drawPushupChart(); }
+function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
 function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
 
 const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
@@ -510,18 +583,20 @@ async function handleSession(session){
 async function syncFromCloud(){
   if(!currentUser||syncing)return; syncing=true; setSyncStatus("Synchronisation…");
   try{
-    const [w,m,p,f]=await Promise.all([
+    const [w,m,p,f,pl]=await Promise.all([
       supa.from("workouts").select("*").eq("user_id",currentUser.id).order("workout_date"),
       supa.from("measurements").select("*").eq("user_id",currentUser.id).order("measure_date"),
       supa.from("pushups").select("*").eq("user_id",currentUser.id).order("pushup_date"),
-      supa.from("fitness_classes").select("*").eq("user_id",currentUser.id).order("class_date")
+      supa.from("fitness_classes").select("*").eq("user_id",currentUser.id).order("class_date"),
+      supa.from("planning_items").select("*").eq("user_id",currentUser.id).order("plan_date")
     ]);
-    if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;if(f.error)throw f.error;
+    if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;if(f.error)throw f.error;if(pl.error)throw pl.error;
     db={
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
       pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()})),
-      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes)}))
+      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes)})),
+      planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
   }catch(e){console.error(e);setSyncStatus("Erreur de synchronisation");}
@@ -532,7 +607,7 @@ async function syncAllToCloud(){
   try{
     // Rebuild the user's cloud rows from the local in-memory state.
     // Simple and reliable for this personal tracker.
-    const tables=["workouts","measurements","pushups","fitness_classes"];
+    const tables=["workouts","measurements","pushups","fitness_classes","planning_items"];
     for(const t of tables){
       const del=await supa.from(t).delete().eq("user_id",currentUser.id);
       if(del.error)throw del.error;
@@ -555,6 +630,19 @@ async function syncAllToCloud(){
     if(db.fitness.length){
       const rows=db.fitness.map(x=>({user_id:currentUser.id,class_date:x.date,class_name:x.name,duration_minutes:x.duration}));
       const r=await supa.from("fitness_classes").insert(rows);if(r.error)throw r.error;
+    }
+    if(db.planning.length){
+      const rows=db.planning.map(x=>({
+        user_id:currentUser.id,
+        plan_date:x.plan_date,
+        activity_type:x.type,
+        workout_session:x.workout_session||null,
+        duration_minutes:x.duration_minutes||null,
+        incline:x.incline||null,
+        speed:x.speed||null,
+        fitness_name:x.fitness_name||null
+      }));
+      const r=await supa.from("planning_items").insert(rows);if(r.error)throw r.error;
     }
     setSyncStatus("Synchronisé",true);
   }catch(e){console.error(e);setSyncStatus("Erreur d’enregistrement");}
@@ -815,7 +903,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) btn.classList.add("active");
-  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness();
+  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness(); if(id==="planning")renderPlanning();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -965,6 +1053,7 @@ function updateDashboard(){
   document.getElementById("statPushupsMonth").textContent=pushMonth;
   const fitnessMonth=db.fitness.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+(Number(x.duration)||0),0);
   const fm=document.getElementById("statFitnessMonth"); if(fm) fm.textContent=fitnessMonth;
+  renderTodayPlan();
   const n=getNextSession(); document.getElementById("nextSessionTitle").textContent=PROGRAM[n].title;
   document.getElementById("nextSessionDesc").textContent=PROGRAM[n].desc;
 }
@@ -981,6 +1070,163 @@ function renderHistory(){
 }
 
 
+
+
+
+let planningStartOffset=0;
+
+function isoDate(d){
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function changePlanningRange(delta){
+  planningStartOffset+=delta;
+  renderPlanning();
+}
+
+function updatePlanningForm(){
+  const type=document.getElementById("planType").value;
+  document.getElementById("planWorkoutFields").classList.toggle("hidden",type!=="workout");
+  document.getElementById("planTreadmillFields").classList.toggle("hidden",type!=="treadmill");
+  document.getElementById("planFitnessFields").classList.toggle("hidden",type!=="fitness");
+}
+
+function planningLabel(item){
+  if(!item)return "Aucune activité planifiée";
+  if(item.type==="workout")return "Musculation — Séance "+(item.workout_session||"");
+  if(item.type==="treadmill")return `Tapis — ${item.duration_minutes||0} min`;
+  if(item.type==="fitness")return `Fitness — ${item.fitness_name||"Cours"}${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  return "Repos";
+}
+
+function renderPlanning(){
+  const box=document.getElementById("planningDays");
+  if(!box)return;
+
+  const start=new Date(todayISO()+"T12:00:00");
+  start.setDate(start.getDate()+planningStartOffset);
+
+  const end=new Date(start);
+  end.setDate(end.getDate()+13);
+
+  const label=document.getElementById("planningRangeLabel");
+  if(label){
+    label.textContent=`${start.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})} → ${end.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}`;
+  }
+
+  let out="";
+  for(let i=0;i<14;i++){
+    const d=new Date(start);
+    d.setDate(start.getDate()+i);
+    const date=isoDate(d);
+    const item=db.planning.find(x=>x.plan_date===date);
+    const isToday=date===todayISO();
+
+    out+=`<div class="card" style="${isToday?'border:2px solid #111827;':''}">
+      <div class="row between">
+        <div>
+          <strong>${d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"2-digit"})}${isToday?" • Aujourd’hui":""}</strong>
+          <div class="sub">${planningLabel(item)}</div>
+          ${item?.type==="treadmill"?`<div class="sub">${item.incline||0}% • ${item.speed||0} km/h</div>`:""}
+        </div>
+        <div class="row">
+          <button class="btn secondary small" onclick="editPlanningItem('${date}')">${item?"Modifier":"Planifier"}</button>
+          ${item?`<button class="btn secondary small" onclick="deletePlanningItem('${date}')">Supprimer</button>`:""}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  box.innerHTML=out;
+  renderTodayPlan();
+}
+
+function editPlanningItem(date){
+  document.getElementById("planDate").value=date;
+  const item=db.planning.find(x=>x.plan_date===date);
+  if(!item){
+    document.getElementById("planType").value="workout";
+    document.getElementById("planWorkoutSession").value="A";
+    document.getElementById("planTreadmillDuration").value="";
+    document.getElementById("planTreadmillIncline").value="";
+    document.getElementById("planTreadmillSpeed").value="";
+    document.getElementById("planFitnessName").value="";
+    document.getElementById("planFitnessDuration").value="";
+    updatePlanningForm();
+    document.getElementById("planDate").scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+
+  document.getElementById("planType").value=item.type;
+  document.getElementById("planWorkoutSession").value=item.workout_session||"A";
+  document.getElementById("planTreadmillDuration").value=item.duration_minutes||"";
+  document.getElementById("planTreadmillIncline").value=item.incline||"";
+  document.getElementById("planTreadmillSpeed").value=item.speed||"";
+  document.getElementById("planFitnessName").value=item.fitness_name||"";
+  document.getElementById("planFitnessDuration").value=item.duration_minutes||"";
+  updatePlanningForm();
+  document.getElementById("planDate").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function savePlanningItem(){
+  const date=document.getElementById("planDate").value||todayISO();
+  const type=document.getElementById("planType").value;
+  const item={plan_date:date,type};
+
+  if(type==="workout"){
+    item.workout_session=document.getElementById("planWorkoutSession").value;
+  }
+
+  if(type==="treadmill"){
+    item.duration_minutes=Number(document.getElementById("planTreadmillDuration").value)||0;
+    item.incline=Number(document.getElementById("planTreadmillIncline").value)||0;
+    item.speed=Number(document.getElementById("planTreadmillSpeed").value)||0;
+  }
+
+  if(type==="fitness"){
+    item.fitness_name=document.getElementById("planFitnessName").value.trim();
+    item.duration_minutes=Number(document.getElementById("planFitnessDuration").value)||0;
+  }
+
+  const idx=db.planning.findIndex(x=>x.plan_date===date);
+  if(idx>=0)db.planning[idx]=item;
+  else db.planning.push(item);
+
+  saveDB();
+
+  const today=new Date(todayISO()+"T12:00:00");
+  const chosen=new Date(date+"T12:00:00");
+  planningStartOffset=Math.floor((chosen-today)/(1000*60*60*24));
+  if(planningStartOffset>0) planningStartOffset=Math.floor(planningStartOffset/14)*14;
+  renderPlanning();
+}
+
+function deletePlanningItem(date){
+  db.planning=db.planning.filter(x=>x.plan_date!==date);
+  saveDB();
+  renderPlanning();
+}
+
+function renderTodayPlan(){
+  const item=db.planning.find(x=>x.plan_date===todayISO());
+  const title=document.getElementById("todayPlanTitle");
+  const detail=document.getElementById("todayPlanDetail");
+
+  if(!title||!detail)return;
+
+  if(!item){
+    title.textContent="Aucune activité planifiée";
+    detail.textContent="";
+    return;
+  }
+
+  title.textContent=planningLabel(item);
+
+  if(item.type==="treadmill"){
+    detail.textContent=`Inclinaison ${item.incline||0}% • ${item.speed||0} km/h`;
+  } else {
+    detail.textContent="";
+  }
+}
 
 function renderFitness(){
   const ym=todayISO().slice(0,7);
@@ -1158,15 +1404,17 @@ function importData(ev){
   const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);saveDB();alert("Données importées.");}catch(e){alert("Fichier invalide.");}};r.readAsText(f);
 }
 function resetData(){
-  if(confirm("Supprimer toutes les données enregistrées, y compris les données synchronisées dans le cloud ?")){db={workouts:[],measurements:[],pushups:[],fitness:[]};saveDB();}
+  if(confirm("Supprimer toutes les données enregistrées, y compris les données synchronisées dans le cloud ?")){db={workouts:[],measurements:[],pushups:[],fitness:[],planning:[]};saveDB();}
 }
 
 document.getElementById("measureDate").value=todayISO();
 const fitnessDateEl=document.getElementById("fitnessDate"); if(fitnessDateEl) fitnessDateEl.value=todayISO();
+const planDateEl=document.getElementById("planDate"); if(planDateEl) planDateEl.value=todayISO();
+updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); drawCharts(); drawPushupChart(); initAuth();
+renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
 </script>
 </body>
 </html>
