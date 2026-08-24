@@ -45,7 +45,7 @@
     .check{height:38px;border-radius:10px;border:1px solid var(--line);background:white;cursor:pointer}
     .check.done{background:var(--ok);color:white;border-color:var(--ok)}
     .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
-    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(6,1fr)}
+    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(7,1fr)}
     .tab{padding:11px 4px 15px;border:0;background:transparent;font-size:12px;color:var(--muted);cursor:pointer}
     .tab.active{color:var(--ink);font-weight:800}
     .page{display:none}.page.active{display:block}
@@ -118,6 +118,7 @@
       <div class="card stat"><strong id="statStreak">0</strong><span>séances ce mois</span></div>
       <div class="card stat"><strong id="statPushupsMonth">0</strong><span>pompes ce mois</span></div>
       <div class="card stat"><strong id="statPushupsToday">0</strong><span>pompes aujourd’hui</span></div>
+      <div class="card stat"><strong id="statFitnessMonth">0</strong><span>min fitness ce mois</span></div>
     </div>
 
     <div class="card">
@@ -202,6 +203,41 @@
     </div>
 
     <button class="btn full" onclick="finishWorkout()">✓ Terminer la séance</button>
+  </section>
+
+
+  <section id="fitness" class="page">
+    <div class="card hero">
+      <div class="sub">Cours collectifs</div>
+      <h2 style="color:white;margin-top:4px">Fitness</h2>
+      <div class="row between">
+        <div><strong id="fitnessMonthMinutes" style="font-size:34px">0</strong><div class="sub">minutes ce mois-ci</div></div>
+        <div><strong id="fitnessMonthClasses" style="font-size:34px">0</strong><div class="sub">cours ce mois-ci</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Ajouter un cours</h2>
+      <div class="row">
+        <div class="field"><label>Date</label><input id="fitnessDate" type="date"></div>
+        <div class="field">
+          <label>Nom du cours</label>
+          <input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="Ex. BodyPump, Cycling, Yoga...">
+          <datalist id="fitnessCourseSuggestions">
+            <option value="BodyPump"><option value="Cycling"><option value="RPM"><option value="Yoga">
+            <option value="Pilates"><option value="BodyAttack"><option value="BodyCombat"><option value="CAF">
+            <option value="Stretching"><option value="Cross Training">
+          </datalist>
+        </div>
+        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45"></div>
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="saveFitnessClass()">Enregistrer le cours</button>
+    </div>
+
+    <div class="card">
+      <h2>Historique des cours</h2>
+      <div id="fitnessHistory"></div>
+    </div>
   </section>
 
   <section id="progress" class="page">
@@ -328,8 +364,12 @@
     </div>
 
     <div class="card">
-      <h2>Utilisateurs</h2>
-      <div id="adminUsersList" class="sub">Chargement…</div>
+      <div class="row between">
+        <div><h2>Gestion des utilisateurs</h2><div class="sub">Nom, rôle et accès à l'application.</div></div>
+        <button class="btn secondary small" onclick="loadAdminDashboard()">Actualiser</button>
+      </div>
+      <div id="adminUsersList" class="sub" style="margin-top:10px">Chargement…</div>
+      <div class="hint" style="margin-top:12px">Les nouveaux comptes sont créés via « Créer mon compte ». Tu peux ensuite les gérer ici.</div>
     </div>
 
     <div class="card">
@@ -385,6 +425,7 @@
     <button class="tab active" onclick="showPage('home',this)">Accueil</button>
     <button class="tab" onclick="showPage('workout',this)">Séance</button>
     <button class="tab" onclick="showPage('pushups',this)">Pompes</button>
+    <button class="tab" onclick="showPage('fitness',this)">Fitness</button>
     <button class="tab" onclick="showPage('progress',this)">Progrès</button>
     <button class="tab" onclick="showPage('history',this)">Historique</button>
     <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)">Admin</button>
@@ -412,10 +453,11 @@ let db = JSON.parse(localStorage.getItem("muscuProgress") || '{"workouts":[],"me
 if(!db.workouts) db.workouts=[];
 if(!db.measurements) db.measurements=[];
 if(!db.pushups) db.pushups=[];
+if(!db.fitness) db.fitness=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); }
+function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); drawCharts(); drawPushupChart(); }
 function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
 
 const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
@@ -468,16 +510,18 @@ async function handleSession(session){
 async function syncFromCloud(){
   if(!currentUser||syncing)return; syncing=true; setSyncStatus("Synchronisation…");
   try{
-    const [w,m,p]=await Promise.all([
+    const [w,m,p,f]=await Promise.all([
       supa.from("workouts").select("*").eq("user_id",currentUser.id).order("workout_date"),
       supa.from("measurements").select("*").eq("user_id",currentUser.id).order("measure_date"),
-      supa.from("pushups").select("*").eq("user_id",currentUser.id).order("pushup_date")
+      supa.from("pushups").select("*").eq("user_id",currentUser.id).order("pushup_date"),
+      supa.from("fitness_classes").select("*").eq("user_id",currentUser.id).order("class_date")
     ]);
-    if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;
+    if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;if(f.error)throw f.error;
     db={
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
-      pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()}))
+      pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()})),
+      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes)}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
   }catch(e){console.error(e);setSyncStatus("Erreur de synchronisation");}
@@ -488,7 +532,7 @@ async function syncAllToCloud(){
   try{
     // Rebuild the user's cloud rows from the local in-memory state.
     // Simple and reliable for this personal tracker.
-    const tables=["workouts","measurements","pushups"];
+    const tables=["workouts","measurements","pushups","fitness_classes"];
     for(const t of tables){
       const del=await supa.from(t).delete().eq("user_id",currentUser.id);
       if(del.error)throw del.error;
@@ -507,6 +551,10 @@ async function syncAllToCloud(){
     if(db.pushups.length){
       const rows=db.pushups.map(x=>({user_id:currentUser.id,pushup_date:x.date,count:x.count}));
       const r=await supa.from("pushups").insert(rows);if(r.error)throw r.error;
+    }
+    if(db.fitness.length){
+      const rows=db.fitness.map(x=>({user_id:currentUser.id,class_date:x.date,class_name:x.name,duration_minutes:x.duration}));
+      const r=await supa.from("fitness_classes").insert(rows);if(r.error)throw r.error;
     }
     setSyncStatus("Synchronisé",true);
   }catch(e){console.error(e);setSyncStatus("Erreur d’enregistrement");}
@@ -600,13 +648,40 @@ function renderAdminUsers(){
   box.innerHTML=adminCache.users.map(u=>{
     const count=adminCache.workouts.filter(w=>w.user_id===u.user_id).length;
     return `<div class="history-item">
-      <div class="row between">
-        <div><strong>${u.display_name||u.email||"Utilisateur"}</strong><div class="sub">${u.email||""}</div></div>
-        <span class="pill">${u.role||"user"}</span>
+      <div class="row">
+        <div class="field"><label>Nom affiché</label><input id="name-${u.user_id}" value="${u.display_name||""}"></div>
+        <div class="field"><label>Email</label><input value="${u.email||""}" disabled></div>
+        <div class="field"><label>Rôle</label>
+          <select id="role-${u.user_id}">
+            <option value="user" ${u.role==="user"?"selected":""}>Utilisateur</option>
+            <option value="admin" ${u.role==="admin"?"selected":""}>Administrateur</option>
+          </select>
+        </div>
       </div>
-      <div class="sub" style="margin-top:6px">${count} séance${count>1?"s":""}</div>
+      <div class="row between" style="margin-top:8px">
+        <div class="sub">${count} séance${count>1?"s":""} • ${u.active===false?"Accès désactivé":"Accès actif"}</div>
+        <div class="row">
+          <button class="btn secondary small" onclick="adminSaveUser('${u.user_id}')">Enregistrer</button>
+          <button class="btn secondary small" onclick="adminToggleUser('${u.user_id}',${u.active!==false})">${u.active===false?"Réactiver":"Désactiver"}</button>
+        </div>
+      </div>
     </div>`;
   }).join("");
+}
+async function adminSaveUser(userId){
+  if(!(await adminGuard()))return;
+  const display_name=document.getElementById("name-"+userId).value.trim();
+  const role=document.getElementById("role-"+userId).value;
+  const {error}=await supa.from("profiles").update({display_name,role}).eq("user_id",userId);
+  if(error){alert(error.message);return;}
+  await loadAdminDashboard();
+}
+async function adminToggleUser(userId,isActive){
+  if(!(await adminGuard()))return;
+  if(userId===currentUser.id && isActive){alert("Tu ne peux pas désactiver ton propre compte administrateur.");return;}
+  const {error}=await supa.from("profiles").update({active:!isActive}).eq("user_id",userId);
+  if(error){alert(error.message);return;}
+  await loadAdminDashboard();
 }
 
 function renderAdminExercises(){
@@ -740,7 +815,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) btn.classList.add("active");
-  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();}
+  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -888,6 +963,8 @@ function updateDashboard(){
   const pushMonth=db.pushups.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
   document.getElementById("statPushupsToday").textContent=pushToday;
   document.getElementById("statPushupsMonth").textContent=pushMonth;
+  const fitnessMonth=db.fitness.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+(Number(x.duration)||0),0);
+  const fm=document.getElementById("statFitnessMonth"); if(fm) fm.textContent=fitnessMonth;
   const n=getNextSession(); document.getElementById("nextSessionTitle").textContent=PROGRAM[n].title;
   document.getElementById("nextSessionDesc").textContent=PROGRAM[n].desc;
 }
@@ -903,6 +980,36 @@ function renderHistory(){
     </div>`).join("");
 }
 
+
+
+function renderFitness(){
+  const ym=todayISO().slice(0,7);
+  const month=db.fitness.filter(x=>x.date.startsWith(ym));
+  const mins=month.reduce((s,x)=>s+(Number(x.duration)||0),0);
+  const a=document.getElementById("fitnessMonthMinutes"), b=document.getElementById("fitnessMonthClasses");
+  if(a)a.textContent=mins; if(b)b.textContent=month.length;
+  const box=document.getElementById("fitnessHistory"); if(!box)return;
+  const rows=[...db.fitness].sort((a,b)=>b.date.localeCompare(a.date));
+  box.innerHTML=rows.length?rows.map(x=>`
+    <div class="history-item">
+      <div class="row between">
+        <div><strong>${x.name}</strong><div class="sub">${new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div></div>
+        <span class="pill">${x.duration} min</span>
+      </div>
+    </div>`).join(""):'<div class="sub">Aucun cours enregistré pour le moment.</div>';
+}
+function saveFitnessClass(){
+  const date=document.getElementById("fitnessDate").value||todayISO();
+  const name=document.getElementById("fitnessName").value.trim();
+  const duration=parseInt(document.getElementById("fitnessDuration").value,10);
+  if(!name){alert("Indique le nom du cours.");return;}
+  if(!duration||duration<1){alert("Indique la durée du cours.");return;}
+  db.fitness.push({date,name,duration});
+  document.getElementById("fitnessName").value="";
+  document.getElementById("fitnessDuration").value="";
+  saveDB();
+  renderFitness();
+}
 
 function addPushups(count){
   if(!Number.isFinite(count)||count<=0)return;
@@ -1051,14 +1158,15 @@ function importData(ev){
   const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);saveDB();alert("Données importées.");}catch(e){alert("Fichier invalide.");}};r.readAsText(f);
 }
 function resetData(){
-  if(confirm("Supprimer toutes les données enregistrées, y compris les données synchronisées dans le cloud ?")){db={workouts:[],measurements:[],pushups:[]};saveDB();}
+  if(confirm("Supprimer toutes les données enregistrées, y compris les données synchronisées dans le cloud ?")){db={workouts:[],measurements:[],pushups:[],fitness:[]};saveDB();}
 }
 
 document.getElementById("measureDate").value=todayISO();
+const fitnessDateEl=document.getElementById("fitnessDate"); if(fitnessDateEl) fitnessDateEl.value=todayISO();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); initAuth();
+renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); drawCharts(); drawPushupChart(); initAuth();
 </script>
 </body>
 </html>
