@@ -74,7 +74,7 @@
 <body>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v1.3</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.0</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -110,17 +110,34 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v13.3.1</span>
+        <span class="pill" style="background:white;color:#111827">v2.0</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
         ▶️ Démarrer une séance
       </button>
 
-      <div class="row" style="margin-top:10px">
+      <div class="quick-actions" style="margin-top:10px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
         <button class="btn secondary" onclick="openStartSessionPanel()">🏋️ Programme</button>
         <button class="btn secondary" onclick="startFreeWorkout()">✨ Séance libre</button>
+        <button class="btn secondary" onclick="showPage('fitness')">🧘 Fitness</button>
+        <button class="btn secondary" onclick="openCardioShortcut('treadmill')">🏃 Tapis</button>
+        <button class="btn secondary" onclick="openCardioShortcut('rower')">🚣 Rameur</button>
+        <button class="btn secondary" onclick="openPushupChallenge()">💪 Challenge Pompes</button>
       </div>
+    </div>
+
+    <div id="quickCardioPanel" class="card hidden">
+      <div class="row between">
+        <h2 id="quickCardioTitle">🏃 Cardio</h2>
+        <button class="btn secondary small" onclick="closeCardioShortcut()">✕</button>
+      </div>
+      <div class="row">
+        <div class="field"><label>Durée (min)</label><input id="quickCardioDuration" type="number" min="1" step="5" placeholder="30"></div>
+        <div id="quickCardioInclineField" class="field"><label>Inclinaison (%)</label><input id="quickCardioIncline" type="number" min="0" step="0.5" placeholder="5"></div>
+        <div id="quickCardioSpeedField" class="field"><label>Vitesse (km/h)</label><input id="quickCardioSpeed" type="number" min="0" step="0.1" placeholder="5.8"></div>
+      </div>
+      <button class="btn full" style="margin-top:12px" onclick="saveCardioShortcut()">💾 Enregistrer</button>
     </div>
 
     <div id="startSessionPanel" class="card hidden">
@@ -492,7 +509,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • v13.3.1</div>
+      <div class="sub">Muscu Progress • 2.0</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1211,6 +1228,76 @@ function planningLabel(item){
 
 
 
+
+
+
+function openPushupChallenge(){
+  showPage("pushups");
+  setTimeout(()=>{
+    const target=document.querySelector("#pushups .card:nth-of-type(2)");
+    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+  },50);
+}
+
+let quickCardioType="treadmill";
+
+function openCardioShortcut(type){
+  quickCardioType=type;
+  const panel=document.getElementById("quickCardioPanel");
+  const title=document.getElementById("quickCardioTitle");
+  const incline=document.getElementById("quickCardioInclineField");
+  const speed=document.getElementById("quickCardioSpeedField");
+  if(!panel)return;
+
+  if(type==="rower"){
+    if(title)title.textContent="🚣 Rameur";
+    if(incline)incline.classList.add("hidden");
+    if(speed)speed.classList.add("hidden");
+  }else{
+    if(title)title.textContent="🏃 Tapis";
+    if(incline)incline.classList.remove("hidden");
+    if(speed)speed.classList.remove("hidden");
+  }
+  panel.classList.remove("hidden");
+  panel.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function closeCardioShortcut(){
+  document.getElementById("quickCardioPanel")?.classList.add("hidden");
+}
+
+function saveCardioShortcut(){
+  const duration=Number(document.getElementById("quickCardioDuration").value)||0;
+  if(duration<1){alert("Indique une durée.");return;}
+
+  const date=todayISO();
+  if(quickCardioType==="rower"){
+    db.workouts.push({
+      date,
+      session:"Rameur",
+      exercises:[],
+      cardio:{type:"rower",duration},
+      manual:true
+    });
+  }else{
+    const incline=Number(document.getElementById("quickCardioIncline").value)||0;
+    const speed=Number(document.getElementById("quickCardioSpeed").value)||0;
+    db.workouts.push({
+      date,
+      session:"Tapis",
+      exercises:[],
+      treadmill:{duration,incline,speed},
+      manual:true
+    });
+  }
+
+  document.getElementById("quickCardioDuration").value="";
+  document.getElementById("quickCardioIncline").value="";
+  document.getElementById("quickCardioSpeed").value="";
+  closeCardioShortcut();
+  saveDB();
+  alert((quickCardioType==="rower"?"Rameur":"Tapis")+" enregistré.");
+}
 
 function openStartSessionPanel(){
   const p=document.getElementById("startSessionPanel");
