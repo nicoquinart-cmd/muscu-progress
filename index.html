@@ -101,7 +101,19 @@
     </div>
   </div>
 </div>
-
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-box">
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2.3</span></div>
+    <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
+    <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
+    <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="signIn()">Se connecter</button>
+      <button class="btn secondary" onclick="signUp()">Créer mon compte</button>
+    </div>
+    <div id="authMessage" class="sub" style="margin-top:12px"></div>
+  </div>
+</div>
 
 <div class="app">
   <div id="syncBar" class="syncbar hidden">
@@ -127,7 +139,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.2.2</span>
+        <span class="pill" style="background:white;color:#111827">v2.2.3</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -614,7 +626,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.2.2</div>
+      <div class="sub">Muscu Progress • 2.2.3</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
