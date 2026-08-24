@@ -101,27 +101,7 @@
     </div>
   </div>
 </div>
-<div id="sessionLoading" style="position:fixed;inset:0;background:#f3f4f6;z-index:10000;display:flex;align-items:center;justify-content:center">
-  <div class="card" style="max-width:360px;text-align:center">
-    <div style="font-size:36px">⏳</div>
-    <h2>Connexion en cours…</h2>
-    <div class="sub">Restauration de ta session.</div>
-    <button class="btn secondary small" style="margin-top:12px" onclick="document.getElementById('sessionLoading')?.remove();document.getElementById('authOverlay')?.classList.remove('hidden')">Afficher la connexion</button>
-  </div>
-</div>
-<div id="authOverlay" class="auth-overlay">
-  <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2</span></div>
-    <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
-    <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
-    <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn" onclick="signIn()">Se connecter</button>
-      <button class="btn secondary" onclick="signUp()">Créer mon compte</button>
-    </div>
-    <div id="authMessage" class="sub" style="margin-top:12px"></div>
-  </div>
-</div>
+
 
 <div class="app">
   <div id="syncBar" class="syncbar hidden">
@@ -147,7 +127,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.2</span>
+        <span class="pill" style="background:white;color:#111827">v2.2.2</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -634,7 +614,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.2</div>
+      <div class="sub">Muscu Progress • 2.2.2</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -759,18 +739,10 @@ if(!db.planning) db.planning=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
-function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
-
-const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
-const SUPABASE_KEY="sb_publishable_t1NQnhOQGt482D-yl08nKA_iC0q2qeE";
-const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
-  auth:{
-    persistSession:true,
-    autoRefreshToken:true,
-    detectSessionInUrl:true,
-    storage:window.localStorage
-  }
+function saveLocalDB(){
+  localStorage.setItem("muscuProgress",JSON.stringify(db));
+  const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,drawCharts,drawPushupChart];
+  jobs.forEach(fn=>{try{if(typeof fn==="function")fn();}catch(e){console.warn(fn?.name||"render",e);}});
 });
 let currentUser=null;
 let syncing=false;
@@ -1126,11 +1098,11 @@ showPage=function(id,btn){
 }
 
 async function initAuth(){
-  const loading=document.getElementById("sessionLoading");
+  const loading=null;
 
   // Safety net: the loading screen can never remain forever.
   const safetyTimer=setTimeout(()=>{
-    loading?.remove();
+    
     console.warn("Auth loading timeout reached");
   },5000);
 
@@ -1139,7 +1111,7 @@ async function initAuth(){
     if(error) throw error;
 
     // As soon as Supabase has answered, remove the blocking screen.
-    loading?.remove();
+    
     clearTimeout(safetyTimer);
 
     if(data.session){
@@ -1171,7 +1143,7 @@ async function initAuth(){
 
   }catch(e){
     clearTimeout(safetyTimer);
-    loading?.remove();
+    
     console.error("Auth init error",e);
     document.getElementById("authOverlay")?.classList.remove("hidden");
   }
@@ -1594,6 +1566,8 @@ function renderHistory(){
 function isoDate(d){
   return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
 }
+let planningStartOffset = 0;
+
 function changePlanningRange(delta){
   planningStartOffset+=delta;
   renderPlanning();
@@ -1952,6 +1926,8 @@ function startChosenWorkout(code){
 }
 
 function renderPlanning(){
+  if(typeof planningStartOffset==="undefined") window.planningStartOffset=0;
+
   const box=document.getElementById("planningDays");
   if(!box)return;
 
