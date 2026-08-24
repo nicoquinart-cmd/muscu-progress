@@ -74,7 +74,7 @@
 <body>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <h1>Muscu Progress</h1>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v13.2</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -103,79 +103,47 @@
   
   <section id="home" class="page active">
     <div class="card hero">
-      <div class="sub" id="homeGreeting">Aujourd’hui</div>
-      <h2 id="homeTodayActivity" style="color:white;margin-top:4px">Aucune activité planifiée</h2>
-      <div id="homeTodayDetail" class="sub"></div>
-      <button id="homeStartPlanned" class="btn" style="margin-top:14px;background:white;color:#111827" onclick="startTodayActivity()">Démarrer</button>
+      <div id="v131Greeting" class="sub">Aujourd’hui</div>
+      <h2 id="v131TodayTitle" style="color:white;margin-top:6px">Ton activité du jour</h2>
+      <div id="v131TodayDetail" class="sub"></div>
+      <button id="v131TodayBtn" class="btn" style="margin-top:14px;background:white;color:#111827" onclick="openStartSessionChooser()">▶️ Démarrer une séance</button>
     </div>
 
     <div class="card">
-      <div class="row between"><h2>Cette semaine</h2><strong id="homeWeekProgress">0 / 3</strong></div>
-      <div style="height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin-top:10px">
-        <div id="homeWeekBar" style="height:100%;width:0;background:#111827;border-radius:20px"></div>
+      <div class="row between">
+        <h2>🎯 Objectif de la semaine</h2>
+        <strong id="v131WeekCount">0 / 3</strong>
       </div>
-      <div id="homeWeekText" class="sub" style="margin-top:8px">0 séance réalisée</div>
+      <div style="height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:10px">
+        <div id="v131WeekBar" style="height:100%;width:0;background:#111827"></div>
+      </div>
+      <div id="v131WeekText" class="sub" style="margin-top:8px"></div>
     </div>
 
     <div class="grid">
-      <div class="card stat"><strong id="homeSessionsDone">0</strong><span>séances réalisées</span></div>
-      <div class="card stat"><strong id="homeWeight">—</strong><span>poids actuel</span></div>
-      <div class="card stat"><strong id="homeWaist">—</strong><span>tour de taille</span></div>
+      <div class="card stat"><strong id="v131TotalSessions">0</strong><span>séances réalisées</span></div>
+      <div class="card stat"><strong id="v131Weight">—</strong><span>poids actuel</span></div>
+      <div class="card stat"><strong id="v131Waist">—</strong><span>tour de taille</span></div>
     </div>
 
     <div class="card">
-      <h2>3 prochains jours</h2>
-      <div id="homePlanning3"></div>
+      <h2>📅 Les 3 prochains jours</h2>
+      <div id="v131ThreeDays"></div>
     </div>
 
     <div class="card">
-      <h2>Progrès récents</h2>
-      <canvas id="homeChart" width="700" height="220"></canvas>
+      <h2>▶️ Démarrer une séance</h2>
+      <button class="btn full" onclick="openStartSessionChooser()">Choisir ma séance</button>
+      <div class="sub" style="margin-top:8px">Programme A/B/C ou séance libre.</div>
     </div>
-
-    <div class="card">
-      <h2>Faire autre chose</h2>
-      <button class="btn full" onclick="showPage('activity')">Choisir une activité</button>
-    </div>
-  </section>
-
-<section id="activity" class="page">
-    <div class="card hero">
-      <div class="sub">Que veux-tu faire ?</div>
-      <h2 style="color:white;margin-top:4px">Démarrer une activité</h2>
-      <div class="sub">Choisis ton entraînement du jour.</div>
-    </div>
-
-    <div class="card" onclick="openWorkoutChoice()" style="cursor:pointer">
-      <div class="row between"><div><h2>🏋️ Musculation</h2><div class="sub">Démarrer une séance A, B ou C</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('fitness')" style="cursor:pointer">
-      <div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Enregistrer un cours collectif</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="openQuickTreadmill()" style="cursor:pointer">
-      <div class="row between"><div><h2>🏃 Tapis / cardio</h2><div class="sub">Durée, inclinaison et vitesse</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('pushups')" style="cursor:pointer">
-      <div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Ajouter rapidement une série</div></div><strong>›</strong></div>
-    </div>
-
-    <div id="activityWorkoutChoice" class="card hidden">
-      <h2>Choisir une séance</h2>
+    <div id="startSessionChooser" class="card hidden">
+      <h2>🧭 Quelle séance veux-tu faire ?</h2>
       <div class="row">
-        <button class="btn" onclick="startChosenWorkout('A')">Séance A</button>
-        <button class="btn" onclick="startChosenWorkout('B')">Séance B</button>
-        <button class="btn" onclick="startChosenWorkout('C')">Séance C</button>
+        <button class="btn" onclick="v131StartWorkout('A')">🏋️ Séance A</button>
+        <button class="btn" onclick="v131StartWorkout('B')">🏋️ Séance B</button>
+        <button class="btn" onclick="v131StartWorkout('C')">🏋️ Séance C</button>
       </div>
-    </div>
-
-    <div id="quickTreadmill" class="card hidden">
-      <h2>Enregistrer un tapis</h2>
-      <div class="row">
-        <div class="field"><label>Durée (min)</label><input id="quickTreadDuration" type="number" min="1" placeholder="30"></div>
-        <div class="field"><label>Inclinaison (%)</label><input id="quickTreadIncline" type="number" min="0" step="0.5" placeholder="5"></div>
-        <div class="field"><label>Vitesse (km/h)</label><input id="quickTreadSpeed" type="number" min="0" step="0.1" placeholder="5.8"></div>
-      </div>
-      <button class="btn" style="margin-top:12px" onclick="saveQuickTreadmill()">Enregistrer</button>
+      <button class="btn secondary full" style="margin-top:10px" onclick="startFreeWorkout()">✨ Séance libre</button>
     </div>
   </section>
 
@@ -197,7 +165,7 @@
     <div id="exerciseList" class="card"></div>
 
     <div class="card">
-      <h2>Ajouter un exercice</h2>
+      <h2>➕ Ajouter un exercice</h2>
       <div class="row">
         <div class="field">
           <label>Nom de l'exercice</label>
@@ -230,7 +198,7 @@
 
 
     <div class="card">
-      <h2>Tapis de course</h2>
+      <h2>🏃 Tapis de course</h2>
       <div class="row">
         <div class="field">
           <label>Durée (min)</label>
@@ -281,7 +249,7 @@
     </div>
 
     <div class="card">
-      <h2>Historique des cours</h2>
+      <h2>📚 Historique des cours</h2>
       <div id="fitnessHistory"></div>
     </div>
   </section>
@@ -290,7 +258,7 @@
   <section id="planning" class="page">
     <div class="card hero">
       <div class="sub">Organisation de la semaine</div>
-      <h2 style="color:white;margin-top:4px">Planning</h2>
+      <h2 style="color:white;margin-top:4px">📅 Planning</h2>
       <div class="sub">Visualise et planifie précisément les 14 prochains jours.</div>
     </div>
 
@@ -321,7 +289,7 @@
 
       <div id="planWorkoutFields" class="row" style="margin-top:10px">
         <div class="field">
-          <label>Séance</label>
+          <label>🏋️ Séance</label>
           <select id="planWorkoutSession">
             <option value="A">Séance A</option>
             <option value="B">Séance B</option>
@@ -347,7 +315,7 @@
 
   <section id="progress" class="page">
     <div class="card">
-      <h2>Mesures</h2>
+      <h2>⚖️ Mesures</h2>
       <div class="row">
         <div class="field"><label>Date</label><input id="measureDate" type="date"></div>
         <div class="field"><label>Poids (kg)</label><input id="weightInput" type="number" step="0.1" placeholder="Ex. 78,4"></div>
@@ -356,7 +324,7 @@
       <button class="btn" style="margin-top:12px" onclick="saveMeasurement()">Enregistrer</button>
     </div>
     <div class="card">
-      <h2>Évolution</h2>
+      <h2>📈 Évolution</h2>
       <canvas id="progressChart" width="700" height="260"></canvas>
     </div>
     <div class="card">
@@ -376,7 +344,7 @@
       </div>
     </div>
     <div class="card">
-      <h2>Saisie rapide</h2>
+      <h2>⚡ Saisie rapide</h2>
       <div class="row">
         <button class="btn" onclick="addPushups(10)">+10 pompes</button>
         <button class="btn secondary" onclick="addPushups(5)">+5</button>
@@ -389,7 +357,7 @@
       <div class="hint" style="margin-top:12px">Chaque série est ajoutée au total du jour. Tu peux cliquer sur +10 plusieurs fois dans la journée.</div>
     </div>
     <div class="card">
-      <h2>Courbe de progression</h2>
+      <h2>📈 Courbe de progression</h2>
       <canvas id="pushupChart" width="700" height="260"></canvas>
       <div class="sub">Total de pompes réalisé chaque jour.</div>
     </div>
@@ -401,7 +369,7 @@
 
   <section id="history" class="page">
     <div class="card">
-      <div class="row between"><h2>Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
+      <div class="row between"><h2>📚 Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
       <div id="historyList"></div>
     </div>
 
@@ -437,7 +405,7 @@
     </div>
 
     <div class="card">
-      <h2>Synchronisation cloud</h2>
+      <h2>☁️ Synchronisation cloud</h2>
       <p class="sub">Si tu avais déjà utilisé Muscu Progress avant la connexion cloud, importe ici les données enregistrées dans ce navigateur.</p>
       <button class="btn" onclick="migrateLocalToCloud()">Importer mes données locales vers le cloud</button>
       <div id="migrationMessage" class="sub" style="margin-top:10px"></div>
@@ -457,42 +425,17 @@
   
   <section id="more" class="page">
     <div class="card hero">
-      <div class="sub">Muscu Progress</div>
-      <h2 style="color:white;margin-top:4px">Plus</h2>
+      <div class="sub">Navigation</div>
+      <h2 style="color:white;margin-top:4px">☰ Plus</h2>
+      <div class="sub">Muscu Progress • v13.2</div>
     </div>
-    <div class="card" onclick="showPage('history')" style="cursor:pointer">
-      <div class="row between"><div><h2>📚 Historique</h2><div class="sub">Toutes tes activités enregistrées</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('profile')" style="cursor:pointer">
-      <div class="row between"><div><h2>👤 Mon profil</h2><div class="sub">Objectif et préférences</div></div><strong>›</strong></div>
-    </div>
-    <div id="moreAdminCard" class="card hidden" onclick="showPage('admin')" style="cursor:pointer">
-      <div class="row between"><div><h2>⚙️ Administration</h2><div class="sub">Utilisateurs, exercices et programmes</div></div><strong>›</strong></div>
-    </div>
+    <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
+    <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
+    <div class="card" onclick="showPage('history')" style="cursor:pointer"><div class="row between"><div><h2>📚 Historique</h2><div class="sub">Toutes les séances enregistrées</div></div><strong>›</strong></div></div>
+    <div id="v131AdminLink" class="card hidden" onclick="showPage('admin')" style="cursor:pointer"><div class="row between"><div><h2>⚙️ Administration</h2><div class="sub">Utilisateurs, exercices et programmes</div></div><strong>›</strong></div></div>
     <div class="card">
       <button class="btn secondary full" onclick="syncFromCloud()">↻ Synchroniser</button>
       <button class="btn secondary full" style="margin-top:8px" onclick="signOut()">Déconnexion</button>
-    </div>
-  </section>
-
-  <section id="profile" class="page">
-    <div class="card hero">
-      <div class="sub">Personnalisation</div>
-      <h2 style="color:white;margin-top:4px">Mon profil</h2>
-    </div>
-    <div class="card">
-      <div class="field"><label>Prénom / nom affiché</label><input id="profileName"></div>
-      <div class="field" style="margin-top:10px"><label>Objectif principal</label>
-        <select id="profileGoal">
-          <option value="">Choisir…</option>
-          <option value="fat_loss">Perdre du gras</option>
-          <option value="muscle">Développer mes muscles</option>
-          <option value="fitness">Me remettre en forme</option>
-          <option value="cardio">Améliorer mon cardio</option>
-        </select>
-      </div>
-      <div class="field" style="margin-top:10px"><label>Séances souhaitées / semaine</label><input id="profileWeeklyTarget" type="number" min="1" max="7" value="3"></div>
-      <button class="btn" style="margin-top:12px" onclick="saveUserPreferences()">Enregistrer</button>
     </div>
   </section>
 
@@ -569,11 +512,11 @@
 
 <nav class="tabs">
   <div class="tabs-inner" style="grid-template-columns:repeat(5,1fr)">
-    <button class="tab active" onclick="showPage('home',this)">Accueil</button>
-    <button class="tab" onclick="showPage('activity',this)">Activité</button>
-    <button class="tab" onclick="showPage('planning',this)">Planning</button>
-    <button class="tab" onclick="showPage('progress',this)">Progrès</button>
-    <button class="tab" onclick="showPage('more',this)">Plus</button>
+    <button class="tab active" onclick="showPage('home',this)">🏠 Accueil</button>
+    <button class="tab" onclick="showPage('workout',this)">🏋️ Séance</button>
+    <button class="tab" onclick="showPage('planning',this)">📅 Planning</button>
+    <button class="tab" onclick="showPage('progress',this)">📈 Progrès</button>
+    <button class="tab" onclick="showPage('more',this)">☰ Plus</button>
   </div>
 </nav>
 
@@ -603,7 +546,7 @@ if(!db.planning) db.planning=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
+function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
 function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
 
 const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
@@ -752,7 +695,7 @@ async function loadCurrentProfile(){
   currentProfile=data;
   const adminTab=document.getElementById("adminTab");
   if(adminTab) adminTab.classList.toggle("hidden", currentProfile?.role!=="admin");
-  const moreAdmin=document.getElementById("moreAdminCard"); if(moreAdmin) moreAdmin.classList.toggle("hidden",currentProfile?.role!=="admin");
+  const v131Admin=document.getElementById("v131AdminLink"); if(v131Admin)v131Admin.classList.toggle("hidden",currentProfile?.role!=="admin");
   return currentProfile;
 }
 
@@ -974,22 +917,13 @@ function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 function showPage(id,btn){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  const page=document.getElementById(id); if(page)page.classList.add("active");
+  document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  if(btn)btn.classList.add("active");
-  else{
-    const mainMap={home:0,activity:1,workout:1,fitness:1,pushups:1,planning:2,progress:3,more:4,history:4,profile:4,admin:4};
-    const tabs=document.querySelectorAll(".tab");
-    if(tabs[mainMap[id]] ) tabs[mainMap[id]].classList.add("active");
-  }
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="home")renderHomeDashboard();}
-  if(id==="pushups"){renderPushups();drawPushupChart();}
-  if(id==="fitness")renderFitness();
-  if(id==="planning")renderPlanning();
-  if(id==="profile")loadUserPreferences();
+  if(btn) if(btn)btn.classList.add("active");
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="home")renderHomeDashboard();} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness(); if(id==="planning")renderPlanning();
 }
 function openWorkout(){
-  showPage("workout");
+  showPage("workout",document.querySelectorAll(".tab")[1]);
   renderWorkout(getNextSession());
 }
 function getNextSession(){
@@ -1010,7 +944,21 @@ let currentWorkoutExercises=[];
 
 function renderWorkout(code){
   currentSession=code;
-  document.getElementById("sessionPicker").value=code;
+  const picker=document.getElementById("sessionPicker");
+  if(code==="Libre"){
+    currentWorkoutExercises=[];
+    if(picker){
+      if(![...picker.options].some(o=>o.value==="Libre")){
+        const opt=document.createElement("option"); opt.value="Libre"; opt.textContent="Libre"; picker.appendChild(opt);
+      }
+      picker.value="Libre";
+    }
+    document.getElementById("workoutTitle").textContent="✨ Séance libre";
+    document.getElementById("workoutDesc").textContent="Ajoute les exercices que tu souhaites réaliser aujourd’hui.";
+    renderCurrentWorkoutExercises();
+    return;
+  }
+  if(picker)picker.value=code;
   const p=PROGRAM[code];
   currentWorkoutExercises=p.exercises.map(x=>({name:x[0],sets:x[1],target:x[2]}));
   document.getElementById("workoutTitle").textContent=p.title;
@@ -1198,84 +1146,106 @@ function planningLabel(item){
 
 
 
-function openWorkoutChoice(){
-  document.getElementById("activityWorkoutChoice")?.classList.remove("hidden");
-  document.getElementById("activityWorkoutChoice")?.scrollIntoView({behavior:"smooth"});
+function v131RenderHome(){
+  const today=todayISO();
+  const item=(db.planning||[]).find(x=>x.plan_date===today);
+  const title=document.getElementById("v131TodayTitle");
+  const detail=document.getElementById("v131TodayDetail");
+  const btn=document.getElementById("v131TodayBtn");
+  if(title){
+    title.textContent=item?planningLabel(item):"Aucune activité planifiée";
+    detail.textContent=item?.type==="treadmill"?`${item.duration_minutes||0} min • inclinaison ${item.incline||0}% • ${item.speed||0} km/h`:"";
+    btn.textContent=item?"Démarrer l’activité":"Choisir une activité";
+  }
+
+  const greet=document.getElementById("v131Greeting");
+  if(greet) greet.textContent=new Date(today+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+  const now=new Date(today+"T12:00:00"), day=now.getDay()||7;
+  const mon=new Date(now); mon.setDate(now.getDate()-day+1);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  const mi=isoDate(mon), si=isoDate(sun);
+  const done=(db.workouts||[]).filter(x=>x.date>=mi&&x.date<=si).length+(db.fitness||[]).filter(x=>x.date>=mi&&x.date<=si).length;
+  const target=3;
+  const wc=document.getElementById("v131WeekCount"), wb=document.getElementById("v131WeekBar"), wt=document.getElementById("v131WeekText");
+  if(wc)wc.textContent=`${done} / ${target}`;
+  if(wb)wb.style.width=Math.min(100,done/target*100)+"%";
+  if(wt)wt.textContent=`${done} activité${done>1?"s":""} réalisée${done>1?"s":""} cette semaine`;
+
+  const latest=[...(db.measurements||[])].reverse();
+  const weight=latest.find(x=>x.weight!=null)?.weight, waist=latest.find(x=>x.waist!=null)?.waist;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+  set("v131TotalSessions",(db.workouts||[]).length);
+  set("v131Weight",weight!=null?Number(weight).toFixed(1)+" kg":"—");
+  set("v131Waist",waist!=null?Number(waist).toFixed(1)+" cm":"—");
+
+  const box=document.getElementById("v131ThreeDays");
+  if(box){
+    let out="";
+    for(let i=0;i<3;i++){
+      const d=new Date(today+"T12:00:00"); d.setDate(d.getDate()+i);
+      const date=isoDate(d), p=(db.planning||[]).find(x=>x.plan_date===date);
+      out+=`<div class="history-item"><div class="row between"><div><strong>${d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"2-digit"})}</strong><div class="sub">${planningLabel(p)}</div></div>${i===0?'<span class="pill">Aujourd’hui</span>':""}</div></div>`;
+    }
+    box.innerHTML=out;
+  }
 }
-function openQuickTreadmill(){
-  document.getElementById("quickTreadmill")?.classList.remove("hidden");
-  document.getElementById("quickTreadmill")?.scrollIntoView({behavior:"smooth"});
+
+function openStartSessionChooser(){
+  const el=document.getElementById("startSessionChooser");
+  if(!el)return;
+  el.classList.remove("hidden");
+  el.scrollIntoView({behavior:"smooth",block:"center"});
 }
-function saveQuickTreadmill(){
-  const duration=Number(document.getElementById("quickTreadDuration").value)||0;
-  const incline=Number(document.getElementById("quickTreadIncline").value)||0;
-  const speed=Number(document.getElementById("quickTreadSpeed").value)||0;
-  if(duration<1){alert("Indique une durée.");return;}
-  db.workouts.push({date:todayISO(),session:"Tapis",exercises:[],treadmill:{duration,incline,speed},manual:true});
-  saveDB();
-  alert("Séance tapis enregistrée.");
-  showPage("home");
+function startFreeWorkout(){
+  currentSession="Libre";
+  currentWorkoutExercises=[];
+  const picker=document.getElementById("sessionPicker");
+  if(picker){
+    if(![...picker.options].some(o=>o.value==="Libre")){
+      const opt=document.createElement("option");
+      opt.value="Libre"; opt.textContent="Libre"; picker.appendChild(opt);
+    }
+    picker.value="Libre";
+  }
+  document.getElementById("workoutTitle").textContent="✨ Séance libre";
+  document.getElementById("workoutDesc").textContent="Ajoute les exercices que tu souhaites réaliser aujourd’hui.";
+  renderCurrentWorkoutExercises();
+  showPage("workout");
 }
-function startTodayActivity(){
-  const item=db.planning.find(x=>x.plan_date===todayISO());
-  if(!item){showPage("activity");return;}
-  if(item.type==="workout"){startChosenWorkout(item.workout_session||"A");return;}
-  if(item.type==="fitness"){showPage("fitness");return;}
-  if(item.type==="treadmill"){showPage("activity");openQuickTreadmill();return;}
-  showPage("activity");
+
+function v131StartWorkout(code){
+  showPage("workout");
+  renderWorkout(code);
 }
-async function loadUserPreferences(){
-  if(!currentUser)return;
-  const {data}=await supa.from("profiles").select("*").eq("user_id",currentUser.id).maybeSingle();
-  if(!data)return;
-  const n=document.getElementById("profileName"); if(n)n.value=data.display_name||"";
-  const g=document.getElementById("profileGoal"); if(g)g.value=data.goal||"";
-  const t=document.getElementById("profileWeeklyTarget"); if(t)t.value=data.weekly_target||3;
-}
-async function saveUserPreferences(){
-  if(!currentUser)return;
-  const row={
-    display_name:document.getElementById("profileName").value.trim(),
-    goal:document.getElementById("profileGoal").value||null,
-    weekly_target:Number(document.getElementById("profileWeeklyTarget").value)||3
-  };
-  const {error}=await supa.from("profiles").update(row).eq("user_id",currentUser.id);
-  if(error){alert(error.message);return;}
-  await loadCurrentProfile(); renderHomeDashboard(); alert("Profil enregistré.");
+function v131StartToday(){
+  const item=(db.planning||[]).find(x=>x.plan_date===todayISO());
+  if(item?.type==="workout"){v131StartWorkout(item.workout_session||"A");return;}
+  if(item?.type==="fitness"){showPage("fitness");return;}
+  if(item?.type==="treadmill"){showPage("planning");return;}
+  showPage("workout");
 }
 
 function renderHomeDashboard(){
+  const month=todayISO().slice(0,7);
   const latest=[...db.measurements].reverse();
   const weight=latest.find(x=>x.weight!=null)?.weight;
   const waist=latest.find(x=>x.waist!=null)?.waist;
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
 
-  set("homeSessionsDone",db.workouts.length);
-  set("homeWeight",weight!=null?Number(weight).toFixed(1)+" kg":"—");
-  set("homeWaist",waist!=null?Number(waist).toFixed(1)+" cm":"—");
+  const s1=document.getElementById("homeSessionsDone");
+  const s2=document.getElementById("homeThisMonth");
+  const s3=document.getElementById("homeWeight");
+  const s4=document.getElementById("homeWaist");
 
-  const todayItem=db.planning.find(x=>x.plan_date===todayISO());
-  set("homeTodayActivity",planningLabel(todayItem));
-  set("homeTodayDetail",todayItem?.type==="treadmill"?`${todayItem.duration_minutes||0} min • ${todayItem.incline||0}% • ${todayItem.speed||0} km/h`:"");
-  const startBtn=document.getElementById("homeStartPlanned");
-  if(startBtn)startBtn.textContent=todayItem?"Démarrer":"Choisir une activité";
-
-  const now=new Date(todayISO()+"T12:00:00");
-  const day=now.getDay()||7;
-  const monday=new Date(now); monday.setDate(now.getDate()-day+1);
-  const sunday=new Date(monday); sunday.setDate(monday.getDate()+6);
-  const mondayISO=isoDate(monday), sundayISO=isoDate(sunday);
-  const done=db.workouts.filter(x=>x.date>=mondayISO&&x.date<=sundayISO).length + db.fitness.filter(x=>x.date>=mondayISO&&x.date<=sundayISO).length;
-  const target=Number(currentProfile?.weekly_target)||3;
-  set("homeWeekProgress",`${done} / ${target}`);
-  set("homeWeekText",`${done} activité${done>1?"s":""} réalisée${done>1?"s":""}`);
-  const bar=document.getElementById("homeWeekBar"); if(bar)bar.style.width=Math.min(100,(done/target)*100)+"%";
-
-  const greeting=document.getElementById("homeGreeting");
-  if(greeting)greeting.textContent=(currentProfile?.display_name?`Bonjour ${currentProfile.display_name} 👋 • `:"")+new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  if(s1)s1.textContent=db.workouts.length;
+  if(s2)s2.textContent=db.workouts.filter(x=>x.date.startsWith(month)).length;
+  if(s3)s3.textContent=weight!=null?Number(weight).toFixed(1)+" kg":"—";
+  if(s4)s4.textContent=waist!=null?Number(waist).toFixed(1)+" cm":"—";
 
   renderHomePlanning3();
+  updatePlannedStartButton();
 }
+
 function renderHomePlanning3(){
   const box=document.getElementById("homePlanning3");
   if(!box)return;
@@ -1334,7 +1304,7 @@ function startPlannedWorkout(){
 }
 
 function startChosenWorkout(code){
-  showPage("workout");
+  showPage("workout",document.querySelectorAll(".tab")[1]);
   renderWorkout(code);
 }
 
@@ -1654,7 +1624,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
+renderWorkout("A"); updateDashboard(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
 </script>
 </body>
 </html>
