@@ -77,11 +77,12 @@
     <div style="font-size:36px">⏳</div>
     <h2>Connexion en cours…</h2>
     <div class="sub">Restauration de ta session.</div>
+    <button class="btn secondary small" style="margin-top:12px" onclick="document.getElementById('sessionLoading')?.remove();document.getElementById('authOverlay')?.classList.remove('hidden')">Afficher la connexion</button>
   </div>
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.1.2</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.1.3</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -117,7 +118,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.1.2</span>
+        <span class="pill" style="background:white;color:#111827">v2.1.3</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -568,7 +569,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.1.2</div>
+      <div class="sub">Muscu Progress • 2.1.3</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1055,12 +1056,31 @@ showPage=function(id,btn){
 }
 
 async function initAuth(){
+  const loading=document.getElementById("sessionLoading");
+
+  // Safety net: the loading screen can never remain forever.
+  const safetyTimer=setTimeout(()=>{
+    loading?.remove();
+    console.warn("Auth loading timeout reached");
+  },5000);
+
   try{
     const {data,error}=await supa.auth.getSession();
     if(error) throw error;
 
+    // As soon as Supabase has answered, remove the blocking screen.
+    loading?.remove();
+    clearTimeout(safetyTimer);
+
     if(data.session){
-      await handleSession(data.session);
+      currentUser=data.session.user;
+      document.getElementById("authOverlay")?.classList.add("hidden");
+
+      // Do not block the UI while profile/cloud data are loading.
+      handleSession(data.session).catch(err=>{
+        console.error("Session sync error",err);
+        setSyncStatus("Connexion OK • synchronisation à relancer");
+      });
     }else{
       document.getElementById("authOverlay")?.classList.remove("hidden");
     }
@@ -1070,15 +1090,20 @@ async function initAuth(){
         currentUser=null;
         document.getElementById("authOverlay")?.classList.remove("hidden");
         document.getElementById("syncBar")?.classList.add("hidden");
-      }else if(session){
+        return;
+      }
+
+      if(session){
         currentUser=session.user;
+        document.getElementById("authOverlay")?.classList.add("hidden");
       }
     });
+
   }catch(e){
+    clearTimeout(safetyTimer);
+    loading?.remove();
     console.error("Auth init error",e);
     document.getElementById("authOverlay")?.classList.remove("hidden");
-  }finally{
-    document.getElementById("sessionLoading")?.remove();
   }
 }
 
