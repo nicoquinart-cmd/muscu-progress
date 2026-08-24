@@ -45,7 +45,7 @@
     .check{height:38px;border-radius:10px;border:1px solid var(--line);background:white;cursor:pointer}
     .check.done{background:var(--ok);color:white;border-color:var(--ok)}
     .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
-    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(4,1fr)}
+    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
     .tab{padding:11px 4px 15px;border:0;background:transparent;font-size:12px;color:var(--muted);cursor:pointer}
     .tab.active{color:var(--ink);font-weight:800}
     .page{display:none}.page.active{display:block}
@@ -87,6 +87,8 @@
       <div class="card stat"><strong id="statWeight">—</strong><span>poids actuel</span></div>
       <div class="card stat"><strong id="statWaist">—</strong><span>tour de taille</span></div>
       <div class="card stat"><strong id="statStreak">0</strong><span>séances ce mois</span></div>
+      <div class="card stat"><strong id="statPushupsMonth">0</strong><span>pompes ce mois</span></div>
+      <div class="card stat"><strong id="statPushupsToday">0</strong><span>pompes aujourd’hui</span></div>
     </div>
 
     <div class="card">
@@ -154,6 +156,40 @@
     </div>
   </section>
 
+
+  <section id="pushups" class="page">
+    <div class="card hero">
+      <div class="sub">Défi quotidien</div>
+      <h2 style="color:white;margin-top:4px">Pompes</h2>
+      <div class="row between">
+        <div><strong id="pushupsTodayBig" style="font-size:34px">0</strong><div class="sub">aujourd’hui</div></div>
+        <div><strong id="pushupsMonthBig" style="font-size:34px">0</strong><div class="sub">ce mois-ci</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Saisie rapide</h2>
+      <div class="row">
+        <button class="btn" onclick="addPushups(10)">+10 pompes</button>
+        <button class="btn secondary" onclick="addPushups(5)">+5</button>
+        <button class="btn secondary" onclick="addPushups(1)">+1</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div class="field"><label>Nombre précis</label><input id="pushupCustom" type="number" min="1" step="1" placeholder="Ex. 12"></div>
+        <button class="btn secondary" style="margin-top:18px" onclick="addCustomPushups()">Ajouter</button>
+      </div>
+      <div class="hint" style="margin-top:12px">Chaque série est ajoutée au total du jour. Tu peux cliquer sur +10 plusieurs fois dans la journée.</div>
+    </div>
+    <div class="card">
+      <h2>Courbe de progression</h2>
+      <canvas id="pushupChart" width="700" height="260"></canvas>
+      <div class="sub">Total de pompes réalisé chaque jour.</div>
+    </div>
+    <div class="card">
+      <div class="row between"><h2>Derniers jours</h2><button class="btn secondary small" onclick="undoLastPushup()">Annuler dernier ajout</button></div>
+      <div id="pushupHistory"></div>
+    </div>
+  </section>
+
   <section id="history" class="page">
     <div class="card">
       <div class="row between"><h2>Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
@@ -175,6 +211,7 @@
   <div class="tabs-inner">
     <button class="tab active" onclick="showPage('home',this)">Accueil</button>
     <button class="tab" onclick="showPage('workout',this)">Séance</button>
+    <button class="tab" onclick="showPage('pushups',this)">Pompes</button>
     <button class="tab" onclick="showPage('progress',this)">Progrès</button>
     <button class="tab" onclick="showPage('history',this)">Historique</button>
   </div>
@@ -197,11 +234,14 @@ const PROGRAM = {
  ]}
 };
 
-let db = JSON.parse(localStorage.getItem("muscuProgress") || '{"workouts":[],"measurements":[]}');
+let db = JSON.parse(localStorage.getItem("muscuProgress") || '{"workouts":[],"measurements":[],"pushups":[]}');
+if(!db.workouts) db.workouts=[];
+if(!db.measurements) db.measurements=[];
+if(!db.pushups) db.pushups=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); drawCharts(); }
+function saveDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart(); }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 function showPage(id,btn){
@@ -209,7 +249,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) btn.classList.add("active");
-  if(id==="progress"||id==="home") drawCharts();
+  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();}
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -295,6 +335,10 @@ function updateDashboard(){
   document.getElementById("statWaist").textContent=wa!=null?wa.toFixed(1)+" cm":"—";
   const now=new Date(); const ym=now.toISOString().slice(0,7);
   document.getElementById("statStreak").textContent=db.workouts.filter(x=>x.date.startsWith(ym)).length;
+  const pushToday=db.pushups.filter(x=>x.date===todayISO()).reduce((s,x)=>s+x.count,0);
+  const pushMonth=db.pushups.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
+  document.getElementById("statPushupsToday").textContent=pushToday;
+  document.getElementById("statPushupsMonth").textContent=pushMonth;
   const n=getNextSession(); document.getElementById("nextSessionTitle").textContent=PROGRAM[n].title;
   document.getElementById("nextSessionDesc").textContent=PROGRAM[n].desc;
 }
@@ -307,6 +351,49 @@ function renderHistory(){
       <div class="row between"><strong>${PROGRAM[w.session]?.title||("Séance "+w.session)}</strong><span class="pill">${w.date}</span></div>
       <div class="sub" style="margin-top:6px">${w.exercises.map(e=>e.name).join(" • ")}</div>
     </div>`).join("");
+}
+
+
+function addPushups(count){
+  if(!Number.isFinite(count)||count<=0)return;
+  db.pushups.push({date:todayISO(),count:Math.round(count),ts:Date.now()});
+  saveDB();
+}
+function addCustomPushups(){
+  const el=document.getElementById("pushupCustom"), n=parseInt(el.value,10);
+  if(!n||n<1){alert("Entre un nombre supérieur à 0.");return;}
+  addPushups(n); el.value="";
+}
+function undoLastPushup(){
+  if(!db.pushups.length){alert("Aucun ajout à annuler.");return;}
+  const x=db.pushups[db.pushups.length-1];
+  if(confirm(`Annuler le dernier ajout de ${x.count} pompe${x.count>1?"s":""} ?`)){db.pushups.pop();saveDB();}
+}
+function getDailyPushups(){
+  const m={}; db.pushups.forEach(x=>m[x.date]=(m[x.date]||0)+x.count);
+  return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,count])=>({date,count}));
+}
+function renderPushups(){
+  const d=getDailyPushups(), ym=todayISO().slice(0,7);
+  const today=d.find(x=>x.date===todayISO())?.count||0;
+  const month=d.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
+  const a=document.getElementById("pushupsTodayBig"), b=document.getElementById("pushupsMonthBig");
+  if(a)a.textContent=today;if(b)b.textContent=month;
+  const box=document.getElementById("pushupHistory"); if(!box)return;
+  const recent=[...d].reverse().slice(0,10);
+  box.innerHTML=recent.length?recent.map(x=>`<div class="history-item"><div class="row between"><strong>${new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"short"})}</strong><span class="pill">${x.count} pompe${x.count>1?"s":""}</span></div></div>`).join(""):'<div class="sub">Aucune pompe enregistrée pour le moment.</div>';
+}
+function drawPushupChart(){
+  const c=document.getElementById("pushupChart");if(!c)return;
+  const ctx=c.getContext("2d"),W=c.width,H=c.height,data=getDailyPushups().slice(-31);
+  ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+  for(let i=1;i<5;i++){const y=i*H/5;ctx.beginPath();ctx.moveTo(36,y);ctx.lineTo(W-12,y);ctx.stroke();}
+  if(!data.length){ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";ctx.fillText("Ajoute tes premières pompes pour voir la courbe.",40,H/2);return;}
+  const max=Math.max(10,...data.map(x=>x.count));
+  ctx.strokeStyle="#111827";ctx.lineWidth=3;ctx.beginPath();
+  data.forEach((d,i)=>{const x=36+(W-52)*(data.length===1?.5:i/(data.length-1)),y=16+(H-48)*(1-d.count/max);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.stroke();ctx.fillStyle="#111827";
+  data.forEach((d,i)=>{const x=36+(W-52)*(data.length===1?.5:i/(data.length-1)),y=16+(H-48)*(1-d.count/max);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();});
 }
 
 function drawChart(canvas){
@@ -353,11 +440,11 @@ function importData(ev){
   const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);saveDB();alert("Données importées.");}catch(e){alert("Fichier invalide.");}};r.readAsText(f);
 }
 function resetData(){
-  if(confirm("Supprimer toutes les données enregistrées ?")){db={workouts:[],measurements:[]};saveDB();}
+  if(confirm("Supprimer toutes les données enregistrées ?")){db={workouts:[],measurements:[],pushups:[]};saveDB();}
 }
 
 document.getElementById("measureDate").value=todayISO();
-renderWorkout("A"); updateDashboard(); renderHistory(); drawCharts();
+renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart();
 </script>
 </body>
 </html>
