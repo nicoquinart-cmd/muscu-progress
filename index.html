@@ -591,7 +591,7 @@ async function syncFromCloud(){
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
-  }catch(e){console.error(e);setSyncStatus("Erreur de synchronisation");}
+  }catch(e){console.error(e);setSyncStatus("Erreur de synchronisation : "+(e.message||"inconnue"));}
   finally{syncing=false;}
 }
 async function syncAllToCloud(){
@@ -637,7 +637,7 @@ async function syncAllToCloud(){
       const r=await supa.from("planning_items").insert(rows);if(r.error)throw r.error;
     }
     setSyncStatus("Synchronisé",true);
-  }catch(e){console.error(e);setSyncStatus("Erreur d’enregistrement");}
+  }catch(e){console.error(e);setSyncStatus("Erreur d’enregistrement : "+(e.message||"inconnue"));}
   finally{syncing=false;}
 }
 async function migrateLocalToCloud(){
@@ -1031,25 +1031,40 @@ function saveMeasurement(){
 }
 
 function updateDashboard(){
-  document.getElementById("statSessions").textContent=db.workouts.length;
+  const setText=(id,value)=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=value;
+  };
+
+  setText("statSessions",db.workouts.length);
+
   const m=[...db.measurements].reverse();
   const w=m.find(x=>x.weight!=null)?.weight;
   const wa=m.find(x=>x.waist!=null)?.waist;
-  document.getElementById("statWeight").textContent=w!=null?w.toFixed(1)+" kg":"—";
-  document.getElementById("statWaist").textContent=wa!=null?wa.toFixed(1)+" cm":"—";
-  const now=new Date(); const ym=now.toISOString().slice(0,7);
-  document.getElementById("statStreak").textContent=db.workouts.filter(x=>x.date.startsWith(ym)).length;
-  const pushToday=db.pushups.filter(x=>x.date===todayISO()).reduce((s,x)=>s+x.count,0);
-  const pushMonth=db.pushups.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
-  document.getElementById("statPushupsToday").textContent=pushToday;
-  document.getElementById("statPushupsMonth").textContent=pushMonth;
-  const fitnessMonth=db.fitness.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+(Number(x.duration)||0),0);
-  const fm=document.getElementById("statFitnessMonth"); if(fm) fm.textContent=fitnessMonth;
-  renderTodayPlan();
-  const n=getNextSession(); document.getElementById("nextSessionTitle").textContent=PROGRAM[n].title;
-  document.getElementById("nextSessionDesc").textContent=PROGRAM[n].desc;
-}
 
+  setText("statWeight",w!=null?Number(w).toFixed(1)+" kg":"—");
+  setText("statWaist",wa!=null?Number(wa).toFixed(1)+" cm":"—");
+
+  const now=new Date();
+  const ym=now.toISOString().slice(0,7);
+
+  setText("statStreak",db.workouts.filter(x=>x.date.startsWith(ym)).length);
+
+  const pushToday=(db.pushups||[]).filter(x=>x.date===todayISO()).reduce((s,x)=>s+x.count,0);
+  const pushMonth=(db.pushups||[]).filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
+
+  setText("statPushupsToday",pushToday);
+  setText("statPushupsMonth",pushMonth);
+
+  const fitnessMonth=(db.fitness||[]).filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+(Number(x.duration)||0),0);
+  setText("statFitnessMonth",fitnessMonth);
+
+  const n=getNextSession();
+  setText("nextSessionTitle",PROGRAM[n]?.title||"");
+  setText("nextSessionDesc",PROGRAM[n]?.desc||"");
+
+  renderTodayPlan();
+}
 function renderHistory(){
   const box=document.getElementById("historyList");
   if(!db.workouts.length){box.innerHTML='<div class="sub">Aucune séance enregistrée pour le moment.</div>';return;}
