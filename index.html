@@ -103,7 +103,7 @@
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2.3</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2.4</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -139,7 +139,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.2.3</span>
+        <span class="pill" style="background:white;color:#111827">v2.2.4</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -626,7 +626,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.2.3</div>
+      <div class="sub">Muscu Progress • 2.2.4</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -754,8 +754,26 @@ let timerId = null;
 function saveLocalDB(){
   localStorage.setItem("muscuProgress",JSON.stringify(db));
   const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,drawCharts,drawPushupChart];
-  jobs.forEach(fn=>{try{if(typeof fn==="function")fn();}catch(e){console.warn(fn?.name||"render",e);}});
+  jobs.forEach(fn=>{
+    try{
+      if(typeof fn==="function") fn();
+    }catch(e){
+      console.warn(fn?.name||"render",e);
+    }
+  });
+}
+
+const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
+const SUPABASE_KEY="sb_publishable_t1NQnhOQGt482D-yl08nKA_iC0q2qeE";
+const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true,
+    storage:window.localStorage
+  }
 });
+
 let currentUser=null;
 let syncing=false;
 
@@ -782,10 +800,36 @@ async function signUp(){
 async function signIn(){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
+  if(!email||!password){
+    authMsg("Saisis ton email et ton mot de passe.",true);
+    return;
+  }
+
   authMsg("Connexion…");
-  const {data,error}=await supa.auth.signInWithPassword({email,password});
-  if(error){authMsg("Connexion impossible : "+error.message,true);return;}
-  await handleSession(data.session);
+
+  try{
+    const {data,error}=await supa.auth.signInWithPassword({email,password});
+    if(error) throw error;
+
+    if(!data?.session){
+      throw new Error("Aucune session retournée par Supabase.");
+    }
+
+    currentUser=data.session.user;
+    document.getElementById("authOverlay")?.classList.add("hidden");
+
+    // Load profile + cloud data without blocking the login screen.
+    handleSession(data.session).catch(err=>{
+      console.error("Post-login sync error",err);
+      setSyncStatus("Connecté • synchronisation à relancer");
+    });
+
+    authMsg("");
+  }catch(e){
+    console.error("Sign in error",e);
+    authMsg("Connexion impossible : "+(e.message||"erreur inconnue"),true);
+    document.getElementById("authOverlay")?.classList.remove("hidden");
+  }
 }
 async function signOut(){
   await supa.auth.signOut(); currentUser=null;
@@ -1110,32 +1154,19 @@ showPage=function(id,btn){
 }
 
 async function initAuth(){
-  const loading=null;
-
-  // Safety net: the loading screen can never remain forever.
-  const safetyTimer=setTimeout(()=>{
-    
-    console.warn("Auth loading timeout reached");
-  },5000);
-
   try{
     const {data,error}=await supa.auth.getSession();
     if(error) throw error;
 
-    // As soon as Supabase has answered, remove the blocking screen.
-    
-    clearTimeout(safetyTimer);
-
-    if(data.session){
+    if(data?.session){
       currentUser=data.session.user;
       document.getElementById("authOverlay")?.classList.add("hidden");
-
-      // Do not block the UI while profile/cloud data are loading.
       handleSession(data.session).catch(err=>{
-        console.error("Session sync error",err);
-        setSyncStatus("Connexion OK • synchronisation à relancer");
+        console.error("Initial session sync error",err);
+        setSyncStatus("Connecté • synchronisation à relancer");
       });
     }else{
+      currentUser=null;
       document.getElementById("authOverlay")?.classList.remove("hidden");
     }
 
@@ -1146,21 +1177,18 @@ async function initAuth(){
         document.getElementById("syncBar")?.classList.add("hidden");
         return;
       }
-
       if(session){
         currentUser=session.user;
         document.getElementById("authOverlay")?.classList.add("hidden");
       }
     });
-
   }catch(e){
-    clearTimeout(safetyTimer);
-    
     console.error("Auth init error",e);
+    currentUser=null;
     document.getElementById("authOverlay")?.classList.remove("hidden");
+    authMsg("Impossible de restaurer la connexion : "+(e.message||"erreur inconnue"),true);
   }
 }
-
 
 let workoutStartedAt=null;
 let workoutElapsedTimer=null;
