@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Muscu Progress</title>
+  <style>
+    :root{
+      --bg:#f4f6f8; --card:#ffffff; --ink:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#111827; --soft:#eef2f7; --ok:#0f766e; --warn:#b45309;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .app{max-width:760px;margin:auto;padding:16px 16px 92px}
+    header{padding:10px 2px 14px}
+    h1{font-size:26px;margin:0 0 4px}
+    h2{font-size:19px;margin:0 0 12px}
+    h3{font-size:16px;margin:0 0 10px}
+    p{line-height:1.45}
+    .sub{color:var(--muted);font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(17,24,39,.04)}
+    .stat{padding:14px}
+    .stat strong{font-size:24px;display:block}
+    .stat span{font-size:12px;color:var(--muted)}
+    .hero{background:linear-gradient(135deg,#111827,#374151);color:white;border:none}
+    .hero .sub{color:#d1d5db}
+    .btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer;background:var(--accent);color:white}
+    .btn.secondary{background:var(--soft);color:var(--ink)}
+    .btn.small{padding:8px 10px;font-size:12px}
+    .btn.full{width:100%}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .between{justify-content:space-between}
+    input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:white;font:inherit}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+    .field{flex:1;min-width:110px}
+    .exercise{border-top:1px solid var(--line);padding:14px 0}
+    .exercise:first-child{border-top:none;padding-top:0}
+    .exercise-title{font-weight:800}
+    .exercise-meta{font-size:12px;color:var(--muted);margin-top:2px}
+    .sets{display:grid;grid-template-columns:34px 1fr 1fr 42px;gap:6px;align-items:center;margin-top:10px}
+    .sets input{padding:8px;text-align:center}
+    .setnum{font-weight:700;text-align:center}
+    .check{height:38px;border-radius:10px;border:1px solid var(--line);background:white;cursor:pointer}
+    .check.done{background:var(--ok);color:white;border-color:var(--ok)}
+    .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5}
+    .tabs-inner{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(4,1fr)}
+    .tab{padding:11px 4px 15px;border:0;background:transparent;font-size:12px;color:var(--muted);cursor:pointer}
+    .tab.active{color:var(--ink);font-weight:800}
+    .page{display:none}.page.active{display:block}
+    .pill{display:inline-block;padding:6px 9px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:700}
+    .history-item{padding:12px 0;border-top:1px solid var(--line)}
+    .history-item:first-child{border-top:none}
+    canvas{width:100%;height:180px;display:block}
+    .hint{padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px dashed #cbd5e1;font-size:13px}
+    .success{color:var(--ok);font-weight:700}
+    .danger{color:#b91c1c}
+    .timer{font-variant-numeric:tabular-nums;font-size:18px;font-weight:800}
+    @media(max-width:520px){
+      .grid{grid-template-columns:1fr 1fr}
+      .sets{grid-template-columns:30px 1fr 1fr 40px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Muscu Progress</h1>
+    <div class="sub">Programme Basic-Fit • démarrage 24 août 2026</div>
+  </header>
+
+  <section id="home" class="page active">
+    <div class="card hero">
+      <div class="row between">
+        <div>
+          <div class="sub">Prochaine séance</div>
+          <h2 id="nextSessionTitle" style="margin-top:4px;color:white">Séance A</h2>
+          <div id="nextSessionDesc" class="sub"></div>
+        </div>
+        <button class="btn secondary" onclick="openWorkout()">Commencer</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat"><strong id="statSessions">0</strong><span>séances terminées</span></div>
+      <div class="card stat"><strong id="statWeight">—</strong><span>poids actuel</span></div>
+      <div class="card stat"><strong id="statWaist">—</strong><span>tour de taille</span></div>
+      <div class="card stat"><strong id="statStreak">0</strong><span>séances ce mois</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Objectif</h2>
+      <p style="margin:0">Réduire la masse grasse globale, avec suivi du tour de taille, tout en développant prioritairement épaules, bras, dos et pectoraux.</p>
+    </div>
+
+    <div class="card">
+      <h2>Progression</h2>
+      <canvas id="homeChart" width="700" height="220"></canvas>
+      <div class="sub">Évolution du poids et du tour de taille enregistrés.</div>
+    </div>
+  </section>
+
+  <section id="workout" class="page">
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="sub">Séance du jour</div>
+          <h2 id="workoutTitle">Séance A</h2>
+        </div>
+        <select id="sessionPicker" style="width:auto" onchange="renderWorkout(this.value)">
+          <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+        </select>
+      </div>
+      <div id="workoutDesc" class="sub"></div>
+      <div class="hint" style="margin-top:12px">Repos conseillé : 45 à 60 s. Garde environ 2 répétitions en réserve sur les premières semaines.</div>
+    </div>
+
+    <div id="exerciseList" class="card"></div>
+
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="sub">Chrono repos</div>
+          <div class="timer" id="timer">00:00</div>
+        </div>
+        <div class="row">
+          <button class="btn secondary small" onclick="startTimer(45)">45 s</button>
+          <button class="btn secondary small" onclick="startTimer(60)">60 s</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn full" onclick="finishWorkout()">✓ Terminer la séance</button>
+  </section>
+
+  <section id="progress" class="page">
+    <div class="card">
+      <h2>Mesures</h2>
+      <div class="row">
+        <div class="field"><label>Date</label><input id="measureDate" type="date"></div>
+        <div class="field"><label>Poids (kg)</label><input id="weightInput" type="number" step="0.1" placeholder="Ex. 78,4"></div>
+        <div class="field"><label>Tour de taille (cm)</label><input id="waistInput" type="number" step="0.1" placeholder="Ex. 92"></div>
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="saveMeasurement()">Enregistrer</button>
+    </div>
+    <div class="card">
+      <h2>Évolution</h2>
+      <canvas id="progressChart" width="700" height="260"></canvas>
+    </div>
+    <div class="card">
+      <h2>Conseil de suivi</h2>
+      <p class="sub" style="margin:0">Pèse-toi dans des conditions comparables, idéalement le matin. Pour le tour de taille, mesure au même endroit et sans rentrer le ventre.</p>
+    </div>
+  </section>
+
+  <section id="history" class="page">
+    <div class="card">
+      <div class="row between"><h2>Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
+      <div id="historyList"></div>
+    </div>
+    <div class="card">
+      <h2>Données</h2>
+      <p class="sub">Les données restent enregistrées localement dans ce navigateur. Tu peux les exporter en JSON pour les sauvegarder.</p>
+      <div class="row">
+        <button class="btn secondary small" onclick="document.getElementById('importFile').click()">Importer</button>
+        <button class="btn secondary small danger" onclick="resetData()">Réinitialiser</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <button class="tab active" onclick="showPage('home',this)">Accueil</button>
+    <button class="tab" onclick="showPage('workout',this)">Séance</button>
+    <button class="tab" onclick="showPage('progress',this)">Progrès</button>
+    <button class="tab" onclick="showPage('history',this)">Historique</button>
+  </div>
+</nav>
+
+<script>
+const PROGRAM = {
+ A:{title:"Séance A — Haut du corps", desc:"Pectoraux • épaules • triceps", exercises:[
+  ["Chest Press",3,"8–12"],["Lat Pulldown",3,"8–12"],["Shoulder Press",3,"8–12"],
+  ["Seated Row",3,"8–12"],["Triceps Pushdown",3,"10–15"],["Abdominal Crunch",3,"12–15"]
+ ]},
+ B:{title:"Séance B — Full Body", desc:"Corps entier • dépense énergétique", exercises:[
+  ["Leg Press",3,"10–12"],["Leg Curl",3,"10–12"],["Seated Row",3,"10–12"],
+  ["Chest Press",3,"10–12"],["Shoulder Press",3,"10–12"],["Abdominal Crunch",3,"12–15"]
+ ]},
+ C:{title:"Séance C — Dos / épaules / bras", desc:"Dos • épaules • biceps • triceps", exercises:[
+  ["Lat Pulldown",3,"8–12"],["Seated Row",3,"8–12"],["Shoulder Press",3,"8–12"],
+  ["Lateral Raise machine / poulie",3,"12–15"],["Biceps Curl machine / poulie",3,"10–15"],
+  ["Triceps Pushdown",3,"10–15"]
+ ]}
+};
+
+let db = JSON.parse(localStorage.getItem("muscuProgress") || '{"workouts":[],"measurements":[]}');
+let currentSession = "A";
+let timerId = null;
+
+function saveDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); drawCharts(); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function showPage(id,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+  if(id==="progress"||id==="home") drawCharts();
+}
+function openWorkout(){
+  showPage("workout",document.querySelectorAll(".tab")[1]);
+  renderWorkout(getNextSession());
+}
+function getNextSession(){
+  if(!db.workouts.length) return "A";
+  const last=db.workouts[db.workouts.length-1].session;
+  return last==="A"?"B":last==="B"?"C":"A";
+}
+
+function latestExercise(name){
+  for(let i=db.workouts.length-1;i>=0;i--){
+    const x=db.workouts[i].exercises?.find(e=>e.name===name);
+    if(x) return x;
+  }
+  return null;
+}
+
+function renderWorkout(code){
+  currentSession=code;
+  document.getElementById("sessionPicker").value=code;
+  const p=PROGRAM[code];
+  document.getElementById("workoutTitle").textContent=p.title;
+  document.getElementById("workoutDesc").textContent=p.desc;
+  const list=document.getElementById("exerciseList");
+  list.innerHTML="";
+  p.exercises.forEach(([name,sets,target],idx)=>{
+    const last=latestExercise(name);
+    const wrap=document.createElement("div"); wrap.className="exercise";
+    let lastText=last?`Dernière fois : ${last.sets.map(s=>`${s.weight||0}kg×${s.reps||0}`).join(" • ")}`:"Première séance";
+    wrap.innerHTML=`<div class="exercise-title">${name}</div>
+      <div class="exercise-meta">Objectif ${sets} × ${target} • ${lastText}</div>
+      <div class="sets" id="ex-${idx}">
+        ${Array.from({length:sets},(_,s)=>`
+          <div class="setnum">${s+1}</div>
+          <input type="number" step="0.5" placeholder="kg" data-kind="weight">
+          <input type="number" step="1" placeholder="reps" data-kind="reps">
+          <button class="check" onclick="toggleSet(this)">✓</button>`).join("")}
+      </div>`;
+    list.appendChild(wrap);
+  });
+}
+
+function toggleSet(btn){ btn.classList.toggle("done"); }
+
+function finishWorkout(){
+  const p=PROGRAM[currentSession];
+  const exercises=[];
+  document.querySelectorAll("#exerciseList .exercise").forEach((node,idx)=>{
+    const inputs=[...node.querySelectorAll("input")];
+    const sets=[];
+    for(let i=0;i<inputs.length;i+=2){
+      sets.push({weight:Number(inputs[i].value)||0,reps:Number(inputs[i+1].value)||0});
+    }
+    exercises.push({name:p.exercises[idx][0],sets});
+  });
+  db.workouts.push({date:todayISO(),session:currentSession,exercises});
+  saveDB();
+  alert("Séance enregistrée. Bravo !");
+  renderWorkout(getNextSession());
+  showPage("home",document.querySelectorAll(".tab")[0]);
+}
+
+function saveMeasurement(){
+  const date=document.getElementById("measureDate").value||todayISO();
+  const weight=parseFloat(document.getElementById("weightInput").value);
+  const waist=parseFloat(document.getElementById("waistInput").value);
+  if(Number.isNaN(weight)&&Number.isNaN(waist)){alert("Ajoute au moins une mesure.");return;}
+  db.measurements.push({date,weight:Number.isNaN(weight)?null:weight,waist:Number.isNaN(waist)?null:waist});
+  db.measurements.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("weightInput").value="";
+  document.getElementById("waistInput").value="";
+  saveDB();
+}
+
+function updateDashboard(){
+  document.getElementById("statSessions").textContent=db.workouts.length;
+  const m=[...db.measurements].reverse();
+  const w=m.find(x=>x.weight!=null)?.weight;
+  const wa=m.find(x=>x.waist!=null)?.waist;
+  document.getElementById("statWeight").textContent=w!=null?w.toFixed(1)+" kg":"—";
+  document.getElementById("statWaist").textContent=wa!=null?wa.toFixed(1)+" cm":"—";
+  const now=new Date(); const ym=now.toISOString().slice(0,7);
+  document.getElementById("statStreak").textContent=db.workouts.filter(x=>x.date.startsWith(ym)).length;
+  const n=getNextSession(); document.getElementById("nextSessionTitle").textContent=PROGRAM[n].title;
+  document.getElementById("nextSessionDesc").textContent=PROGRAM[n].desc;
+}
+
+function renderHistory(){
+  const box=document.getElementById("historyList");
+  if(!db.workouts.length){box.innerHTML='<div class="sub">Aucune séance enregistrée pour le moment.</div>';return;}
+  box.innerHTML=[...db.workouts].reverse().map(w=>`
+    <div class="history-item">
+      <div class="row between"><strong>${PROGRAM[w.session]?.title||("Séance "+w.session)}</strong><span class="pill">${w.date}</span></div>
+      <div class="sub" style="margin-top:6px">${w.exercises.map(e=>e.name).join(" • ")}</div>
+    </div>`).join("");
+}
+
+function drawChart(canvas){
+  const ctx=canvas.getContext("2d"), W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+  for(let i=1;i<5;i++){let y=i*H/5;ctx.beginPath();ctx.moveTo(36,y);ctx.lineTo(W-12,y);ctx.stroke();}
+  const data=db.measurements;
+  if(data.length<1){ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";ctx.fillText("Ajoute tes premières mesures pour voir la courbe.",40,H/2);return;}
+  const series=[
+    {key:"weight",label:"Poids",dash:[]},
+    {key:"waist",label:"Taille",dash:[7,5]}
+  ];
+  series.forEach((s,si)=>{
+    const vals=data.map((d,i)=>({i,v:d[s.key]})).filter(x=>x.v!=null);
+    if(!vals.length)return;
+    let min=Math.min(...vals.map(x=>x.v)), max=Math.max(...vals.map(x=>x.v));
+    if(min===max){min-=1;max+=1}
+    const pad=(max-min)*.15;min-=pad;max+=pad;
+    ctx.strokeStyle=si===0?"#111827":"#6b7280";ctx.setLineDash(s.dash);ctx.lineWidth=3;ctx.beginPath();
+    vals.forEach((x,j)=>{
+      const xx=36+(W-52)*(data.length===1?.5:x.i/(data.length-1));
+      const yy=12+(H-38)*(1-(x.v-min)/(max-min));
+      if(j===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+    });
+    ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=si===0?"#111827":"#6b7280";ctx.font="12px sans-serif";ctx.fillText(s.label,40,16+si*16);
+  });
+}
+function drawCharts(){ drawChart(document.getElementById("homeChart")); drawChart(document.getElementById("progressChart")); }
+
+function startTimer(sec){
+  clearInterval(timerId); let t=sec; const el=document.getElementById("timer");
+  const paint=()=>{el.textContent=`${String(Math.floor(t/60)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`};
+  paint(); timerId=setInterval(()=>{t--;paint();if(t<=0){clearInterval(timerId);navigator.vibrate?.(200);}},1000);
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="muscu-progress-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importData(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);saveDB();alert("Données importées.");}catch(e){alert("Fichier invalide.");}};r.readAsText(f);
+}
+function resetData(){
+  if(confirm("Supprimer toutes les données enregistrées ?")){db={workouts:[],measurements:[]};saveDB();}
+}
+
+document.getElementById("measureDate").value=todayISO();
+renderWorkout("A"); updateDashboard(); renderHistory(); drawCharts();
+</script>
+</body>
+</html>
