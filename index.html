@@ -99,53 +99,45 @@
     <div class="sub">Programme Basic-Fit • démarrage 24 août 2026</div>
   </header>
 
+  
   <section id="home" class="page active">
     <div class="card hero">
-      <div class="row between">
-        <div>
-          <div class="sub">Prochaine séance</div>
-          <h2 id="nextSessionTitle" style="margin-top:4px;color:white">Séance A</h2>
-          <div id="nextSessionDesc" class="sub"></div>
-        </div>
-        <button class="btn secondary" onclick="openWorkout()">Commencer</button>
-      </div>
+      <div class="sub">Tableau de bord</div>
+      <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
+      <div class="sub">Tes séances, ta progression et les 3 prochains jours.</div>
     </div>
 
     <div class="grid">
-      <div class="card stat"><strong id="statSessions">0</strong><span>séances terminées</span></div>
-      <div class="card stat"><strong id="statWeight">—</strong><span>poids actuel</span></div>
-      <div class="card stat"><strong id="statWaist">—</strong><span>tour de taille</span></div>
-      <div class="card stat"><strong id="statStreak">0</strong><span>séances ce mois</span></div>
-      <div class="card stat"><strong id="statPushupsMonth">0</strong><span>pompes ce mois</span></div>
-      <div class="card stat"><strong id="statPushupsToday">0</strong><span>pompes aujourd’hui</span></div>
-      <div class="card stat"><strong id="statFitnessMonth">0</strong><span>min fitness ce mois</span></div>
-    </div>
-
-
-    <div class="card">
-      <div class="row between">
-        <div>
-          <div class="sub">Aujourd’hui</div>
-          <h2 id="todayPlanTitle">Aucune activité planifiée</h2>
-          <div id="todayPlanDetail" class="sub"></div>
-        </div>
-        <button class="btn secondary small" onclick="showPage('planning',document.querySelectorAll('.tab')[4])">Voir le planning</button>
-      </div>
+      <div class="card stat"><strong id="homeSessionsDone">0</strong><span>séances réalisées</span></div>
+      <div class="card stat"><strong id="homeThisMonth">0</strong><span>séances ce mois</span></div>
+      <div class="card stat"><strong id="homeWeight">—</strong><span>poids actuel</span></div>
+      <div class="card stat"><strong id="homeWaist">—</strong><span>tour de taille</span></div>
     </div>
 
     <div class="card">
-      <h2>Objectif</h2>
-      <p style="margin:0">Réduire la masse grasse globale, avec suivi du tour de taille, tout en développant prioritairement épaules, bras, dos et pectoraux.</p>
-    </div>
-
-    <div class="card">
-      <h2>Progression</h2>
+      <h2>Progrès</h2>
       <canvas id="homeChart" width="700" height="220"></canvas>
-      <div class="sub">Évolution du poids et du tour de taille enregistrés.</div>
+      <div class="sub">Évolution du poids et du tour de taille.</div>
+    </div>
+
+    <div class="card">
+      <h2>Planning — 3 prochains jours</h2>
+      <div id="homePlanning3"></div>
+    </div>
+
+    <div class="card">
+      <h2>Démarrer une séance</h2>
+      <button id="startPlannedBtn" class="btn full" onclick="startPlannedWorkout()">Démarrer la séance planifiée</button>
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary" onclick="startChosenWorkout('A')">Séance A</button>
+        <button class="btn secondary" onclick="startChosenWorkout('B')">Séance B</button>
+        <button class="btn secondary" onclick="startChosenWorkout('C')">Séance C</button>
+      </div>
+      <div id="plannedStartHint" class="sub" style="margin-top:10px"></div>
     </div>
   </section>
 
-  <section id="workout" class="page">
+<section id="workout" class="page">
     <div class="card">
       <div class="row between">
         <div>
@@ -530,7 +522,7 @@ if(!db.planning) db.planning=[];
 let currentSession = "A";
 let timerId = null;
 
-function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
+function saveLocalDB(){ localStorage.setItem("muscuProgress",JSON.stringify(db)); updateDashboard(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); }
 function saveDB(){ saveLocalDB(); if(currentUser) syncAllToCloud(); }
 
 const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
@@ -903,7 +895,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) btn.classList.add("active");
-  if(id==="progress"||id==="home") drawCharts(); if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness(); if(id==="planning")renderPlanning();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="home")renderHomeDashboard();} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness")renderFitness(); if(id==="planning")renderPlanning();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -1096,6 +1088,89 @@ function planningLabel(item){
   if(item.type==="treadmill")return `Tapis — ${item.duration_minutes||0} min`;
   if(item.type==="fitness")return `Fitness — ${item.fitness_name||"Cours"}${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
   return "Repos";
+}
+
+
+function renderHomeDashboard(){
+  const month=todayISO().slice(0,7);
+  const latest=[...db.measurements].reverse();
+  const weight=latest.find(x=>x.weight!=null)?.weight;
+  const waist=latest.find(x=>x.waist!=null)?.waist;
+
+  const s1=document.getElementById("homeSessionsDone");
+  const s2=document.getElementById("homeThisMonth");
+  const s3=document.getElementById("homeWeight");
+  const s4=document.getElementById("homeWaist");
+
+  if(s1)s1.textContent=db.workouts.length;
+  if(s2)s2.textContent=db.workouts.filter(x=>x.date.startsWith(month)).length;
+  if(s3)s3.textContent=weight!=null?Number(weight).toFixed(1)+" kg":"—";
+  if(s4)s4.textContent=waist!=null?Number(waist).toFixed(1)+" cm":"—";
+
+  renderHomePlanning3();
+  updatePlannedStartButton();
+}
+
+function renderHomePlanning3(){
+  const box=document.getElementById("homePlanning3");
+  if(!box)return;
+
+  let out="";
+  for(let i=0;i<3;i++){
+    const d=new Date(todayISO()+"T12:00:00");
+    d.setDate(d.getDate()+i);
+    const date=isoDate(d);
+    const item=db.planning.find(x=>x.plan_date===date);
+
+    out+=`<div class="history-item">
+      <div class="row between">
+        <div>
+          <strong>${d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"2-digit"})}</strong>
+          <div class="sub">${planningLabel(item)}</div>
+        </div>
+        ${i===0&&item?'<span class="pill">Aujourd’hui</span>':""}
+      </div>
+    </div>`;
+  }
+  box.innerHTML=out;
+}
+
+function updatePlannedStartButton(){
+  const item=db.planning.find(x=>x.plan_date===todayISO());
+  const btn=document.getElementById("startPlannedBtn");
+  const hint=document.getElementById("plannedStartHint");
+  if(!btn||!hint)return;
+
+  if(!item){
+    btn.disabled=true;
+    btn.style.opacity=".5";
+    btn.textContent="Démarrer la séance planifiée";
+    hint.textContent="Aucune séance de musculation planifiée aujourd’hui.";
+    return;
+  }
+
+  if(item.type==="workout" && item.workout_session){
+    btn.disabled=false;
+    btn.style.opacity="1";
+    btn.textContent=`Démarrer la séance ${item.workout_session} planifiée`;
+    hint.textContent="";
+  }else{
+    btn.disabled=true;
+    btn.style.opacity=".5";
+    btn.textContent="Démarrer la séance planifiée";
+    hint.textContent=`Aujourd’hui : ${planningLabel(item)}.`;
+  }
+}
+
+function startPlannedWorkout(){
+  const item=db.planning.find(x=>x.plan_date===todayISO());
+  if(!item||item.type!=="workout"||!item.workout_session)return;
+  startChosenWorkout(item.workout_session);
+}
+
+function startChosenWorkout(code){
+  showPage("workout",document.querySelectorAll(".tab")[1]);
+  renderWorkout(code);
 }
 
 function renderPlanning(){
@@ -1414,7 +1489,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
+renderWorkout("A"); updateDashboard(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
 </script>
 </body>
 </html>
