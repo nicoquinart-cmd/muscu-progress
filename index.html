@@ -121,6 +121,25 @@
     <div id="exerciseList" class="card"></div>
 
     <div class="card">
+      <h2>Ajouter un exercice</h2>
+      <div class="row">
+        <div class="field">
+          <label>Nom de l'exercice</label>
+          <input id="newExerciseName" type="text" placeholder="Ex. Pec Deck, Leg Extension...">
+        </div>
+        <div class="field">
+          <label>Nombre de séries</label>
+          <input id="newExerciseSets" type="number" min="1" max="10" value="3">
+        </div>
+        <div class="field">
+          <label>Objectif de répétitions</label>
+          <input id="newExerciseTarget" type="text" value="10–12">
+        </div>
+      </div>
+      <button class="btn full" style="margin-top:12px" onclick="addExerciseToCurrentWorkout()">+ Ajouter à la séance</button>
+    </div>
+
+    <div class="card">
       <div class="row between">
         <div>
           <div class="sub">Chrono repos</div>
@@ -131,6 +150,26 @@
           <button class="btn secondary small" onclick="startTimer(60)">60 s</button>
         </div>
       </div>
+    </div>
+
+
+    <div class="card">
+      <h2>Tapis de course</h2>
+      <div class="row">
+        <div class="field">
+          <label>Durée (min)</label>
+          <input id="treadmillDuration" type="number" min="0" step="1" placeholder="Ex. 10">
+        </div>
+        <div class="field">
+          <label>Inclinaison (%)</label>
+          <input id="treadmillIncline" type="number" min="0" step="0.5" placeholder="Ex. 7">
+        </div>
+        <div class="field">
+          <label>Vitesse (km/h)</label>
+          <input id="treadmillSpeed" type="number" min="0" step="0.1" placeholder="Ex. 5.8">
+        </div>
+      </div>
+      <div class="hint" style="margin-top:12px">Tu peux laisser vide si tu ne fais pas de tapis pendant cette séance.</div>
     </div>
 
     <button class="btn full" onclick="finishWorkout()">✓ Terminer la séance</button>
@@ -195,6 +234,38 @@
       <div class="row between"><h2>Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
       <div id="historyList"></div>
     </div>
+
+    <div class="card">
+      <h2>Ajouter une séance manuellement</h2>
+      <div class="row">
+        <div class="field"><label>Date</label><input id="manualWorkoutDate" type="date"></div>
+        <div class="field"><label>Type de séance</label>
+          <select id="manualWorkoutType">
+            <option value="A">Séance A</option>
+            <option value="B">Séance B</option>
+            <option value="C">Séance C</option>
+            <option value="Libre">Séance libre</option>
+          </select>
+        </div>
+      </div>
+      <div id="manualExerciseList" style="margin-top:12px"></div>
+
+      <div class="exercise">
+        <div class="exercise-title">Tapis de course (optionnel)</div>
+        <div class="row" style="margin-top:8px">
+          <div class="field"><label>Durée (min)</label><input id="manualTreadmillDuration" type="number" min="0" step="1"></div>
+          <div class="field"><label>Inclinaison (%)</label><input id="manualTreadmillIncline" type="number" min="0" step="0.5"></div>
+          <div class="field"><label>Vitesse (km/h)</label><input id="manualTreadmillSpeed" type="number" min="0" step="0.1"></div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary small" onclick="addManualExercise()">+ Ajouter un exercice</button>
+        <button class="btn small" onclick="saveManualWorkout()">Enregistrer la séance</button>
+      </div>
+      <div class="hint" style="margin-top:12px">Tu peux saisir une ancienne séance ou importer manuellement ce que tu as fait ailleurs.</div>
+    </div>
+
     <div class="card">
       <h2>Données</h2>
       <p class="sub">Les données restent enregistrées localement dans ce navigateur. Tu peux les exporter en JSON pour les sauvegarder.</p>
@@ -269,22 +340,34 @@ function latestExercise(name){
   return null;
 }
 
+let currentWorkoutExercises=[];
+
 function renderWorkout(code){
   currentSession=code;
   document.getElementById("sessionPicker").value=code;
   const p=PROGRAM[code];
+  currentWorkoutExercises=p.exercises.map(x=>({name:x[0],sets:x[1],target:x[2]}));
   document.getElementById("workoutTitle").textContent=p.title;
   document.getElementById("workoutDesc").textContent=p.desc;
+  renderCurrentWorkoutExercises();
+}
+
+function renderCurrentWorkoutExercises(){
   const list=document.getElementById("exerciseList");
   list.innerHTML="";
-  p.exercises.forEach(([name,sets,target],idx)=>{
-    const last=latestExercise(name);
-    const wrap=document.createElement("div"); wrap.className="exercise";
+  currentWorkoutExercises.forEach((ex,idx)=>{
+    const last=latestExercise(ex.name);
+    const wrap=document.createElement("div"); wrap.className="exercise"; wrap.dataset.name=ex.name;
     let lastText=last?`Dernière fois : ${last.sets.map(s=>`${s.weight||0}kg×${s.reps||0}`).join(" • ")}`:"Première séance";
-    wrap.innerHTML=`<div class="exercise-title">${name}</div>
-      <div class="exercise-meta">Objectif ${sets} × ${target} • ${lastText}</div>
+    wrap.innerHTML=`<div class="row between">
+        <div>
+          <div class="exercise-title">${ex.name}</div>
+          <div class="exercise-meta">Objectif ${ex.sets} × ${ex.target} • ${lastText}</div>
+        </div>
+        <button class="btn secondary small" onclick="removeCurrentExercise(${idx})">Retirer</button>
+      </div>
       <div class="sets" id="ex-${idx}">
-        ${Array.from({length:sets},(_,s)=>`
+        ${Array.from({length:ex.sets},(_,s)=>`
           <div class="setnum">${s+1}</div>
           <input type="number" step="0.5" placeholder="kg" data-kind="weight">
           <input type="number" step="1" placeholder="reps" data-kind="reps">
@@ -294,10 +377,44 @@ function renderWorkout(code){
   });
 }
 
+function addExerciseToCurrentWorkout(){
+  const nameEl=document.getElementById("newExerciseName");
+  const setsEl=document.getElementById("newExerciseSets");
+  const targetEl=document.getElementById("newExerciseTarget");
+  const name=(nameEl?.value||"").trim();
+  const sets=parseInt(setsEl?.value,10) || 3;
+  const target=(targetEl?.value||"10–12").trim();
+
+  if(!name){
+    alert("Indique le nom de l'exercice.");
+    nameEl?.focus();
+    return;
+  }
+
+  currentWorkoutExercises.push({
+    name,
+    sets:Math.max(1,Math.min(10,sets)),
+    target:target||"10–12"
+  });
+
+  renderCurrentWorkoutExercises();
+
+  if(nameEl) nameEl.value="";
+  if(setsEl) setsEl.value="3";
+  if(targetEl) targetEl.value="10–12";
+
+  const list=document.getElementById("exerciseList");
+  if(list) list.scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function removeCurrentExercise(idx){
+  currentWorkoutExercises.splice(idx,1);
+  renderCurrentWorkoutExercises();
+}
+
 function toggleSet(btn){ btn.classList.toggle("done"); }
 
 function finishWorkout(){
-  const p=PROGRAM[currentSession];
   const exercises=[];
   document.querySelectorAll("#exerciseList .exercise").forEach((node,idx)=>{
     const inputs=[...node.querySelectorAll("input")];
@@ -305,10 +422,22 @@ function finishWorkout(){
     for(let i=0;i<inputs.length;i+=2){
       sets.push({weight:Number(inputs[i].value)||0,reps:Number(inputs[i+1].value)||0});
     }
-    exercises.push({name:p.exercises[idx][0],sets});
+    exercises.push({name:currentWorkoutExercises[idx].name,sets});
   });
-  db.workouts.push({date:todayISO(),session:currentSession,exercises});
+
+  const duration=Number(document.getElementById("treadmillDuration")?.value)||0;
+  const incline=Number(document.getElementById("treadmillIncline")?.value)||0;
+  const speed=Number(document.getElementById("treadmillSpeed")?.value)||0;
+  const treadmill = duration>0 ? {duration,incline,speed} : null;
+
+  db.workouts.push({date:todayISO(),session:currentSession,exercises,treadmill});
   saveDB();
+
+  const d=document.getElementById("treadmillDuration");
+  const i=document.getElementById("treadmillIncline");
+  const s=document.getElementById("treadmillSpeed");
+  if(d)d.value=""; if(i)i.value=""; if(s)s.value="";
+
   alert("Séance enregistrée. Bravo !");
   renderWorkout(getNextSession());
   showPage("home",document.querySelectorAll(".tab")[0]);
@@ -348,8 +477,9 @@ function renderHistory(){
   if(!db.workouts.length){box.innerHTML='<div class="sub">Aucune séance enregistrée pour le moment.</div>';return;}
   box.innerHTML=[...db.workouts].reverse().map(w=>`
     <div class="history-item">
-      <div class="row between"><strong>${PROGRAM[w.session]?.title||("Séance "+w.session)}</strong><span class="pill">${w.date}</span></div>
+      <div class="row between"><strong>${PROGRAM[w.session]?.title||(w.session==="Libre"?"Séance libre":"Séance "+w.session)}</strong><span class="pill">${w.date}</span></div>
       <div class="sub" style="margin-top:6px">${w.exercises.map(e=>e.name).join(" • ")}</div>
+      ${w.treadmill?`<div class="sub" style="margin-top:6px">Tapis : ${w.treadmill.duration} min • ${w.treadmill.incline}% • ${w.treadmill.speed} km/h</div>`:""}
     </div>`).join("");
 }
 
@@ -431,6 +561,67 @@ function startTimer(sec){
   paint(); timerId=setInterval(()=>{t--;paint();if(t<=0){clearInterval(timerId);navigator.vibrate?.(200);}},1000);
 }
 
+
+let manualExercises=[];
+
+function addManualExercise(prefillName="",prefillSets=3){
+  manualExercises.push({name:prefillName,sets:prefillSets});
+  renderManualExercises();
+}
+
+function renderManualExercises(){
+  const box=document.getElementById("manualExerciseList");
+  if(!box) return;
+  box.innerHTML=manualExercises.map((ex,idx)=>`
+    <div class="exercise">
+      <div class="row between">
+        <div class="field"><label>Exercice</label><input value="${ex.name||""}" oninput="manualExercises[${idx}].name=this.value" placeholder="Ex. Chest Press"></div>
+        <button class="btn secondary small" onclick="manualExercises.splice(${idx},1);renderManualExercises()">Retirer</button>
+      </div>
+      <div class="sets" style="margin-top:8px">
+        ${Array.from({length:ex.sets||3},(_,s)=>`
+          <div class="setnum">${s+1}</div>
+          <input type="number" step="0.5" placeholder="kg" data-manual-ex="${idx}" data-set="${s}" data-kind="weight">
+          <input type="number" step="1" placeholder="reps" data-manual-ex="${idx}" data-set="${s}" data-kind="reps">
+          <div></div>`).join("")}
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn secondary small" onclick="manualExercises[${idx}].sets++;renderManualExercises()">+ série</button>
+        ${ex.sets>1?`<button class="btn secondary small" onclick="manualExercises[${idx}].sets--;renderManualExercises()">- série</button>`:""}
+      </div>
+    </div>`).join("");
+}
+
+function saveManualWorkout(){
+  const date=document.getElementById("manualWorkoutDate").value||todayISO();
+  const session=document.getElementById("manualWorkoutType").value;
+  if(!manualExercises.length){alert("Ajoute au moins un exercice.");return;}
+  const exercises=manualExercises.map((ex,idx)=>{
+    const sets=[];
+    for(let s=0;s<ex.sets;s++){
+      const w=document.querySelector(`[data-manual-ex="${idx}"][data-set="${s}"][data-kind="weight"]`);
+      const r=document.querySelector(`[data-manual-ex="${idx}"][data-set="${s}"][data-kind="reps"]`);
+      sets.push({weight:Number(w?.value)||0,reps:Number(r?.value)||0});
+    }
+    return {name:(ex.name||"Exercice").trim(),sets};
+  });
+  const td=Number(document.getElementById("manualTreadmillDuration")?.value)||0;
+  const ti=Number(document.getElementById("manualTreadmillIncline")?.value)||0;
+  const ts=Number(document.getElementById("manualTreadmillSpeed")?.value)||0;
+  const treadmill=td>0?{duration:td,incline:ti,speed:ts}:null;
+
+  db.workouts.push({date,session,exercises,manual:true,treadmill});
+  db.workouts.sort((a,b)=>a.date.localeCompare(b.date));
+  manualExercises=[];
+  renderManualExercises();
+  const mtd=document.getElementById("manualTreadmillDuration");
+  const mti=document.getElementById("manualTreadmillIncline");
+  const mts=document.getElementById("manualTreadmillSpeed");
+  if(mtd)mtd.value=""; if(mti)mti.value=""; if(mts)mts.value="";
+  saveDB();
+  alert("Séance manuelle enregistrée.");
+}
+
 function exportData(){
   const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="muscu-progress-backup.json";a.click();URL.revokeObjectURL(a.href);
@@ -444,6 +635,9 @@ function resetData(){
 }
 
 document.getElementById("measureDate").value=todayISO();
+const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
+manualExercises=[{name:"",sets:3}];
+renderManualExercises();
 renderWorkout("A"); updateDashboard(); renderHistory(); renderPushups(); drawCharts(); drawPushupChart();
 </script>
 </body>
