@@ -68,6 +68,15 @@
 .syncdot{width:9px;height:9px;border-radius:50%;background:#b45309;display:inline-block;margin-right:6px}
 .syncdot.ok{background:#0f766e}
 .hidden{display:none!important}
+
+    .history-clickable{cursor:pointer;transition:transform .12s ease}
+    .history-clickable:active{transform:scale(.995)}
+    .immersive-overlay{position:fixed;inset:0;background:#f4f6f8;z-index:200;overflow:auto;padding:16px}
+    .immersive-shell{max-width:620px;margin:0 auto}
+    .effort-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+    .effort-btn{border:1px solid var(--line);background:white;border-radius:12px;padding:12px 4px;font-weight:700;min-height:52px}
+    .history-exercise{padding:10px 0;border-bottom:1px solid var(--line)}
+    .history-exercise:last-child{border-bottom:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -101,9 +110,62 @@
     </div>
   </div>
 </div>
+
+<div id="immersiveOverlay" class="immersive-overlay hidden">
+  <div class="immersive-shell">
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="sub">Mode immersif</div>
+          <h2 id="immersiveExerciseTitle">Exercice</h2>
+          <div id="immersiveSetLabel" class="sub">Série 1 / 3</div>
+        </div>
+        <button class="btn secondary small" onclick="closeImmersiveWorkout()">✕ Quitter</button>
+      </div>
+      <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
+    </div>
+
+    <div id="immersiveInputCard" class="card">
+      <div class="row">
+        <div class="field">
+          <label>Charge (kg)</label>
+          <input id="immersiveWeight" type="number" min="0" step="0.5" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label>Répétitions</label>
+          <input id="immersiveReps" type="number" min="0" step="1" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn full" style="margin-top:14px" onclick="validateImmersiveSet()">✓ Valider la série</button>
+    </div>
+
+    <div id="immersiveRatingCard" class="card hidden">
+      <h2>Comment était cette série ?</h2>
+      <div class="sub">Note ton effort avant de passer à la série suivante.</div>
+      <div class="effort-grid">
+        <button class="effort-btn" onclick="rateImmersiveSet(1)">1<br><span class="sub">Très facile</span></button>
+        <button class="effort-btn" onclick="rateImmersiveSet(2)">2<br><span class="sub">Facile</span></button>
+        <button class="effort-btn" onclick="rateImmersiveSet(3)">3<br><span class="sub">Correct</span></button>
+        <button class="effort-btn" onclick="rateImmersiveSet(4)">4<br><span class="sub">Difficile</span></button>
+        <button class="effort-btn" onclick="rateImmersiveSet(5)">5<br><span class="sub">Maximal</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="sub">Repos</div>
+          <strong id="immersiveRest">—</strong>
+        </div>
+        <button class="btn secondary small" onclick="skipImmersiveRest()">Passer le repos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.4</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.5</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -139,7 +201,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.4</span>
+        <span class="pill" style="background:white;color:#111827">v2.5</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -272,6 +334,7 @@
       </div>
       <div id="workoutDesc" class="sub"></div>
       <div class="hint" style="margin-top:12px">Repos conseillé : 45 à 60 s. Garde environ 2 répétitions en réserve sur les premières semaines.</div>
+      <button class="btn full" style="margin-top:12px" onclick="startImmersiveWorkout()">🎯 Mode immersif</button>
     </div>
 
     <div id="exerciseList" class="card"></div>
@@ -487,11 +550,17 @@
   </section>
 
   
+  
   <section id="history" class="page">
     <div class="card hero">
-      <div class="sub">Toutes tes activités</div>
-      <h2 style="color:white;margin-top:4px">📚 Historique</h2>
-      <div class="sub">Musculation, fitness, tapis, rameur et pompes, classés par date.</div>
+      <div class="row between">
+        <div>
+          <div class="sub">Toutes tes activités</div>
+          <h2 style="color:white;margin-top:4px">📚 Historique</h2>
+          <div class="sub">Consulte, ajoute ou corrige une activité passée.</div>
+        </div>
+        <button class="btn" style="background:white;color:#111827" onclick="openPastActivityEditor()">＋ Ajouter</button>
+      </div>
     </div>
 
     <div class="card">
@@ -513,11 +582,83 @@
       <div class="card stat"><strong id="historyMonthActivities">0</strong><span>activités ce mois</span></div>
     </div>
 
+    <div id="historyDetailCard" class="card hidden"></div>
+
+    <div id="historyEditorCard" class="card hidden">
+      <div class="row between">
+        <h2 id="historyEditorTitle">➕ Ajouter une activité</h2>
+        <button class="btn secondary small" onclick="closeHistoryEditor()">✕</button>
+      </div>
+
+      <input type="hidden" id="historyEditType">
+      <input type="hidden" id="historyEditIndex">
+      <input type="hidden" id="historyEditId">
+
+      <div class="row" style="margin-top:10px">
+        <div class="field">
+          <label>Date</label>
+          <input id="historyEditDate" type="date">
+        </div>
+        <div class="field">
+          <label>Type d'activité</label>
+          <select id="historyEditActivityType" onchange="updateHistoryEditorFields()">
+            <option value="workout">🏋️ Musculation</option>
+            <option value="fitness">🧘 Fitness</option>
+            <option value="treadmill">🏃 Tapis</option>
+            <option value="rower">🚣 Rameur</option>
+            <option value="pushups">💪 Pompes</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="historyWorkoutFields" style="margin-top:10px">
+        <div class="row">
+          <div class="field">
+            <label>Programme</label>
+            <select id="historyWorkoutSession">
+              <option value="A">Séance A</option>
+              <option value="B">Séance B</option>
+              <option value="C">Séance C</option>
+              <option value="Libre">Séance libre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Durée (min)</label>
+            <input id="historyWorkoutDuration" type="number" min="1">
+          </div>
+        </div>
+        <div id="historyWorkoutExercisesEditor" style="margin-top:10px"></div>
+      </div>
+
+      <div id="historyFitnessFields" class="hidden" style="margin-top:10px">
+        <div class="row">
+          <div class="field"><label>Nom du cours</label><input id="historyFitnessName" placeholder="BodyPump, Cycling..."></div>
+          <div class="field"><label>Durée (min)</label><input id="historyFitnessDuration" type="number" min="1"></div>
+        </div>
+      </div>
+
+      <div id="historyTreadmillFields" class="hidden" style="margin-top:10px">
+        <div class="row">
+          <div class="field"><label>Durée (min)</label><input id="historyTreadDuration" type="number" min="1"></div>
+          <div class="field"><label>Inclinaison (%)</label><input id="historyTreadIncline" type="number" min="0" step="0.5"></div>
+          <div class="field"><label>Vitesse (km/h)</label><input id="historyTreadSpeed" type="number" min="0" step="0.1"></div>
+        </div>
+      </div>
+
+      <div id="historyRowerFields" class="hidden" style="margin-top:10px">
+        <div class="field"><label>Durée (min)</label><input id="historyRowerDuration" type="number" min="1"></div>
+      </div>
+
+      <div id="historyPushupFields" class="hidden" style="margin-top:10px">
+        <div class="field"><label>Nombre total de pompes</label><input id="historyPushupCount" type="number" min="1"></div>
+      </div>
+
+      <button class="btn full" style="margin-top:14px" onclick="saveHistoryActivity()">💾 Enregistrer</button>
+    </div>
+
     <div class="card">
       <div id="historyList"></div>
-      <div class="hint" style="margin-top:12px">
-        ☁️ Les activités Fitness et Pompes sont maintenant envoyées dans Supabase immédiatement à la validation.
-      </div>
+      <div class="hint" style="margin-top:12px">Appuie sur une activité pour afficher son détail.</div>
     </div>
   </section>
 
@@ -648,7 +789,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.4</div>
+      <div class="sub">Muscu Progress • 2.5</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1621,6 +1762,144 @@ function latestExercise(name){
 
 let currentWorkoutExercises=[];
 
+
+let immersiveExerciseIndex=0;
+let immersiveSetIndex=0;
+let immersiveRestTimer=null;
+let immersiveRestSeconds=0;
+
+function startImmersiveWorkout(){
+  if(!currentWorkoutExercises.length){
+    alert("Ajoute au moins un exercice.");
+    return;
+  }
+  immersiveExerciseIndex=0;
+  immersiveSetIndex=0;
+  document.getElementById("immersiveOverlay")?.classList.remove("hidden");
+  renderImmersiveStep();
+}
+
+function closeImmersiveWorkout(){
+  clearInterval(immersiveRestTimer);
+  immersiveRestTimer=null;
+  document.getElementById("immersiveOverlay")?.classList.add("hidden");
+}
+
+function currentImmersiveNodes(){
+  const exercise=document.querySelectorAll("#exerciseList .exercise")[immersiveExerciseIndex];
+  if(!exercise)return null;
+  const inputs=[...exercise.querySelectorAll("input")];
+  const checks=[...exercise.querySelectorAll(".check")];
+  return {
+    exercise,
+    weightInput:inputs[immersiveSetIndex*2],
+    repsInput:inputs[immersiveSetIndex*2+1],
+    check:checks[immersiveSetIndex]
+  };
+}
+
+function renderImmersiveStep(){
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  if(!ex){
+    closeImmersiveWorkout();
+    alert("Toutes les séries sont terminées. Tu peux maintenant terminer la séance.");
+    return;
+  }
+
+  const nodes=currentImmersiveNodes();
+  if(!nodes)return;
+
+  document.getElementById("immersiveExerciseTitle").textContent=ex.name;
+  document.getElementById("immersiveSetLabel").textContent=`Série ${immersiveSetIndex+1} / ${ex.sets} • Exercice ${immersiveExerciseIndex+1} / ${currentWorkoutExercises.length}`;
+
+  const previous=latestExercise(ex.name);
+  let previousText="Première séance pour cet exercice.";
+  if(previous?.sets?.[immersiveSetIndex]){
+    const s=previous.sets[immersiveSetIndex];
+    previousText=`Dernière fois : ${s.weight||0} kg × ${s.reps||0} reps${s.rating?` • effort ${s.rating}/5`:""}`;
+  }
+  document.getElementById("immersivePrevious").textContent=previousText;
+
+  document.getElementById("immersiveWeight").value=nodes.weightInput?.value||previous?.sets?.[immersiveSetIndex]?.weight||"";
+  document.getElementById("immersiveReps").value=nodes.repsInput?.value||previous?.sets?.[immersiveSetIndex]?.reps||"";
+  document.getElementById("immersiveInputCard").classList.remove("hidden");
+  document.getElementById("immersiveRatingCard").classList.add("hidden");
+}
+
+function validateImmersiveSet(){
+  const nodes=currentImmersiveNodes();
+  if(!nodes)return;
+  const weight=Number(document.getElementById("immersiveWeight").value)||0;
+  const reps=Number(document.getElementById("immersiveReps").value)||0;
+
+  if(reps<=0){
+    alert("Indique le nombre de répétitions.");
+    return;
+  }
+
+  nodes.weightInput.value=weight;
+  nodes.repsInput.value=reps;
+  nodes.check.classList.add("done");
+
+  document.getElementById("immersiveInputCard").classList.add("hidden");
+  document.getElementById("immersiveRatingCard").classList.remove("hidden");
+}
+
+function rateImmersiveSet(rating){
+  const nodes=currentImmersiveNodes();
+  if(nodes?.check)nodes.check.dataset.rating=String(rating);
+
+  document.getElementById("immersiveRatingCard").classList.add("hidden");
+  startImmersiveRest(60);
+  advanceImmersiveSet();
+}
+
+function advanceImmersiveSet(){
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  immersiveSetIndex++;
+  if(immersiveSetIndex>=ex.sets){
+    immersiveExerciseIndex++;
+    immersiveSetIndex=0;
+  }
+
+  if(immersiveExerciseIndex>=currentWorkoutExercises.length){
+    clearInterval(immersiveRestTimer);
+    immersiveRestTimer=null;
+    document.getElementById("immersiveRest").textContent="Terminé";
+    setTimeout(()=>{
+      closeImmersiveWorkout();
+      alert("🎉 Toutes les séries sont terminées. Vérifie la séance puis appuie sur « Terminer la séance ».");
+    },500);
+    return;
+  }
+
+  renderImmersiveStep();
+}
+
+function startImmersiveRest(seconds){
+  clearInterval(immersiveRestTimer);
+  immersiveRestSeconds=seconds;
+  const paint=()=>document.getElementById("immersiveRest").textContent=`${immersiveRestSeconds} s`;
+  paint();
+  immersiveRestTimer=setInterval(()=>{
+    immersiveRestSeconds--;
+    paint();
+    if(immersiveRestSeconds<=0){
+      clearInterval(immersiveRestTimer);
+      immersiveRestTimer=null;
+      document.getElementById("immersiveRest").textContent="Go !";
+      navigator.vibrate?.(150);
+    }
+  },1000);
+}
+
+function skipImmersiveRest(){
+  clearInterval(immersiveRestTimer);
+  immersiveRestTimer=null;
+  immersiveRestSeconds=0;
+  document.getElementById("immersiveRest").textContent="Go !";
+}
+
 function renderWorkout(code){
   currentSession=code;
   startWorkoutClock();
@@ -1706,15 +1985,24 @@ function removeCurrentExercise(idx){
   renderCurrentWorkoutExercises();
 }
 
-function toggleSet(btn){ btn.classList.toggle("done"); }
+function toggleSet(btn){
+  btn.classList.toggle("done");
+  if(!btn.classList.contains("done")) delete btn.dataset.rating;
+}
 
 function finishWorkout(){
   const exercises=[];
   document.querySelectorAll("#exerciseList .exercise").forEach((node,idx)=>{
     const inputs=[...node.querySelectorAll("input")];
     const sets=[];
+    const checks=[...node.querySelectorAll(".check")];
     for(let i=0;i<inputs.length;i+=2){
-      sets.push({weight:Number(inputs[i].value)||0,reps:Number(inputs[i+1].value)||0});
+      const setIndex=i/2;
+      sets.push({
+        weight:Number(inputs[i].value)||0,
+        reps:Number(inputs[i+1].value)||0,
+        rating:checks[setIndex]?.dataset.rating ? Number(checks[setIndex].dataset.rating) : null
+      });
     }
     exercises.push({name:currentWorkoutExercises[idx].name,sets});
   });
@@ -1795,78 +2083,74 @@ function updateDashboard(){
 
   renderTodayPlan();
 }
+
 function buildActivityHistory(){
   const items=[];
 
   (db.workouts||[]).forEach((w,index)=>{
-    let type="workout", icon="🏋️", label="Musculation";
-
-    if(w.session==="Tapis" || w.treadmill){
-      type="treadmill"; icon="🏃"; label="Tapis";
-    }else if(w.session==="Rameur" || w.cardio?.type==="rower"){
-      type="rower"; icon="🚣"; label="Rameur";
-    }else if(w.session==="Libre"){
-      label="Séance libre";
-    }else if(w.session && PROGRAM[w.session]){
-      label=PROGRAM[w.session].title;
-    }else if(w.session){
-      label=`Séance ${w.session}`;
-    }
+    let type="workout",icon="🏋️",label="Musculation";
+    if(w.session==="Tapis"||w.treadmill){type="treadmill";icon="🏃";label="Tapis";}
+    else if(w.session==="Rameur"||w.cardio?.type==="rower"){type="rower";icon="🚣";label="Rameur";}
+    else if(w.session==="Libre"){label="Séance libre";}
+    else if(w.session&&PROGRAM[w.session]){label=PROGRAM[w.session].title;}
+    else if(w.session){label=`Séance ${w.session}`;}
 
     const detail=[];
-    if(w.duration_minutes) detail.push(`${Math.round(Number(w.duration_minutes))} min`);
-    if(type==="treadmill" && w.treadmill){
-      if(!w.duration_minutes && w.treadmill.duration) detail.push(`${w.treadmill.duration} min`);
+    if(w.duration_minutes)detail.push(`${Math.round(Number(w.duration_minutes))} min`);
+    if(type==="treadmill"&&w.treadmill){
+      if(!w.duration_minutes&&w.treadmill.duration)detail.push(`${w.treadmill.duration} min`);
       detail.push(`${w.treadmill.incline||0}%`);
       detail.push(`${w.treadmill.speed||0} km/h`);
     }
-    if(type==="rower" && w.cardio?.duration && !w.duration_minutes) detail.push(`${w.cardio.duration} min`);
-    if(type==="workout" && (w.exercises||[]).length) detail.push(`${w.exercises.length} exercice${w.exercises.length>1?"s":""}`);
-    if(w.calories_estimate!=null && Number(w.calories_estimate)>0) detail.push(`🔥 ~${Math.round(Number(w.calories_estimate))} kcal`);
+    if(type==="rower"&&w.cardio?.duration&&!w.duration_minutes)detail.push(`${w.cardio.duration} min`);
+    if(type==="workout"&&(w.exercises||[]).length)detail.push(`${w.exercises.length} exercice${w.exercises.length>1?"s":""}`);
+    if(w.calories_estimate!=null&&Number(w.calories_estimate)>0)detail.push(`🔥 ~${Math.round(Number(w.calories_estimate))} kcal`);
 
     items.push({
-      type, icon, label,
-      date:w.date||"",
-      sort:w.created_at||`${w.date||""}T12:00:00`,
+      key:`workout-${index}`,source:"workout",sourceIndex:index,id:w.id||null,
+      type,icon,label,date:w.date||"",sort:w.created_at||`${w.date||""}T12:00:00`,
       detail:detail.join(" • ")
     });
   });
 
-  (db.fitness||[]).forEach(f=>{
+  (db.fitness||[]).forEach((f,index)=>{
     const detail=[`${Number(f.duration)||0} min`];
-    if(f.calories_estimate!=null && Number(f.calories_estimate)>0) detail.push(`🔥 ~${Math.round(Number(f.calories_estimate))} kcal`);
+    if(f.calories_estimate!=null&&Number(f.calories_estimate)>0)detail.push(`🔥 ~${Math.round(Number(f.calories_estimate))} kcal`);
     items.push({
-      type:"fitness", icon:"🧘", label:f.name||"Fitness",
-      date:f.date||"",
-      sort:f.created_at||`${f.date||""}T13:00:00`,
-      detail:detail.join(" • ")
+      key:`fitness-${index}`,source:"fitness",sourceIndex:index,id:f.id||null,
+      type:"fitness",icon:"🧘",label:f.name||"Fitness",date:f.date||"",
+      sort:f.created_at||`${f.date||""}T13:00:00`,detail:detail.join(" • ")
     });
   });
 
   const byDay={};
-  (db.pushups||[]).forEach(p=>{
+  (db.pushups||[]).forEach((p,index)=>{
     const date=p.date||"";
     if(!date)return;
-    if(!byDay[date])byDay[date]={count:0,sort:p.created_at||`${date}T20:00:00`};
+    if(!byDay[date])byDay[date]={count:0,indices:[],ids:[],sort:p.created_at||`${date}T20:00:00`};
     byDay[date].count+=Number(p.count)||0;
+    byDay[date].indices.push(index);
+    if(p.id)byDay[date].ids.push(p.id);
     if(p.created_at)byDay[date].sort=p.created_at;
   });
-
   Object.entries(byDay).forEach(([date,v])=>{
     items.push({
-      type:"pushups", icon:"💪", label:"Challenge Pompes",
-      date, sort:v.sort,
-      detail:`${v.count} pompe${v.count>1?"s":""}`
+      key:`pushups-${date}`,source:"pushups",sourceDate:date,sourceIndices:v.indices,ids:v.ids,
+      type:"pushups",icon:"💪",label:"Challenge Pompes",date,sort:v.sort,
+      detail:`${v.count} pompe${v.count>1?"s":""}`,pushupCount:v.count
     });
   });
 
   return items.sort((a,b)=>String(b.sort).localeCompare(String(a.sort)));
 }
 
+function historyItemByKey(key){
+  return buildActivityHistory().find(x=>x.key===key)||null;
+}
+
 function renderHistory(){
   const box=document.getElementById("historyList");
   if(!box)return;
-
   const all=buildActivityHistory();
   const filter=document.getElementById("historyTypeFilter")?.value||"all";
   const shown=filter==="all"?all:all.filter(x=>x.type===filter);
@@ -1883,20 +2167,286 @@ function renderHistory(){
   }
 
   box.innerHTML=shown.map(x=>{
-    const d=x.date
-      ? new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})
-      : "Date inconnue";
-    return `<div class="history-item">
+    const d=x.date?new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"}):"Date inconnue";
+    return `<div class="history-item history-clickable" onclick="openHistoryDetail('${x.key}')">
       <div class="row between">
-        <div>
+        <div style="min-width:0">
           <strong>${x.icon} ${x.label}</strong>
-          <div class="sub" style="margin-top:4px">${x.detail}</div>
+          <div class="sub" style="margin-top:4px">${x.detail||""}</div>
         </div>
-        <span class="pill">${d}</span>
+        <div style="text-align:right"><span class="pill">${d}</span><div class="sub" style="margin-top:5px">Voir le détail ›</div></div>
       </div>
     </div>`;
   }).join("");
 }
+
+function openHistoryDetail(key){
+  const item=historyItemByKey(key);
+  if(!item)return;
+  const card=document.getElementById("historyDetailCard");
+  card.dataset.key=key;
+  let body="";
+
+  if(item.source==="workout"){
+    const w=db.workouts[item.sourceIndex];
+    if(item.type==="workout"){
+      body=(w.exercises||[]).length?(w.exercises||[]).map(ex=>`
+        <div class="history-exercise">
+          <strong>${ex.name}</strong>
+          <div class="sub" style="margin-top:5px">${(ex.sets||[]).map((s,i)=>`S${i+1}: ${s.weight||0} kg × ${s.reps||0}${s.rating?` • effort ${s.rating}/5`:""}`).join("<br>")}</div>
+        </div>`).join(""):'<div class="sub">Aucun détail d’exercice enregistré.</div>';
+    }else if(item.type==="treadmill"){
+      body=`<div class="sub">Durée : ${w.treadmill?.duration||w.duration_minutes||0} min<br>Inclinaison : ${w.treadmill?.incline||0}%<br>Vitesse : ${w.treadmill?.speed||0} km/h</div>`;
+    }else{
+      body=`<div class="sub">Durée : ${w.cardio?.duration||w.duration_minutes||0} min</div>`;
+    }
+  }else if(item.source==="fitness"){
+    const f=db.fitness[item.sourceIndex];
+    body=`<div class="sub">Cours : ${f.name}<br>Durée : ${f.duration} min${f.calories_estimate?`<br>Calories : ~${Math.round(f.calories_estimate)} kcal`:""}</div>`;
+  }else{
+    body=`<div class="sub">Total du jour : ${item.pushupCount} pompes</div>`;
+  }
+
+  const d=item.date?new Date(item.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}):"";
+  card.innerHTML=`<div class="row between">
+    <div><div class="sub">${d}</div><h2>${item.icon} ${item.label}</h2></div>
+    <button class="btn secondary small" onclick="closeHistoryDetail()">✕</button>
+  </div>
+  ${body}
+  <div class="row" style="margin-top:14px">
+    <button class="btn" onclick="editHistoryItem('${key}')">✏️ Modifier</button>
+  </div>`;
+  card.classList.remove("hidden");
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeHistoryDetail(){
+  document.getElementById("historyDetailCard")?.classList.add("hidden");
+}
+
+function openPastActivityEditor(){
+  closeHistoryDetail();
+  const card=document.getElementById("historyEditorCard");
+  document.getElementById("historyEditorTitle").textContent="➕ Ajouter une activité passée";
+  document.getElementById("historyEditType").value="";
+  document.getElementById("historyEditIndex").value="";
+  document.getElementById("historyEditId").value="";
+  document.getElementById("historyEditDate").value=todayISO();
+  document.getElementById("historyEditActivityType").disabled=false;
+  document.getElementById("historyEditActivityType").value="workout";
+  document.getElementById("historyWorkoutSession").value="A";
+  document.getElementById("historyWorkoutDuration").value="40";
+  document.getElementById("historyFitnessName").value="";
+  document.getElementById("historyFitnessDuration").value="";
+  document.getElementById("historyTreadDuration").value="";
+  document.getElementById("historyTreadIncline").value="";
+  document.getElementById("historyTreadSpeed").value="";
+  document.getElementById("historyRowerDuration").value="";
+  document.getElementById("historyPushupCount").value="";
+  renderHistoryWorkoutExerciseEditor(null);
+  updateHistoryEditorFields();
+  card.classList.remove("hidden");
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function editHistoryItem(key){
+  const item=historyItemByKey(key);
+  if(!item)return;
+  closeHistoryDetail();
+  const card=document.getElementById("historyEditorCard");
+  document.getElementById("historyEditorTitle").textContent="✏️ Modifier l’activité";
+  document.getElementById("historyEditType").value=item.source;
+  document.getElementById("historyEditIndex").value=item.sourceIndex??"";
+  document.getElementById("historyEditId").value=item.id||"";
+  document.getElementById("historyEditDate").value=item.date;
+  const type=item.type==="treadmill"?"treadmill":item.type==="rower"?"rower":item.source;
+  document.getElementById("historyEditActivityType").value=type;
+  document.getElementById("historyEditActivityType").disabled=true;
+
+  if(item.source==="workout"){
+    const w=db.workouts[item.sourceIndex];
+    if(item.type==="workout"){
+      document.getElementById("historyWorkoutSession").value=w.session||"Libre";
+      document.getElementById("historyWorkoutDuration").value=w.duration_minutes||40;
+      renderHistoryWorkoutExerciseEditor(w.exercises||[]);
+    }else if(item.type==="treadmill"){
+      document.getElementById("historyTreadDuration").value=w.treadmill?.duration||w.duration_minutes||"";
+      document.getElementById("historyTreadIncline").value=w.treadmill?.incline||0;
+      document.getElementById("historyTreadSpeed").value=w.treadmill?.speed||0;
+    }else{
+      document.getElementById("historyRowerDuration").value=w.cardio?.duration||w.duration_minutes||"";
+    }
+  }else if(item.source==="fitness"){
+    const f=db.fitness[item.sourceIndex];
+    document.getElementById("historyFitnessName").value=f.name||"";
+    document.getElementById("historyFitnessDuration").value=f.duration||"";
+  }else{
+    document.getElementById("historyEditIndex").value=item.sourceDate;
+    document.getElementById("historyPushupCount").value=item.pushupCount||"";
+  }
+
+  updateHistoryEditorFields();
+  card.classList.remove("hidden");
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeHistoryEditor(){
+  document.getElementById("historyEditorCard")?.classList.add("hidden");
+}
+
+function updateHistoryEditorFields(){
+  const type=document.getElementById("historyEditActivityType").value;
+  document.getElementById("historyWorkoutFields").classList.toggle("hidden",type!=="workout");
+  document.getElementById("historyFitnessFields").classList.toggle("hidden",type!=="fitness");
+  document.getElementById("historyTreadmillFields").classList.toggle("hidden",type!=="treadmill");
+  document.getElementById("historyRowerFields").classList.toggle("hidden",type!=="rower");
+  document.getElementById("historyPushupFields").classList.toggle("hidden",type!=="pushups");
+  if(type==="workout"&&!document.getElementById("historyEditType").value){
+    renderHistoryWorkoutExerciseEditor(null);
+  }
+}
+
+function renderHistoryWorkoutExerciseEditor(exercises){
+  const box=document.getElementById("historyWorkoutExercisesEditor");
+  if(!box)return;
+  let exs=exercises;
+  if(!exs){
+    const code=document.getElementById("historyWorkoutSession")?.value||"A";
+    exs=PROGRAM[code]?.exercises?.map(x=>({name:x[0],sets:Array.from({length:x[1]},()=>({weight:0,reps:0,rating:null}))}))||[];
+  }
+  box.innerHTML=`<div class="sub" style="margin-bottom:6px">Détail des exercices (facultatif)</div>`+exs.map((ex,ei)=>`
+    <div class="history-exercise" data-hist-ex="${ei}">
+      <strong>${ex.name}</strong>
+      <input type="hidden" data-hist-name value="${String(ex.name).replace(/"/g,'&quot;')}">
+      ${(ex.sets||[]).map((s,si)=>`<div class="row" style="margin-top:6px">
+        <div class="field"><label>S${si+1} kg</label><input data-hist-weight type="number" step="0.5" value="${s.weight||""}"></div>
+        <div class="field"><label>Reps</label><input data-hist-reps type="number" value="${s.reps||""}"></div>
+        <div class="field"><label>Effort /5</label><input data-hist-rating type="number" min="1" max="5" value="${s.rating||""}"></div>
+      </div>`).join("")}
+    </div>`).join("");
+}
+
+document.addEventListener("change",e=>{
+  if(e.target?.id==="historyWorkoutSession" && !document.getElementById("historyEditType")?.value){
+    renderHistoryWorkoutExerciseEditor(null);
+  }
+});
+
+function collectHistoryExercises(){
+  return [...document.querySelectorAll("#historyWorkoutExercisesEditor [data-hist-ex]")].map(node=>{
+    const name=node.querySelector("[data-hist-name]")?.value||"Exercice";
+    const weights=[...node.querySelectorAll("[data-hist-weight]")];
+    const reps=[...node.querySelectorAll("[data-hist-reps]")];
+    const ratings=[...node.querySelectorAll("[data-hist-rating]")];
+    return {name,sets:weights.map((w,i)=>({
+      weight:Number(w.value)||0,
+      reps:Number(reps[i]?.value)||0,
+      rating:ratings[i]?.value?Number(ratings[i].value):null
+    }))};
+  });
+}
+
+async function saveHistoryActivity(){
+  const existingSource=document.getElementById("historyEditType").value;
+  const existingIndex=document.getElementById("historyEditIndex").value;
+  const type=document.getElementById("historyEditActivityType").value;
+  const date=document.getElementById("historyEditDate").value;
+  if(!date){alert("Indique une date.");return;}
+
+  if(type==="workout"){
+    const session=document.getElementById("historyWorkoutSession").value;
+    const duration=Number(document.getElementById("historyWorkoutDuration").value)||40;
+    const obj={
+      date,session,exercises:collectHistoryExercises(),treadmill:null,
+      duration_minutes:duration,calories_estimate:estimateStrengthCalories(duration),manual:true
+    };
+    if(existingSource==="workout"){
+      obj.id=db.workouts[Number(existingIndex)]?.id;
+      obj.created_at=db.workouts[Number(existingIndex)]?.created_at;
+      db.workouts[Number(existingIndex)]=obj;
+    }else db.workouts.push(obj);
+    saveDB();
+  }
+
+  if(type==="treadmill"){
+    const duration=Number(document.getElementById("historyTreadDuration").value)||0;
+    const incline=Number(document.getElementById("historyTreadIncline").value)||0;
+    const speed=Number(document.getElementById("historyTreadSpeed").value)||0;
+    if(duration<=0){alert("Indique une durée.");return;}
+    const obj={date,session:"Tapis",exercises:[],treadmill:{duration,incline,speed},duration_minutes:duration,calories_estimate:estimateTreadmillCalories(duration,speed,incline),manual:true};
+    if(existingSource==="workout"){
+      obj.id=db.workouts[Number(existingIndex)]?.id;
+      obj.created_at=db.workouts[Number(existingIndex)]?.created_at;
+      db.workouts[Number(existingIndex)]=obj;
+    }else db.workouts.push(obj);
+    saveDB();
+  }
+
+  if(type==="rower"){
+    const duration=Number(document.getElementById("historyRowerDuration").value)||0;
+    if(duration<=0){alert("Indique une durée.");return;}
+    const obj={date,session:"Rameur",exercises:[],cardio:{type:"rower",duration},duration_minutes:duration,calories_estimate:estimateRowerCalories(duration),manual:true};
+    if(existingSource==="workout"){
+      obj.id=db.workouts[Number(existingIndex)]?.id;
+      obj.created_at=db.workouts[Number(existingIndex)]?.created_at;
+      db.workouts[Number(existingIndex)]=obj;
+    }else db.workouts.push(obj);
+    saveDB();
+  }
+
+  if(type==="fitness"){
+    const name=document.getElementById("historyFitnessName").value.trim();
+    const duration=Number(document.getElementById("historyFitnessDuration").value)||0;
+    if(!name||duration<=0){alert("Indique le cours et la durée.");return;}
+    const calories_estimate=estimateFitnessCalories(name,duration);
+    if(existingSource==="fitness"){
+      const idx=Number(existingIndex);
+      const old=db.fitness[idx];
+      db.fitness[idx]={...old,date,name,duration,calories_estimate};
+      saveLocalDB();
+      if(currentUser&&old?.id){
+        const {error}=await supa.from("fitness_classes").update({class_date:date,class_name:name,duration_minutes:duration,calories_estimate}).eq("id",old.id).eq("user_id",currentUser.id);
+        if(error){alert("Modification locale enregistrée, mais erreur cloud : "+error.message);return;}
+      }else{
+        db.fitness[idx].pending_cloud=true; saveDB();
+      }
+    }else{
+      const local={date,name,duration,calories_estimate,created_at:new Date().toISOString(),pending_cloud:true};
+      db.fitness.push(local); saveLocalDB();
+      if(currentUser){
+        const {data,error}=await supa.from("fitness_classes").insert({user_id:currentUser.id,class_date:date,class_name:name,duration_minutes:duration,calories_estimate}).select("*").single();
+        if(!error){local.id=data.id;local.created_at=data.created_at;local.pending_cloud=false;saveLocalDB();}
+      }
+    }
+  }
+
+  if(type==="pushups"){
+    const count=Number(document.getElementById("historyPushupCount").value)||0;
+    if(count<=0){alert("Indique un nombre de pompes.");return;}
+    const oldDate=existingSource==="pushups"?existingIndex:null;
+    if(oldDate){
+      const oldRows=(db.pushups||[]).filter(x=>x.date===oldDate);
+      db.pushups=(db.pushups||[]).filter(x=>x.date!==oldDate);
+      saveLocalDB();
+      if(currentUser){
+        const ids=oldRows.map(x=>x.id).filter(Boolean);
+        if(ids.length)await supa.from("pushups").delete().in("id",ids).eq("user_id",currentUser.id);
+        else await supa.from("pushups").delete().eq("user_id",currentUser.id).eq("pushup_date",oldDate);
+      }
+    }
+    const local={date,count,ts:Date.now(),created_at:new Date().toISOString(),pending_cloud:true};
+    db.pushups.push(local);saveLocalDB();
+    if(currentUser){
+      const {data,error}=await supa.from("pushups").insert({user_id:currentUser.id,pushup_date:date,count}).select("*").single();
+      if(!error){local.id=data.id;local.created_at=data.created_at;local.pending_cloud=false;saveLocalDB();}
+    }
+  }
+
+  closeHistoryEditor();
+  renderHistory();
+  setSyncStatus("Historique mis à jour",true);
+}
+
 function isoDate(d){
   return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
 }
