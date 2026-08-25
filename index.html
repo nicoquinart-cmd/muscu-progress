@@ -103,7 +103,7 @@
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.3</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.3.1</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -139,7 +139,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.3</span>
+        <span class="pill" style="background:white;color:#111827">v2.3.1</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -515,6 +515,9 @@
 
     <div class="card">
       <div id="historyList"></div>
+      <div class="hint" style="margin-top:12px">
+        ☁️ Les activités Fitness et Pompes sont maintenant envoyées dans Supabase immédiatement à la validation.
+      </div>
     </div>
   </section>
 
@@ -601,7 +604,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.3</div>
+      <div class="sub">Muscu Progress • 2.3.1</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -739,6 +742,38 @@ function saveLocalDB(){
   });
 }
 
+let cloudSavePending=false;
+let cloudSaveTimer=null;
+
+function saveDB(){
+  // Local save is immediate so the UI never loses the activity.
+  saveLocalDB();
+
+  // Cloud save is queued. If a cloud read/write is already running,
+  // the pending save will retry automatically instead of being lost.
+  cloudSavePending=true;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(flushQueuedCloudSave,250);
+}
+
+async function flushQueuedCloudSave(){
+  if(!cloudSavePending || !currentUser) return;
+
+  if(syncing){
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer=setTimeout(flushQueuedCloudSave,600);
+    return;
+  }
+
+  cloudSavePending=false;
+  await syncAllToCloud();
+
+  if(cloudSavePending){
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer=setTimeout(flushQueuedCloudSave,300);
+  }
+}
+
 const SUPABASE_URL="https://awcwhamfhpvcfppaizde.supabase.co";
 const SUPABASE_KEY="sb_publishable_t1NQnhOQGt482D-yl08nKA_iC0q2qeE";
 const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
@@ -836,8 +871,8 @@ async function syncFromCloud(){
     db={
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual,duration_minutes:x.duration_minutes||null,calories_estimate:x.calories_estimate||null,duration_minutes:x.duration_minutes==null?null:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
-      pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()})),
-      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),created_at:x.created_at})),
+      pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime(),created_at:x.created_at,pending_cloud:false})),
+      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),created_at:x.created_at,pending_cloud:false})),
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
@@ -845,35 +880,48 @@ async function syncFromCloud(){
   finally{syncing=false;}
 }
 async function syncAllToCloud(){
-  if(!currentUser||syncing)return; syncing=true; setSyncStatus("Enregistrement…");
+  if(!currentUser || syncing){
+    cloudSavePending=true;
+    return;
+  }
+
+  syncing=true;
+  setSyncStatus("Enregistrement…");
+
   try{
-    // Rebuild the user's cloud rows from the local in-memory state.
-    // Simple and reliable for this personal tracker.
-    const tables=["workouts","measurements","pushups","fitness_classes","planning_items"];
-    for(const t of tables){
+    // Legacy datasets: rebuild from the current local state.
+    for(const t of ["workouts","measurements","planning_items"]){
       const del=await supa.from(t).delete().eq("user_id",currentUser.id);
-      if(del.error)throw del.error;
+      if(del.error) throw del.error;
     }
-    if(db.workouts.length){
+
+    if((db.workouts||[]).length){
       const rows=db.workouts.map(x=>({
-        user_id:currentUser.id,workout_date:x.date,session_type:x.session,
-        exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual
+        user_id:currentUser.id,
+        workout_date:x.date,
+        session_type:x.session,
+        exercises:x.exercises||[],
+        treadmill:x.treadmill||null,
+        manual:!!x.manual,
+        duration_minutes:x.duration_minutes||null,
+        calories_estimate:x.calories_estimate||null
       }));
-      const r=await supa.from("workouts").insert(rows);if(r.error)throw r.error;
+      const r=await supa.from("workouts").insert(rows);
+      if(r.error) throw r.error;
     }
-    if(db.measurements.length){
-      const rows=db.measurements.map(x=>({user_id:currentUser.id,measure_date:x.date,weight:x.weight,waist:x.waist}));
-      const r=await supa.from("measurements").insert(rows);if(r.error)throw r.error;
+
+    if((db.measurements||[]).length){
+      const rows=db.measurements.map(x=>({
+        user_id:currentUser.id,
+        measure_date:x.date,
+        weight:x.weight,
+        waist:x.waist
+      }));
+      const r=await supa.from("measurements").insert(rows);
+      if(r.error) throw r.error;
     }
-    if(db.pushups.length){
-      const rows=db.pushups.map(x=>({user_id:currentUser.id,pushup_date:x.date,count:x.count}));
-      const r=await supa.from("pushups").insert(rows);if(r.error)throw r.error;
-    }
-    if(db.fitness.length){
-      const rows=db.fitness.map(x=>({user_id:currentUser.id,class_date:x.date,class_name:x.name,duration_minutes:x.duration,calories_estimate:x.calories_estimate||null}));
-      const r=await supa.from("fitness_classes").insert(rows);if(r.error)throw r.error;
-    }
-    if(db.planning.length){
+
+    if((db.planning||[]).length){
       const rows=db.planning.map(x=>({
         user_id:currentUser.id,
         plan_date:x.plan_date,
@@ -884,11 +932,60 @@ async function syncAllToCloud(){
         speed:x.speed||null,
         fitness_name:x.fitness_name||null
       }));
-      const r=await supa.from("planning_items").insert(rows);if(r.error)throw r.error;
+      const r=await supa.from("planning_items").insert(rows);
+      if(r.error) throw r.error;
     }
+
+    // Fitness and pushups are saved directly at entry time.
+    // Only upload local rows that are explicitly still pending.
+    const pendingPush=(db.pushups||[]).filter(x=>x.pending_cloud && !x.id);
+    for(const x of pendingPush){
+      const {data,error}=await supa.from("pushups").insert({
+        user_id:currentUser.id,
+        pushup_date:x.date,
+        count:x.count
+      }).select("*").single();
+
+      if(error) throw error;
+      x.id=data.id;
+      x.created_at=data.created_at;
+      x.ts=new Date(data.created_at).getTime();
+      x.pending_cloud=false;
+    }
+
+    const pendingFitness=(db.fitness||[]).filter(x=>x.pending_cloud && !x.id);
+    for(const x of pendingFitness){
+      const {data,error}=await supa.from("fitness_classes").insert({
+        user_id:currentUser.id,
+        class_date:x.date,
+        class_name:x.name,
+        duration_minutes:x.duration,
+        calories_estimate:x.calories_estimate||null
+      }).select("*").single();
+
+      if(error) throw error;
+      x.id=data.id;
+      x.created_at=data.created_at;
+      x.pending_cloud=false;
+    }
+
+    saveLocalDB();
     setSyncStatus("Synchronisé",true);
-  }catch(e){console.error(e);setSyncStatus(navigator.onLine?"Erreur d’enregistrement : "+(e.message||"inconnue"):"Hors ligne • données conservées localement");}
-  finally{syncing=false;}
+
+  }catch(e){
+    console.error("Cloud save error",e);
+    cloudSavePending=true;
+    setSyncStatus(navigator.onLine
+      ?"Erreur d’enregistrement : "+(e.message||"inconnue")
+      :"Hors ligne • données conservées localement");
+  }finally{
+    syncing=false;
+
+    if(cloudSavePending){
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer=setTimeout(flushQueuedCloudSave,700);
+    }
+  }
 }
 async function migrateLocalToCloud(){
   if(!currentUser)return;
@@ -2152,26 +2249,120 @@ function renderFitness(){
       </div>
     </div>`).join(""):'<div class="sub">Aucun cours enregistré pour le moment.</div>';
 }
-function saveFitnessClass(){
-  const date=document.getElementById("fitnessDate").value||todayISO();
-  const name=document.getElementById("fitnessName").value.trim();
-  const duration=parseInt(document.getElementById("fitnessDuration").value,10);
-  if(!name){alert("Indique le nom du cours.");return;}
-  if(!duration||duration<1){alert("Indique la durée du cours.");return;}
-  const calories_estimate=estimateFitnessCalories(name,duration);
-  db.fitness.push({date,name,duration,calories_estimate});
+async function saveFitnessClass(){
+  const date=document.getElementById("fitnessDate")?.value||todayISO();
+  const name=(document.getElementById("fitnessName")?.value||"").trim();
+  const duration=parseInt(document.getElementById("fitnessDuration")?.value,10);
+
+  if(!name){
+    alert("Indique le nom du cours.");
+    return;
+  }
+  if(!duration || duration<1){
+    alert("Indique la durée du cours.");
+    return;
+  }
+
+  const calories_estimate=typeof estimateFitnessCalories==="function"
+    ? estimateFitnessCalories(name,duration)
+    : null;
+
+  const localItem={
+    date,
+    name,
+    duration,
+    calories_estimate,
+    created_at:new Date().toISOString(),
+    pending_cloud:true
+  };
+
+  db.fitness=db.fitness||[];
+  db.fitness.push(localItem);
+  saveLocalDB();
+
   document.getElementById("fitnessName").value="";
   document.getElementById("fitnessDuration").value="";
-  saveDB();
   renderFitness();
   renderHistory();
-}
 
-function addPushups(count){
-  if(!Number.isFinite(count)||count<=0)return;
-  db.pushups.push({date:todayISO(),count:Math.round(count),ts:Date.now()});
-  saveDB();
+  if(!currentUser){
+    setSyncStatus("Cours enregistré localement • connexion requise pour le cloud");
+    return;
+  }
+
+  setSyncStatus("Enregistrement Fitness…");
+
+  const {data,error}=await supa
+    .from("fitness_classes")
+    .insert({
+      user_id:currentUser.id,
+      class_date:date,
+      class_name:name,
+      duration_minutes:duration,
+      calories_estimate:calories_estimate
+    })
+    .select("*")
+    .single();
+
+  if(error){
+    console.error("Fitness cloud insert",error);
+    setSyncStatus("Fitness local OK • erreur cloud : "+error.message);
+    return;
+  }
+
+  localItem.id=data.id;
+  localItem.created_at=data.created_at||localItem.created_at;
+  localItem.pending_cloud=false;
+  saveLocalDB();
+  setSyncStatus("Fitness synchronisé",true);
+}
+async function addPushups(count){
+  const n=Number(count);
+  if(!Number.isFinite(n)||n<=0) return;
+
+  const localItem={
+    date:todayISO(),
+    count:Math.round(n),
+    ts:Date.now(),
+    created_at:new Date().toISOString(),
+    pending_cloud:true
+  };
+
+  db.pushups=db.pushups||[];
+  db.pushups.push(localItem);
+  saveLocalDB();
+  renderPushups();
   renderHistory();
+
+  if(!currentUser){
+    setSyncStatus("Pompes enregistrées localement • connexion requise pour le cloud");
+    return;
+  }
+
+  setSyncStatus("Enregistrement Pompes…");
+
+  const {data,error}=await supa
+    .from("pushups")
+    .insert({
+      user_id:currentUser.id,
+      pushup_date:localItem.date,
+      count:localItem.count
+    })
+    .select("*")
+    .single();
+
+  if(error){
+    console.error("Pushups cloud insert",error);
+    setSyncStatus("Pompes locales OK • erreur cloud : "+error.message);
+    return;
+  }
+
+  localItem.id=data.id;
+  localItem.created_at=data.created_at||localItem.created_at;
+  localItem.ts=new Date(localItem.created_at).getTime();
+  localItem.pending_cloud=false;
+  saveLocalDB();
+  setSyncStatus("Pompes synchronisées",true);
 }
 function addCustomPushups(){
   const el=document.getElementById("pushupCustom"), n=parseInt(el.value,10);
