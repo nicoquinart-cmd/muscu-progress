@@ -103,7 +103,7 @@
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.3.1</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.4</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -139,7 +139,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.3.1</span>
+        <span class="pill" style="background:white;color:#111827">v2.4</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -600,14 +600,61 @@
     </div>
   </section>
 
+
+  <section id="connections" class="page">
+    <div class="card hero">
+      <div class="sub">Services connectés</div>
+      <h2 style="color:white;margin-top:4px">🔗 Connexions</h2>
+      <div class="sub">Synchronise automatiquement certaines données de santé.</div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <div>
+          <h2>⚫ Withings</h2>
+          <div id="withingsStatus" class="sub">Vérification de la connexion…</div>
+        </div>
+        <span id="withingsBadge" class="pill">Non connecté</span>
+      </div>
+
+      <div id="withingsConnectedActions" class="hidden">
+        <div id="withingsLastSync" class="sub" style="margin-top:10px"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" onclick="syncWithings()">↻ Synchroniser</button>
+          <button class="btn secondary" onclick="disconnectWithings()">Déconnecter</button>
+        </div>
+      </div>
+
+      <div id="withingsDisconnectedActions" style="margin-top:12px">
+        <button class="btn" onclick="connectWithings()">Connecter mon compte Withings</button>
+      </div>
+
+      <div id="withingsMessage" class="hint" style="margin-top:12px">
+        Le poids et la composition corporelle pourront être récupérés depuis Withings.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Dernières données Withings</h2>
+      <div class="grid">
+        <div class="card stat"><strong id="withingsWeight">—</strong><span>poids</span></div>
+        <div class="card stat"><strong id="withingsFat">—</strong><span>masse grasse</span></div>
+        <div class="card stat"><strong id="withingsMuscle">—</strong><span>masse musculaire</span></div>
+      </div>
+    </div>
+  </section>
+
 <section id="more" class="page">
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.3.1</div>
+      <div class="sub">Muscu Progress • 2.4</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
+    <div class="card" onclick="showPage('connections')" style="cursor:pointer">
+      <div class="row between"><div><h2>🔗 Connexions</h2><div class="sub">Withings et futurs services</div></div><strong>›</strong></div>
+    </div>
     <div class="card" onclick="showPage('profile')" style="cursor:pointer">
       <div class="row between"><div><h2>👤 Mon profil</h2><div class="sub">Âge, sexe, poids et taille</div></div><strong>›</strong></div>
     </div>
@@ -1226,6 +1273,117 @@ showPage=function(id,btn){
   if(id==="admin") loadAdminDashboard();
 }
 
+
+async function withingsInvoke(functionName, body={}){
+  const {data,error}=await supa.functions.invoke(functionName,{body});
+  if(error) throw error;
+  if(data?.error) throw new Error(data.error);
+  return data;
+}
+
+async function loadWithingsStatus(){
+  const status=document.getElementById("withingsStatus");
+  const badge=document.getElementById("withingsBadge");
+  const connected=document.getElementById("withingsConnectedActions");
+  const disconnected=document.getElementById("withingsDisconnectedActions");
+  if(!status)return;
+
+  try{
+    status.textContent="Vérification…";
+    const data=await withingsInvoke("withings-status");
+
+    if(data.connected){
+      status.textContent="Compte Withings connecté";
+      badge.textContent="Connecté";
+      badge.style.background="#dcfce7";
+      connected.classList.remove("hidden");
+      disconnected.classList.add("hidden");
+
+      const last=document.getElementById("withingsLastSync");
+      if(last)last.textContent=data.last_sync_at
+        ? "Dernière synchronisation : "+new Date(data.last_sync_at).toLocaleString("fr-FR")
+        : "Aucune synchronisation effectuée.";
+
+      document.getElementById("withingsWeight").textContent=data.latest?.weight_kg!=null
+        ? Number(data.latest.weight_kg).toFixed(1)+" kg":"—";
+      document.getElementById("withingsFat").textContent=data.latest?.fat_ratio_pct!=null
+        ? Number(data.latest.fat_ratio_pct).toFixed(1)+" %":"—";
+      document.getElementById("withingsMuscle").textContent=data.latest?.muscle_mass_kg!=null
+        ? Number(data.latest.muscle_mass_kg).toFixed(1)+" kg":"—";
+    }else{
+      status.textContent="Aucun compte Withings connecté";
+      badge.textContent="Non connecté";
+      connected.classList.add("hidden");
+      disconnected.classList.remove("hidden");
+    }
+  }catch(e){
+    console.error("Withings status",e);
+    status.textContent="Connexion Withings non configurée";
+    document.getElementById("withingsMessage").textContent="Configuration serveur Withings à terminer.";
+  }
+}
+
+async function connectWithings(){
+  const msg=document.getElementById("withingsMessage");
+  try{
+    msg.textContent="Ouverture de Withings…";
+    const data=await withingsInvoke("withings-start");
+    if(!data.authorization_url)throw new Error("URL Withings manquante.");
+    window.location.href=data.authorization_url;
+  }catch(e){
+    msg.textContent="Impossible de démarrer la connexion : "+e.message;
+  }
+}
+
+async function syncWithings(){
+  const msg=document.getElementById("withingsMessage");
+  try{
+    msg.textContent="Synchronisation Withings en cours…";
+    const data=await withingsInvoke("withings-sync");
+    msg.textContent=`Synchronisation terminée${data.imported!=null?" • "+data.imported+" mesure(s)":""}.`;
+
+    // Refresh normal app cloud data because Withings may have updated profile/measurements.
+    await syncFromCloud();
+    await loadCurrentProfile();
+    await loadWithingsStatus();
+  }catch(e){
+    console.error(e);
+    msg.textContent="Erreur Withings : "+e.message;
+  }
+}
+
+async function disconnectWithings(){
+  if(!confirm("Déconnecter le compte Withings de Muscu Progress ?"))return;
+  const msg=document.getElementById("withingsMessage");
+  try{
+    await withingsInvoke("withings-disconnect");
+    msg.textContent="Compte Withings déconnecté.";
+    await loadWithingsStatus();
+  }catch(e){
+    msg.textContent="Erreur : "+e.message;
+  }
+}
+
+function handleWithingsReturn(){
+  const url=new URL(window.location.href);
+  const result=url.searchParams.get("withings");
+  if(!result)return;
+
+  history.replaceState({},document.title,url.pathname+url.hash);
+
+  setTimeout(()=>{
+    if(result==="connected"){
+      showPage("connections");
+      const msg=document.getElementById("withingsMessage");
+      if(msg)msg.textContent="Compte Withings connecté avec succès.";
+      loadWithingsStatus();
+    }else{
+      const msg=document.getElementById("withingsMessage");
+      if(msg)msg.textContent="La connexion Withings n’a pas abouti.";
+    }
+  },400);
+}
+
 async function initAuth(){
   try{
     const {data,error}=await supa.auth.getSession();
@@ -1441,7 +1599,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -2522,7 +2680,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth();
+renderWorkout("A"); updateDashboard(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); handleWithingsReturn();
 
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();
