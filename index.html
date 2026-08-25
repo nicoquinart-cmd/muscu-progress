@@ -123,6 +123,29 @@
         <button class="btn secondary small" onclick="closeImmersiveWorkout()">✕ Quitter</button>
       </div>
       <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
+      <div id="immersiveSuggestion" class="hint" style="margin-top:8px"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="row between">
+          <div>
+            <div class="sub">Prochain exercice</div>
+            <strong id="immersiveNextExercise">—</strong>
+          </div>
+          <button class="btn secondary small" onclick="openExerciseSwap()">🔄 Changer l’exercice</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="immersiveSwapCard" class="card hidden">
+      <div class="row between">
+        <h2>🔄 Remplacer l’exercice</h2>
+        <button class="btn secondary small" onclick="closeExerciseSwap()">✕</button>
+      </div>
+      <div class="sub" style="margin-bottom:10px">Choisis un autre exercice si la machine est occupée.</div>
+      <div class="field">
+        <label>Exercice de remplacement</label>
+        <select id="immersiveSwapSelect"></select>
+      </div>
+      <button class="btn full" style="margin-top:12px" onclick="confirmExerciseSwap()">Utiliser cet exercice</button>
     </div>
 
     <div id="immersiveInputCard" class="card">
@@ -165,7 +188,7 @@
 
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.5</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.6</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -201,7 +224,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.5</span>
+        <span class="pill" style="background:white;color:#111827">v2.6</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -650,6 +673,7 @@
       </div>
 
       <div id="historyPushupFields" class="hidden" style="margin-top:10px">
+        <div class="hint" style="margin-bottom:8px">Tu peux saisir ici des pompes réalisées à n’importe quelle date passée.</div>
         <div class="field"><label>Nombre total de pompes</label><input id="historyPushupCount" type="number" min="1"></div>
       </div>
 
@@ -789,7 +813,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.5</div>
+      <div class="sub">Muscu Progress • 2.6</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1768,6 +1792,93 @@ let immersiveSetIndex=0;
 let immersiveRestTimer=null;
 let immersiveRestSeconds=0;
 
+
+function allKnownExerciseNames(){
+  const names=new Set();
+  Object.values(PROGRAM||{}).forEach(p=>(p.exercises||[]).forEach(ex=>names.add(ex[0])));
+  (db.workouts||[]).forEach(w=>(w.exercises||[]).forEach(ex=>names.add(ex.name)));
+  return [...names].filter(Boolean).sort((a,b)=>a.localeCompare(b,"fr"));
+}
+
+function currentExerciseName(){
+  return currentWorkoutExercises[immersiveExerciseIndex]?.name||"";
+}
+
+function nextExerciseName(){
+  const next=currentWorkoutExercises[immersiveExerciseIndex+1];
+  return next?.name||"Fin de séance";
+}
+
+function previousSetForExercise(name,setIndex){
+  const history=[...(db.workouts||[])].reverse();
+  for(const w of history){
+    const ex=(w.exercises||[]).find(e=>String(e.name).toLowerCase()===String(name).toLowerCase());
+    if(ex?.sets?.length){
+      return ex.sets[setIndex] || ex.sets[ex.sets.length-1] || null;
+    }
+  }
+  return null;
+}
+
+function proposeWeightForExercise(name,setIndex){
+  const prev=previousSetForExercise(name,setIndex);
+  if(!prev)return null;
+
+  const prevWeight=Number(prev.weight)||0;
+  const prevReps=Number(prev.reps)||0;
+  const rating=Number(prev.rating)||3;
+
+  // Conservative progression rule:
+  // easy set + target met => +2.5 kg
+  // hard/maximal => same or -2.5 kg
+  // otherwise repeat previous load
+  let suggested=prevWeight;
+  if(rating<=2 && prevReps>=10) suggested=prevWeight+2.5;
+  else if(rating>=5) suggested=Math.max(0,prevWeight-2.5);
+
+  return {
+    suggested,
+    prevWeight,
+    prevReps,
+    rating
+  };
+}
+
+function openExerciseSwap(){
+  const card=document.getElementById("immersiveSwapCard");
+  const select=document.getElementById("immersiveSwapSelect");
+  if(!card||!select)return;
+
+  const current=currentExerciseName();
+  const names=allKnownExerciseNames().filter(n=>n!==current);
+  select.innerHTML=names.map(n=>`<option value="${String(n).replace(/"/g,"&quot;")}">${n}</option>`).join("");
+  card.classList.remove("hidden");
+  card.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function closeExerciseSwap(){
+  document.getElementById("immersiveSwapCard")?.classList.add("hidden");
+}
+
+function confirmExerciseSwap(){
+  const select=document.getElementById("immersiveSwapSelect");
+  const replacement=select?.value;
+  if(!replacement)return;
+
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  if(!ex)return;
+
+  ex.name=replacement;
+
+  // Update the underlying normal workout card as well.
+  const node=document.querySelectorAll("#exerciseList .exercise")[immersiveExerciseIndex];
+  const title=node?.querySelector(".exercise-title");
+  if(title) title.textContent=replacement;
+
+  closeExerciseSwap();
+  renderImmersiveStep();
+}
+
 function startImmersiveWorkout(){
   if(!currentWorkoutExercises.length){
     alert("Ajoute au moins un exercice.");
@@ -1820,7 +1931,18 @@ function renderImmersiveStep(){
   }
   document.getElementById("immersivePrevious").textContent=previousText;
 
-  document.getElementById("immersiveWeight").value=nodes.weightInput?.value||previous?.sets?.[immersiveSetIndex]?.weight||"";
+  const nextEl=document.getElementById("immersiveNextExercise");
+  if(nextEl)nextEl.textContent=nextExerciseName();
+
+  const proposal=proposeWeightForExercise(ex.name,immersiveSetIndex);
+  const suggestionEl=document.getElementById("immersiveSuggestion");
+  if(suggestionEl){
+    suggestionEl.textContent=proposal
+      ? `💡 Charge proposée : ${proposal.suggested} kg (dernière série comparable : ${proposal.prevWeight} kg × ${proposal.prevReps}, effort ${proposal.rating}/5)`
+      : "💡 Pas encore assez d’historique pour proposer une charge.";
+  }
+
+  document.getElementById("immersiveWeight").value=nodes.weightInput?.value||proposal?.suggested||previous?.sets?.[immersiveSetIndex]?.weight||"";
   document.getElementById("immersiveReps").value=nodes.repsInput?.value||previous?.sets?.[immersiveSetIndex]?.reps||"";
   document.getElementById("immersiveInputCard").classList.remove("hidden");
   document.getElementById("immersiveRatingCard").classList.add("hidden");
@@ -2215,9 +2337,71 @@ function openHistoryDetail(key){
   ${body}
   <div class="row" style="margin-top:14px">
     <button class="btn" onclick="editHistoryItem('${key}')">✏️ Modifier</button>
+    <button class="btn secondary" onclick="deleteHistoryItem('${key}')">🗑️ Supprimer</button>
   </div>`;
   card.classList.remove("hidden");
   card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+
+async function deleteHistoryItem(key){
+  const item=historyItemByKey(key);
+  if(!item)return;
+  if(!confirm(`Supprimer définitivement "${item.label}" du ${item.date} ?`))return;
+
+  try{
+    if(item.source==="workout"){
+      const w=db.workouts[item.sourceIndex];
+      db.workouts.splice(item.sourceIndex,1);
+      saveLocalDB();
+
+      if(currentUser && w?.id){
+        const {error}=await supa.from("workouts").delete().eq("id",w.id).eq("user_id",currentUser.id);
+        if(error)throw error;
+      }else{
+        saveDB();
+      }
+    }
+
+    if(item.source==="fitness"){
+      const f=db.fitness[item.sourceIndex];
+      db.fitness.splice(item.sourceIndex,1);
+      saveLocalDB();
+
+      if(currentUser && f?.id){
+        const {error}=await supa.from("fitness_classes").delete().eq("id",f.id).eq("user_id",currentUser.id);
+        if(error)throw error;
+      }else{
+        saveDB();
+      }
+    }
+
+    if(item.source==="pushups"){
+      const date=item.sourceDate;
+      const rows=(db.pushups||[]).filter(x=>x.date===date);
+      db.pushups=(db.pushups||[]).filter(x=>x.date!==date);
+      saveLocalDB();
+
+      if(currentUser){
+        const ids=rows.map(x=>x.id).filter(Boolean);
+        if(ids.length){
+          const {error}=await supa.from("pushups").delete().in("id",ids).eq("user_id",currentUser.id);
+          if(error)throw error;
+        }else{
+          const {error}=await supa.from("pushups").delete().eq("user_id",currentUser.id).eq("pushup_date",date);
+          if(error)throw error;
+        }
+      }
+    }
+
+    closeHistoryDetail();
+    renderHistory();
+    setSyncStatus("Activité supprimée",true);
+  }catch(e){
+    console.error(e);
+    alert("Suppression locale effectuée, mais erreur cloud : "+(e.message||"inconnue"));
+    renderHistory();
+  }
 }
 
 function closeHistoryDetail(){
@@ -2445,6 +2629,7 @@ async function saveHistoryActivity(){
   closeHistoryEditor();
   renderHistory();
   setSyncStatus("Historique mis à jour",true);
+  if(type==="pushups") alert("Pompes ajoutées à l’historique.");
 }
 
 function isoDate(d){
