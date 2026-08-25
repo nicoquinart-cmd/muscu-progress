@@ -188,7 +188,7 @@
 
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.6</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.7</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -224,7 +224,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.6</span>
+        <span class="pill" style="background:white;color:#111827">v2.7</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -522,11 +522,40 @@
     <div class="card">
       <h2>⚖️ Mesures</h2>
       <div class="row">
-        <div class="field"><label>Date</label><input id="measureDate" type="date"></div>
-        <div class="field"><label>Poids (kg)</label><input id="weightInput" type="number" step="0.1" placeholder="Ex. 78,4"></div>
-        <div class="field"><label>Tour de taille (cm)</label><input id="waistInput" type="number" step="0.1" placeholder="Ex. 92"></div>
+        <div class="field">
+          <label>Date</label>
+          <input id="measureDate" type="date">
+        </div>
+        <div class="field">
+          <label>Poids (kg)</label>
+          <input id="weightInput" type="number" step="0.1" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label>Tour de taille (cm)</label>
+          <input id="waistInput" type="number" step="0.1" inputmode="decimal">
+        </div>
       </div>
-      <button class="btn" style="margin-top:12px" onclick="saveMeasurement()">Enregistrer</button>
+
+      <div class="row" style="margin-top:10px">
+        <div class="field">
+          <label>Graisse corporelle (%)</label>
+          <input id="fatPctInput" type="number" min="1" max="80" step="0.1" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label>Muscle (%)</label>
+          <input id="musclePctInput" type="number" min="1" max="80" step="0.1" inputmode="decimal">
+        </div>
+      </div>
+
+      <button class="btn" style="margin-top:12px" onclick="saveMeasurement()">💾 Enregistrer la pesée</button>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <h2>📚 Historique des pesées</h2>
+        <span id="measurementsCount" class="pill">0 mesure</span>
+      </div>
+      <div id="measurementsHistory"></div>
     </div>
     <div class="card">
       <h2>📈 Évolution</h2>
@@ -813,7 +842,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.6</div>
+      <div class="sub">Muscu Progress • 2.7</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -944,7 +973,7 @@ let timerId = null;
 
 function saveLocalDB(){
   localStorage.setItem("muscuProgress",JSON.stringify(db));
-  const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,drawCharts,drawPushupChart];
+  const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,renderMeasurementsHistory,drawCharts,drawPushupChart];
   jobs.forEach(fn=>{
     try{
       if(typeof fn==="function") fn();
@@ -1082,7 +1111,7 @@ async function syncFromCloud(){
     if(w.error)throw w.error;if(m.error)throw m.error;if(p.error)throw p.error;if(f.error)throw f.error;if(pl.error)throw pl.error;
     db={
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual,duration_minutes:x.duration_minutes||null,calories_estimate:x.calories_estimate||null,duration_minutes:x.duration_minutes==null?null:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
-      measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
+      measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist),fat_pct:x.fat_pct==null?null:Number(x.fat_pct),muscle_pct:x.muscle_pct==null?null:Number(x.muscle_pct)})),
       pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime(),created_at:x.created_at,pending_cloud:false})),
       fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),created_at:x.created_at,pending_cloud:false})),
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
@@ -1127,7 +1156,9 @@ async function syncAllToCloud(){
         user_id:currentUser.id,
         measure_date:x.date,
         weight:x.weight,
-        waist:x.waist
+        waist:x.waist,
+        fat_pct:x.fat_pct,
+        muscle_pct:x.muscle_pct
       }));
       const r=await supa.from("measurements").insert(rows);
       if(r.error) throw r.error;
@@ -1764,7 +1795,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -2159,17 +2190,57 @@ function finishWorkout(){
 }
 
 function saveMeasurement(){
-  const date=document.getElementById("measureDate").value||todayISO();
-  const weight=parseFloat(document.getElementById("weightInput").value);
-  const waist=parseFloat(document.getElementById("waistInput").value);
-  if(Number.isNaN(weight)&&Number.isNaN(waist)){alert("Ajoute au moins une mesure.");return;}
-  db.measurements.push({date,weight:Number.isNaN(weight)?null:weight,waist:Number.isNaN(waist)?null:waist});
-  db.measurements.sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById("weightInput").value="";
-  document.getElementById("waistInput").value="";
-  saveDB();
-}
+  const date=document.getElementById("measureDate")?.value||todayISO();
+  const weightVal=document.getElementById("weightInput")?.value;
+  const waistVal=document.getElementById("waistInput")?.value;
+  const fatVal=document.getElementById("fatPctInput")?.value;
+  const muscleVal=document.getElementById("musclePctInput")?.value;
 
+  const weight=weightVal!==""?Number(weightVal):null;
+  const waist=waistVal!==""?Number(waistVal):null;
+  const fat_pct=fatVal!==""?Number(fatVal):null;
+  const muscle_pct=muscleVal!==""?Number(muscleVal):null;
+
+  if(weight==null && waist==null && fat_pct==null && muscle_pct==null){
+    alert("Renseigne au moins une mesure.");
+    return;
+  }
+  if(fat_pct!=null && (fat_pct<=0 || fat_pct>80)){
+    alert("Vérifie le pourcentage de graisse.");
+    return;
+  }
+  if(muscle_pct!=null && (muscle_pct<=0 || muscle_pct>80)){
+    alert("Vérifie le pourcentage de muscle.");
+    return;
+  }
+
+  db.measurements=db.measurements||[];
+  const idx=db.measurements.findIndex(x=>x.date===date);
+  const row={
+    date,
+    weight,
+    waist,
+    fat_pct,
+    muscle_pct
+  };
+
+  if(idx>=0){
+    db.measurements[idx]={...db.measurements[idx],...row};
+  }else{
+    db.measurements.push(row);
+  }
+
+  saveDB();
+
+  // Keep profile weight aligned with latest manual measurement.
+  if(weight!=null && currentProfile){
+    currentProfile.weight_kg=weight;
+    supa.from("profiles").update({weight_kg:weight}).eq("user_id",currentUser?.id).then(()=>{});
+  }
+
+  renderMeasurementsHistory();
+  drawCharts();
+}
 function updateDashboard(){
   const setText=(id,value)=>{
     const el=document.getElementById(id);
@@ -2263,7 +2334,12 @@ function buildActivityHistory(){
     });
   });
 
-  return items.sort((a,b)=>String(b.sort).localeCompare(String(a.sort)));
+  return items.sort((a,b)=>{
+    const ad=new Date(a.sort||a.date||0).getTime();
+    const bd=new Date(b.sort||b.date||0).getTime();
+    if(bd!==ad) return bd-ad;
+    return String(b.date||"").localeCompare(String(a.date||""));
+  });
 }
 
 function historyItemByKey(key){
@@ -3322,6 +3398,57 @@ function drawChart(canvas){
     ctx.fillStyle=si===0?"#111827":"#6b7280";ctx.font="12px sans-serif";ctx.fillText(s.label,40,16+si*16);
   });
 }
+
+function renderMeasurementsHistory(){
+  const box=document.getElementById("measurementsHistory");
+  if(!box)return;
+
+  const rows=[...(db.measurements||[])].sort((a,b)=>{
+    return new Date(b.date+"T12:00:00").getTime()-new Date(a.date+"T12:00:00").getTime();
+  });
+
+  const count=document.getElementById("measurementsCount");
+  if(count)count.textContent=`${rows.length} mesure${rows.length>1?"s":""}`;
+
+  if(!rows.length){
+    box.innerHTML='<div class="sub">Aucune pesée enregistrée.</div>';
+    return;
+  }
+
+  box.innerHTML=rows.map(x=>{
+    const parts=[];
+    if(x.weight!=null)parts.push(`⚖️ ${Number(x.weight).toFixed(1)} kg`);
+    if(x.waist!=null)parts.push(`📏 ${Number(x.waist).toFixed(1)} cm`);
+    if(x.fat_pct!=null)parts.push(`🟠 Graisse ${Number(x.fat_pct).toFixed(1)} %`);
+    if(x.muscle_pct!=null)parts.push(`💪 Muscle ${Number(x.muscle_pct).toFixed(1)} %`);
+
+    const d=new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{
+      weekday:"short",day:"2-digit",month:"2-digit",year:"numeric"
+    });
+
+    return `<div class="history-item">
+      <div class="row between">
+        <div>
+          <strong>${d}</strong>
+          <div class="sub" style="margin-top:4px">${parts.join(" • ")}</div>
+        </div>
+        <button class="btn secondary small" onclick="editMeasurement('${x.date}')">✏️</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function editMeasurement(date){
+  const x=(db.measurements||[]).find(m=>m.date===date);
+  if(!x)return;
+  document.getElementById("measureDate").value=x.date;
+  document.getElementById("weightInput").value=x.weight??"";
+  document.getElementById("waistInput").value=x.waist??"";
+  document.getElementById("fatPctInput").value=x.fat_pct??"";
+  document.getElementById("musclePctInput").value=x.muscle_pct??"";
+  document.getElementById("measureDate").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
 function drawCharts(){
   const home=document.getElementById("homeChart");
   const progress=document.getElementById("progressChart");
@@ -3415,7 +3542,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); handleWithingsReturn();
+renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); handleWithingsReturn();
 
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();
