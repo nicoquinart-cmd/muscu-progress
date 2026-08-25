@@ -103,7 +103,7 @@
 </div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.2.4</span></div>
+    <div class="row between"><h1>Muscu Progress</h1><span class="pill">v2.3</span></div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
     <div class="field"><label>Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -139,7 +139,7 @@
           <h2 style="color:white;margin-top:4px">Muscu Progress</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v2.2.4</span>
+        <span class="pill" style="background:white;color:#111827">v2.3</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -486,64 +486,39 @@
     </div>
   </section>
 
+  
   <section id="history" class="page">
+    <div class="card hero">
+      <div class="sub">Toutes tes activités</div>
+      <h2 style="color:white;margin-top:4px">📚 Historique</h2>
+      <div class="sub">Musculation, fitness, tapis, rameur et pompes, classés par date.</div>
+    </div>
+
     <div class="card">
-      <div class="row between"><h2>📚 Historique</h2><button class="btn secondary small" onclick="exportData()">Exporter</button></div>
+      <div class="field">
+        <label>Filtrer</label>
+        <select id="historyTypeFilter" onchange="renderHistory()">
+          <option value="all">Toutes les activités</option>
+          <option value="workout">🏋️ Musculation</option>
+          <option value="fitness">🧘 Fitness</option>
+          <option value="treadmill">🏃 Tapis</option>
+          <option value="rower">🚣 Rameur</option>
+          <option value="pushups">💪 Pompes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat"><strong id="historyTotalActivities">0</strong><span>activités enregistrées</span></div>
+      <div class="card stat"><strong id="historyMonthActivities">0</strong><span>activités ce mois</span></div>
+    </div>
+
+    <div class="card">
       <div id="historyList"></div>
-    </div>
-
-    <div class="card">
-      <h2>Ajouter une séance manuellement</h2>
-      <div class="row">
-        <div class="field"><label>Date</label><input id="manualWorkoutDate" type="date"></div>
-        <div class="field"><label>Type de séance</label>
-          <select id="manualWorkoutType">
-            <option value="A">Séance A</option>
-            <option value="B">Séance B</option>
-            <option value="C">Séance C</option>
-            <option value="Libre">Séance libre</option>
-          </select>
-        </div>
-      </div>
-      <div id="manualExerciseList" style="margin-top:12px"></div>
-
-      <div class="exercise">
-        <div class="exercise-title">Tapis de course (optionnel)</div>
-        <div class="row" style="margin-top:8px">
-          <div class="field"><label>Durée (min)</label><input id="manualTreadmillDuration" type="number" min="0" step="1"></div>
-          <div class="field"><label>Inclinaison (%)</label><input id="manualTreadmillIncline" type="number" min="0" step="0.5"></div>
-          <div class="field"><label>Vitesse (km/h)</label><input id="manualTreadmillSpeed" type="number" min="0" step="0.1"></div>
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:10px">
-        <button class="btn secondary small" onclick="addManualExercise()">+ Ajouter un exercice</button>
-        <button class="btn small" onclick="saveManualWorkout()">Enregistrer la séance</button>
-      </div>
-      <div class="hint" style="margin-top:12px">Tu peux saisir une ancienne séance ou importer manuellement ce que tu as fait ailleurs.</div>
-    </div>
-
-    <div class="card">
-      <h2>☁️ Synchronisation cloud</h2>
-      <p class="sub">Si tu avais déjà utilisé Muscu Progress avant la connexion cloud, importe ici les données enregistrées dans ce navigateur.</p>
-      <button class="btn" onclick="migrateLocalToCloud()">Importer mes données locales vers le cloud</button>
-      <div id="migrationMessage" class="sub" style="margin-top:10px"></div>
-    </div>
-
-    <div class="card">
-      <h2>Données</h2>
-      <p class="sub">Les données restent enregistrées localement dans ce navigateur. Tu peux les exporter en JSON pour les sauvegarder.</p>
-      <div class="row">
-        <button class="btn secondary small" onclick="document.getElementById('importFile').click()">Importer</button>
-        <button class="btn secondary small danger" onclick="resetData()">Réinitialiser</button>
-        <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)">
-      </div>
     </div>
   </section>
 
-  
-  
-  <section id="calories" class="page">
+<section id="calories" class="page">
     <div class="card hero">
       <div class="sub">Estimation énergétique</div>
       <h2 style="color:white;margin-top:4px">🔥 Calculateur de calories</h2>
@@ -626,7 +601,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">Muscu Progress • 2.2.4</div>
+      <div class="sub">Muscu Progress • 2.3</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -716,11 +691,12 @@
 </div>
 
 <nav class="tabs">
-  <div class="tabs-inner" style="grid-template-columns:repeat(5,1fr)">
+  <div class="tabs-inner" style="grid-template-columns:repeat(6,1fr)">
     <button class="tab active" onclick="showPage('home',this)">🏠 Accueil</button>
     <button class="tab" onclick="showPage('workout',this)">🏋️ Séance</button>
     <button class="tab" onclick="showPage('planning',this)">📅 Planning</button>
     <button class="tab" onclick="showPage('progress',this)">📈 Progrès</button>
+    <button class="tab" onclick="showPage('history',this)">📚 Historique</button>
     <button class="tab" onclick="showPage('more',this)">☰ Plus</button>
   </div>
 </nav>
@@ -861,7 +837,7 @@ async function syncFromCloud(){
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual,duration_minutes:x.duration_minutes||null,calories_estimate:x.calories_estimate||null,duration_minutes:x.duration_minutes==null?null:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist)})),
       pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime()})),
-      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
+      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),created_at:x.created_at})),
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
@@ -1368,7 +1344,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -1564,44 +1540,107 @@ function updateDashboard(){
 
   renderTodayPlan();
 }
-function renderHistory(){
-  const box=document.getElementById("historyList");
-  if(!box)return;
+function buildActivityHistory(){
   const items=[];
 
-  (db.workouts||[]).forEach(w=>{
-    let title=PROGRAM[w.session]?.title||(w.session==="Libre"?"✨ Séance libre":w.session==="Tapis"?"🏃 Tapis":w.session==="Rameur"?"🚣 Rameur":"🏋️ Séance "+(w.session||""));
-    let detail=(w.exercises||[]).map(e=>e.name).join(" • ");
-    if(w.treadmill) detail=`${w.treadmill.duration} min • ${w.treadmill.incline||0}% • ${w.treadmill.speed||0} km/h`;
-    if(w.cardio?.type==="rower") detail=`${w.cardio.duration||w.duration_minutes||0} min`;
-    if(!w.treadmill&&!w.cardio&&w.duration_minutes) detail=`${w.duration_minutes} min${detail?" • "+detail:""}`;
-    if(w.calories_estimate!=null) detail+=`${detail?" • ":""}🔥 ~${Math.round(w.calories_estimate)} kcal`;
-    items.push({date:w.date,sort:w.created_at||w.date,title,detail,type:"workout"});
-  });
+  (db.workouts||[]).forEach((w,index)=>{
+    let type="workout", icon="🏋️", label="Musculation";
 
-  (db.fitness||[]).forEach(f=>{
-    const kcal=f.calories_estimate!=null?f.calories_estimate:estimateFitnessCalories(f.name,f.duration);
+    if(w.session==="Tapis" || w.treadmill){
+      type="treadmill"; icon="🏃"; label="Tapis";
+    }else if(w.session==="Rameur" || w.cardio?.type==="rower"){
+      type="rower"; icon="🚣"; label="Rameur";
+    }else if(w.session==="Libre"){
+      label="Séance libre";
+    }else if(w.session && PROGRAM[w.session]){
+      label=PROGRAM[w.session].title;
+    }else if(w.session){
+      label=`Séance ${w.session}`;
+    }
+
+    const detail=[];
+    if(w.duration_minutes) detail.push(`${Math.round(Number(w.duration_minutes))} min`);
+    if(type==="treadmill" && w.treadmill){
+      if(!w.duration_minutes && w.treadmill.duration) detail.push(`${w.treadmill.duration} min`);
+      detail.push(`${w.treadmill.incline||0}%`);
+      detail.push(`${w.treadmill.speed||0} km/h`);
+    }
+    if(type==="rower" && w.cardio?.duration && !w.duration_minutes) detail.push(`${w.cardio.duration} min`);
+    if(type==="workout" && (w.exercises||[]).length) detail.push(`${w.exercises.length} exercice${w.exercises.length>1?"s":""}`);
+    if(w.calories_estimate!=null && Number(w.calories_estimate)>0) detail.push(`🔥 ~${Math.round(Number(w.calories_estimate))} kcal`);
+
     items.push({
-      date:f.date,sort:f.created_at||f.date,type:"fitness",
-      title:`🧘 ${f.name||"Fitness"}`,
-      detail:`${f.duration||0} min${kcal!=null?` • 🔥 ~${Math.round(kcal)} kcal`:""}`
+      type, icon, label,
+      date:w.date||"",
+      sort:w.created_at||`${w.date||""}T12:00:00`,
+      detail:detail.join(" • ")
     });
   });
 
-  const pushByDate={};
-  (db.pushups||[]).forEach(p=>pushByDate[p.date]=(pushByDate[p.date]||0)+Number(p.count||0));
-  Object.entries(pushByDate).forEach(([date,count])=>{
-    items.push({date,sort:date,type:"pushups",title:"💪 Challenge Pompes",detail:`${count} pompe${count>1?"s":""}`});
+  (db.fitness||[]).forEach(f=>{
+    const detail=[`${Number(f.duration)||0} min`];
+    if(f.calories_estimate!=null && Number(f.calories_estimate)>0) detail.push(`🔥 ~${Math.round(Number(f.calories_estimate))} kcal`);
+    items.push({
+      type:"fitness", icon:"🧘", label:f.name||"Fitness",
+      date:f.date||"",
+      sort:f.created_at||`${f.date||""}T13:00:00`,
+      detail:detail.join(" • ")
+    });
   });
 
-  items.sort((a,b)=>String(b.sort).localeCompare(String(a.sort)));
-  box.innerHTML=items.length?items.map(x=>`
-    <div class="history-item">
+  const byDay={};
+  (db.pushups||[]).forEach(p=>{
+    const date=p.date||"";
+    if(!date)return;
+    if(!byDay[date])byDay[date]={count:0,sort:p.created_at||`${date}T20:00:00`};
+    byDay[date].count+=Number(p.count)||0;
+    if(p.created_at)byDay[date].sort=p.created_at;
+  });
+
+  Object.entries(byDay).forEach(([date,v])=>{
+    items.push({
+      type:"pushups", icon:"💪", label:"Challenge Pompes",
+      date, sort:v.sort,
+      detail:`${v.count} pompe${v.count>1?"s":""}`
+    });
+  });
+
+  return items.sort((a,b)=>String(b.sort).localeCompare(String(a.sort)));
+}
+
+function renderHistory(){
+  const box=document.getElementById("historyList");
+  if(!box)return;
+
+  const all=buildActivityHistory();
+  const filter=document.getElementById("historyTypeFilter")?.value||"all";
+  const shown=filter==="all"?all:all.filter(x=>x.type===filter);
+
+  const total=document.getElementById("historyTotalActivities");
+  const month=document.getElementById("historyMonthActivities");
+  if(total)total.textContent=all.length;
+  const ym=todayISO().slice(0,7);
+  if(month)month.textContent=all.filter(x=>x.date?.startsWith(ym)).length;
+
+  if(!shown.length){
+    box.innerHTML='<div class="sub">Aucune activité pour ce filtre.</div>';
+    return;
+  }
+
+  box.innerHTML=shown.map(x=>{
+    const d=x.date
+      ? new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})
+      : "Date inconnue";
+    return `<div class="history-item">
       <div class="row between">
-        <strong>${x.title}</strong><span class="pill">${x.date}</span>
+        <div>
+          <strong>${x.icon} ${x.label}</strong>
+          <div class="sub" style="margin-top:4px">${x.detail}</div>
+        </div>
+        <span class="pill">${d}</span>
       </div>
-      <div class="sub" style="margin-top:6px">${x.detail||""}</div>
-    </div>`).join(""):'<div class="sub">Aucune activité enregistrée.</div>';
+    </div>`;
+  }).join("");
 }
 function isoDate(d){
   return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
@@ -2125,12 +2164,14 @@ function saveFitnessClass(){
   document.getElementById("fitnessDuration").value="";
   saveDB();
   renderFitness();
+  renderHistory();
 }
 
 function addPushups(count){
   if(!Number.isFinite(count)||count<=0)return;
   db.pushups.push({date:todayISO(),count:Math.round(count),ts:Date.now()});
   saveDB();
+  renderHistory();
 }
 function addCustomPushups(){
   const el=document.getElementById("pushupCustom"), n=parseInt(el.value,10);
