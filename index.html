@@ -227,6 +227,14 @@
 
 <link rel="icon" href="fitpilot-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="fitpilot-icon-192.png">
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#081E3B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FitPilot">
+
 </head>
 <body>
 <div id="profileSetupOverlay" class="hidden" style="position:fixed;inset:0;background:#f3f4f6;z-index:10001;overflow:auto;padding:18px">
@@ -350,7 +358,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.0</span>
+      <span class="pill">v3.0.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -386,7 +394,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.0</span>
+      <span class="pill">v3.0.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse. • démarrage 24 août 2026</div>
   </header>
@@ -402,7 +410,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.0</span>
+        <span class="pill" style="background:white;color:#111827">v3.0.2</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -1035,7 +1043,17 @@
     </div>
     <div class="card" onclick="showPage('history')" style="cursor:pointer"><div class="row between"><div><h2>📚 Historique</h2><div class="sub">Toutes les séances enregistrées</div></div><strong>›</strong></div></div>
     <div id="v131AdminLink" class="card hidden" onclick="showPage('admin')" style="cursor:pointer"><div class="row between"><div><h2>⚙️ Administration</h2><div class="sub">Utilisateurs, exercices et programmes</div></div><strong>›</strong></div></div>
-    <div class="card">
+    
+    <div id="installFitPilotCard" class="card">
+      <div class="row between">
+        <div>
+          <h2>📲 Installer FitPilot</h2>
+          <div id="installFitPilotText" class="sub">Ajoute FitPilot à l’écran d’accueil de ton téléphone.</div>
+        </div>
+      </div>
+      <button id="installFitPilotBtn" class="btn full" style="margin-top:12px" onclick="installFitPilot()">Installer l’application</button>
+    </div>
+<div class="card">
       <button class="btn secondary full" onclick="syncFromCloud()">↻ Synchroniser</button>
       <button class="btn secondary full" style="margin-top:8px" onclick="signOut()">Déconnexion</button>
     </div>
@@ -3764,6 +3782,61 @@ function calculateCalories(){
   const kcal=estimateCalories(activity,duration,weight,intensity);
   document.getElementById("calResult").textContent=`${kcal} kcal`;
   document.getElementById("calDetail").textContent=`${duration} min • ${weight.toFixed(1)} kg`;
+}
+
+
+// ===== FitPilot PWA installation =====
+let deferredInstallPrompt=null;
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  const card=document.getElementById("installFitPilotCard");
+  const btn=document.getElementById("installFitPilotBtn");
+  const text=document.getElementById("installFitPilotText");
+  if(card)card.classList.remove("hidden");
+  if(btn){btn.disabled=false;btn.textContent="Installer FitPilot";}
+  if(text)text.textContent="FitPilot est prêt à être installé sur cet appareil.";
+});
+
+window.addEventListener("appinstalled",()=>{
+  deferredInstallPrompt=null;
+  const btn=document.getElementById("installFitPilotBtn");
+  const text=document.getElementById("installFitPilotText");
+  if(btn){btn.disabled=true;btn.textContent="✓ FitPilot installé";}
+  if(text)text.textContent="FitPilot est installé sur ton téléphone.";
+});
+
+async function installFitPilot(){
+  const text=document.getElementById("installFitPilotText");
+
+  if(window.matchMedia("(display-mode: standalone)").matches){
+    if(text)text.textContent="FitPilot est déjà ouvert comme application.";
+    return;
+  }
+
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    if(choice.outcome==="accepted"){
+      if(text)text.textContent="Installation de FitPilot en cours…";
+    }
+    deferredInstallPrompt=null;
+    return;
+  }
+
+  // Android browsers may not expose beforeinstallprompt immediately.
+  if(text){
+    text.textContent="Dans Chrome : menu ⋮ → « Installer l’application » ou « Ajouter à l’écran d’accueil ».";
+  }
+}
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js",{scope:"./"})
+      .then(reg=>reg.update())
+      .catch(err=>console.error("Service worker FitPilot",err));
+  });
 }
 
 </script>
