@@ -295,6 +295,18 @@
         <button class="btn secondary small" onclick="closeImmersiveWorkout()">✕ Quitter</button>
       </div>
       <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
+      <div class="card" style="margin-top:10px">
+        <div class="row between">
+          <div>
+            <div class="sub">Nombre de séries</div>
+            <strong id="immersiveSeriesCountLabel">4 séries</strong>
+          </div>
+          <div class="row">
+            <button class="btn secondary small" type="button" onclick="changeImmersiveSeriesCount(-1)">−</button>
+            <button class="btn secondary small" type="button" onclick="changeImmersiveSeriesCount(1)">＋</button>
+          </div>
+        </div>
+      </div>
       <div id="immersiveSuggestion" class="hint" style="margin-top:8px"></div>
       <div class="card" style="margin-top:10px">
         <div class="row between">
@@ -347,6 +359,11 @@
     </div>
 
     <div class="card">
+      <button id="finishExerciseBtn" class="btn full" type="button" onclick="finishImmersiveExercise()">✅ Terminer l’exercice</button>
+      <div id="finishExerciseHint" class="sub" style="margin-top:8px;text-align:center">Tu peux terminer l’exercice après la dernière série souhaitée.</div>
+    </div>
+
+    <div class="card">
       <div class="row between">
         <div>
           <div class="sub">Repos</div>
@@ -374,7 +391,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.3</span>
+      <span class="pill">v3.4</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -445,7 +462,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.3</span>
+      <span class="pill">v3.4</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -475,7 +492,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.3</span>
+        <span class="pill" style="background:white;color:#111827">v3.4</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -2268,7 +2285,7 @@ function collectCurrentWorkoutDraft(){
       });
     }
 
-    return {name:ex.name,sets};
+    return {name:ex.name,setCount:Number(ex.sets)||sets.length||4,sets};
   });
 
   return {
@@ -2356,12 +2373,15 @@ function applyDraftToRenderedWorkout(draft){
     // Preserve exercise replacement done during immersive mode.
     if(currentWorkoutExercises[idx] && saved.name){
       currentWorkoutExercises[idx].name=saved.name;
+      currentWorkoutExercises[idx].sets=Number(saved.setCount)||saved.sets?.length||4;
+      ensureImmersiveSetCount(idx,currentWorkoutExercises[idx].sets);
       const title=node.querySelector(".exercise-title");
       if(title)title.textContent=saved.name;
     }
 
-    const inputs=[...node.querySelectorAll("input")];
-    const checks=[...node.querySelectorAll(".check")];
+    const refreshedNode=document.querySelectorAll("#exerciseList .exercise")[idx];
+    const inputs=[...(refreshedNode?.querySelectorAll("input")||[])];
+    const checks=[...(refreshedNode?.querySelectorAll(".check")||[])];
 
     (saved.sets||[]).forEach((s,setIdx)=>{
       if(inputs[setIdx*2])inputs[setIdx*2].value=s.weight ?? "";
@@ -2499,11 +2519,97 @@ function confirmExerciseSwap(){
   saveWorkoutDraft();
 }
 
+
+function ensureImmersiveSetCount(exerciseIndex,count=4){
+  const ex=currentWorkoutExercises[exerciseIndex];
+  if(!ex)return;
+  const safe=Math.max(1,Math.min(10,Number(count)||4));
+  ex.sets=safe;
+
+  const node=document.querySelectorAll("#exerciseList .exercise")[exerciseIndex];
+  if(!node)return;
+
+  let inputs=[...node.querySelectorAll("input")];
+  let checks=[...node.querySelectorAll(".check")];
+  const currentSets=Math.floor(inputs.length/2);
+
+  if(currentSets<safe){
+    const setsContainer=node.querySelector(".sets") || node;
+    for(let s=currentSets;s<safe;s++){
+      const row=document.createElement("div");
+      row.className="set-row";
+      row.innerHTML=`<span class="set-index">${s+1}</span>
+        <input type="number" step="0.5" placeholder="kg" inputmode="decimal">
+        <input type="number" step="1" placeholder="reps" inputmode="numeric">
+        <button type="button" class="check" onclick="toggleSet(this)">✓</button>`;
+      setsContainer.appendChild(row);
+    }
+  }else if(currentSets>safe){
+    const rows=[...node.querySelectorAll(".set-row")];
+    rows.slice(safe).forEach(r=>r.remove());
+  }
+
+  saveWorkoutDraft();
+}
+
+function changeImmersiveSeriesCount(delta){
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  if(!ex)return;
+  const next=Math.max(1,Math.min(10,(Number(ex.sets)||4)+delta));
+  ensureImmersiveSetCount(immersiveExerciseIndex,next);
+
+  if(immersiveSetIndex>=next)immersiveSetIndex=next-1;
+  renderImmersiveStep();
+}
+
+function finishImmersiveExercise(){
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  if(!ex)return;
+
+  const node=document.querySelectorAll("#exerciseList .exercise")[immersiveExerciseIndex];
+  const checks=[...(node?.querySelectorAll(".check")||[])];
+  const completed=checks.filter(x=>x.classList.contains("done")).length;
+
+  if(completed===0){
+    if(!confirm("Aucune série n’est validée pour cet exercice. Le terminer quand même ?"))return;
+  }else if(completed<Number(ex.sets||4)){
+    if(!confirm(`${completed} série(s) validée(s) sur ${ex.sets}. Terminer l’exercice quand même ?`))return;
+  }
+
+  clearInterval(immersiveRestTimer);
+  immersiveRestTimer=null;
+  document.getElementById("immersiveRest").textContent="—";
+
+  immersiveExerciseIndex++;
+  immersiveSetIndex=0;
+
+  if(immersiveExerciseIndex>=currentWorkoutExercises.length){
+    saveWorkoutDraft(true);
+    closeImmersiveWorkout();
+    alert("🎉 Tous les exercices sont terminés. Tu peux maintenant terminer la séance.");
+    return;
+  }
+
+  // Default each new exercise to 4 sets unless a restored draft already defines another count.
+  const next=currentWorkoutExercises[immersiveExerciseIndex];
+  if(!next.sets || Number(next.sets)<1)next.sets=4;
+  ensureImmersiveSetCount(immersiveExerciseIndex,next.sets||4);
+  saveWorkoutDraft(true);
+  renderImmersiveStep();
+}
+
 function startImmersiveWorkout(){
   if(!currentWorkoutExercises.length){
     alert("Ajoute au moins un exercice.");
     return;
   }
+
+  // New immersive sessions start on 4 sets per exercise.
+  currentWorkoutExercises.forEach((ex,i)=>{
+    ex.sets=4;
+    ensureImmersiveSetCount(i,4);
+  });
+
   immersiveExerciseIndex=0;
   immersiveSetIndex=0;
   document.getElementById("immersiveOverlay")?.classList.remove("hidden");
@@ -2542,7 +2648,11 @@ function renderImmersiveStep(){
   if(!nodes)return;
 
   document.getElementById("immersiveExerciseTitle").textContent=ex.name;
-  document.getElementById("immersiveSetLabel").textContent=`Série ${immersiveSetIndex+1} / ${ex.sets} • Exercice ${immersiveExerciseIndex+1} / ${currentWorkoutExercises.length}`;
+  const count=Math.max(1,Number(ex.sets)||4);
+  document.getElementById("immersiveSeriesCountLabel").textContent=`${count} série${count>1?"s":""}`;
+  document.getElementById("immersiveSetLabel").textContent=`Série ${immersiveSetIndex+1} / ${count} • Exercice ${immersiveExerciseIndex+1} / ${currentWorkoutExercises.length}`;
+  const finishHint=document.getElementById("finishExerciseHint");
+  if(finishHint)finishHint.textContent="Tu peux terminer l’exercice après la dernière série souhaitée.";
 
   const previous=latestExercise(ex.name);
   let previousText="Première séance pour cet exercice.";
@@ -2596,29 +2706,28 @@ function rateImmersiveSet(rating){
 
   document.getElementById("immersiveRatingCard").classList.add("hidden");
   startImmersiveRest(60);
-  advanceImmersiveSet();
+
+  const ex=currentWorkoutExercises[immersiveExerciseIndex];
+  if(immersiveSetIndex < Number(ex.sets||4)-1){
+    immersiveSetIndex++;
+    renderImmersiveStep();
+  }else{
+    // Stay on the exercise. User explicitly decides when it is finished.
+    const input=document.getElementById("immersiveInputCard");
+    if(input)input.classList.add("hidden");
+    const hint=document.getElementById("finishExerciseHint");
+    if(hint)hint.textContent="Toutes les séries prévues sont faites. Appuie sur « Terminer l’exercice » pour passer au suivant.";
+    saveWorkoutDraft(true);
+  }
 }
 
 function advanceImmersiveSet(){
   const ex=currentWorkoutExercises[immersiveExerciseIndex];
-  immersiveSetIndex++;
-  if(immersiveSetIndex>=ex.sets){
-    immersiveExerciseIndex++;
-    immersiveSetIndex=0;
+  if(!ex)return;
+  if(immersiveSetIndex < Number(ex.sets||4)-1){
+    immersiveSetIndex++;
+    renderImmersiveStep();
   }
-
-  if(immersiveExerciseIndex>=currentWorkoutExercises.length){
-    clearInterval(immersiveRestTimer);
-    immersiveRestTimer=null;
-    document.getElementById("immersiveRest").textContent="Terminé";
-    setTimeout(()=>{
-      closeImmersiveWorkout();
-      alert("🎉 Toutes les séries sont terminées. Vérifie la séance puis appuie sur « Terminer la séance ».");
-    },500);
-    return;
-  }
-
-  renderImmersiveStep();
 }
 
 function startImmersiveRest(seconds){

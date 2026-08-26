@@ -1,4 +1,4 @@
-const CACHE="fitpilot-v3-3";
+const CACHE="fitpilot-v3-4";
 const STATIC=["./manifest.json","./fitpilot-icon.svg","./fitpilot-icon-192.png","./fitpilot-icon-512.png"];
 
 self.addEventListener("install",event=>{
