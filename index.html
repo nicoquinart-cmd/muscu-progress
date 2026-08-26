@@ -238,6 +238,21 @@
     .goal-ring > div{height:100%;background:linear-gradient(90deg,var(--brand-cyan),var(--brand-green));border-radius:99px}
     @media(min-width:650px){.fitness-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
+
+    .immersive-sticky-action{
+      position:sticky;bottom:8px;z-index:25;background:rgba(245,250,251,.96);
+      backdrop-filter:blur(12px);padding:10px;border:1px solid #DCE7EB;border-radius:16px;
+      box-shadow:0 10px 28px rgba(8,30,59,.12);margin-top:10px
+    }
+    .series-dots{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+    .series-dot{min-width:42px;height:42px;border-radius:12px;border:1px solid #D6E4E8;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--brand-navy)}
+    .series-dot.done{background:#E7F8EE;border-color:#A8E2BD;color:#14833A}
+    .series-dot.current{border:2px solid var(--brand-cyan);background:#EAFBFD}
+    .wizard-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .wizard-choice{min-height:58px;padding:11px;border:1px solid #D6E4E8;border-radius:14px;background:#fff;text-align:left;font-weight:700;color:var(--brand-navy)}
+    .wizard-choice.active{border-color:var(--brand-cyan);background:#EAFBFD}
+    .custom-session-card{border:1px solid #DCE7EB;border-radius:15px;padding:12px;margin-top:9px;background:#fff}
+    @media(max-width:520px){.wizard-choices{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -299,7 +314,7 @@
         <div class="row between">
           <div>
             <div class="sub">Nombre de séries</div>
-            <strong id="immersiveSeriesCountLabel">4 séries</strong>
+            <strong id="immersiveSeriesCountLabel">4 séries</strong><div id="immersiveSeriesDots" class="series-dots"></div>
           </div>
           <div class="row">
             <button class="btn secondary small" type="button" onclick="changeImmersiveSeriesCount(-1)">−</button>
@@ -358,10 +373,6 @@
       </div>
     </div>
 
-    <div class="card">
-      <button id="finishExerciseBtn" class="btn full" type="button" onclick="finishImmersiveExercise()">✅ Terminer l’exercice</button>
-      <div id="finishExerciseHint" class="sub" style="margin-top:8px;text-align:center">Tu peux terminer l’exercice après la dernière série souhaitée.</div>
-    </div>
 
     <div class="card">
       <div class="row between">
@@ -372,9 +383,58 @@
         <button class="btn secondary small" onclick="skipImmersiveRest()">Passer le repos</button>
       </div>
     </div>
+    <div class="immersive-sticky-action">
+      <button id="finishExerciseBtn" class="btn full" type="button" onclick="finishImmersiveExercise()">✅ Terminer l’exercice</button>
+      <div id="finishExerciseHint" class="sub" style="margin-top:7px;text-align:center">Quand tu as fini cet exercice, passe au suivant.</div>
+    </div>
   </div>
 </div>
 
+
+<div id="sessionWizardOverlay" class="auth-overlay hidden" style="z-index:10015;overflow:auto;padding:16px">
+  <div class="auth-box" style="max-width:620px">
+    <div class="row between">
+      <div><div class="sub">Créateur de séance</div><h2>✨ Créer ma séance</h2></div>
+      <button class="btn secondary small" onclick="closeSessionWizard()">✕</button>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>Nom de la séance</label>
+      <input id="wizardSessionName" placeholder="Ex. Haut du corps salle">
+    </div>
+
+    <div style="margin-top:16px"><strong>1. Où vas-tu faire la séance ?</strong>
+      <div class="wizard-choices" style="margin-top:8px">
+        <button class="wizard-choice" onclick="selectWizardChoice('location','gym',this)">🏢 En salle</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('location','home',this)">🏠 À la maison</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px"><strong>2. Que souhaites-tu travailler ?</strong>
+      <div class="wizard-choices" style="margin-top:8px">
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','upper',this)">💪 Haut du corps</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','lower',this)">🦵 Bas du corps</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','full',this)">⚡ Full body</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','arms_shoulders',this)">🏋️ Bras & épaules</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','back_chest',this)">🔁 Dos & pectoraux</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('focus','core',this)">🎯 Abdos & gainage</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px"><strong>3. Quel type d'entraînement préfères-tu ?</strong>
+      <div class="wizard-choices" style="margin-top:8px">
+        <button class="wizard-choice" onclick="selectWizardChoice('style','guided',this)">🛠️ Machines guidées</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('style','free',this)">🏋️ Poids libres</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('style','bench',this)">🛏️ Développé couché / banc</button>
+        <button class="wizard-choice" onclick="selectWizardChoice('style','mixed',this)">🔀 Mixte</button>
+      </div>
+    </div>
+
+    <div id="wizardPreview" class="card hidden" style="margin-top:16px"></div>
+    <button class="btn full" style="margin-top:14px" onclick="previewGeneratedSession()">Voir la proposition</button>
+    <button id="saveGeneratedSessionBtn" class="btn full hidden" style="margin-top:10px" onclick="saveGeneratedSession()">💾 Enregistrer cette séance</button>
+    <div id="wizardMessage" class="sub" style="margin-top:8px"></div>
+  </div>
+</div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
     <div class="row between">
@@ -391,7 +451,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.4</span>
+      <span class="pill">v3.5</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -462,7 +522,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.4</span>
+      <span class="pill">v3.5</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -492,7 +552,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.4</span>
+        <span class="pill" style="background:white;color:#111827">v3.5</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -1269,12 +1329,146 @@ const PROGRAM = {
  ]}
 };
 
+const SESSION_EXERCISE_LIBRARY={
+ gym:{
+  guided:{
+   upper:["Chest Press","Lat Pulldown","Shoulder Press","Seated Row","Biceps Curl machine / poulie","Triceps Pushdown"],
+   lower:["Leg Press","Leg Curl","Leg Extension","Abductor machine","Adductor machine","Calf Raise machine"],
+   full:["Leg Press","Chest Press","Lat Pulldown","Leg Curl","Shoulder Press","Abdominal Crunch"],
+   arms_shoulders:["Shoulder Press","Lateral Raise machine / poulie","Biceps Curl machine / poulie","Triceps Pushdown","Reverse Fly machine","Cable Curl"],
+   back_chest:["Chest Press","Lat Pulldown","Seated Row","Pec Deck","Reverse Fly machine","Cable Fly"],
+   core:["Abdominal Crunch","Cable Crunch","Back Extension","Rotary Torso","Plank","Dead Bug"]
+  },
+  free:{
+   upper:["Dumbbell Bench Press","One-arm Dumbbell Row","Dumbbell Shoulder Press","Lateral Raise","Dumbbell Curl","Overhead Triceps Extension"],
+   lower:["Goblet Squat","Romanian Deadlift","Walking Lunges","Bulgarian Split Squat","Hip Thrust","Standing Calf Raise"],
+   full:["Goblet Squat","Dumbbell Bench Press","One-arm Dumbbell Row","Romanian Deadlift","Dumbbell Shoulder Press","Plank"],
+   arms_shoulders:["Dumbbell Shoulder Press","Lateral Raise","Rear Delt Fly","Dumbbell Curl","Hammer Curl","Overhead Triceps Extension"],
+   back_chest:["Dumbbell Bench Press","One-arm Dumbbell Row","Incline Dumbbell Press","Dumbbell Pullover","Rear Delt Fly","Push-ups"],
+   core:["Plank","Side Plank","Dead Bug","Russian Twist","Mountain Climbers","Bird Dog"]
+  },
+  bench:{
+   upper:["Bench Press","Incline Bench Press","Dumbbell Row","Seated Dumbbell Shoulder Press","Dumbbell Curl","Skull Crusher"],
+   lower:["Bulgarian Split Squat","Hip Thrust","Step-up","Romanian Deadlift","Goblet Squat","Calf Raise"],
+   full:["Bench Press","Goblet Squat","Dumbbell Row","Romanian Deadlift","Seated Shoulder Press","Plank"],
+   arms_shoulders:["Seated Dumbbell Shoulder Press","Lateral Raise","Incline Dumbbell Curl","Hammer Curl","Skull Crusher","Bench Dips"],
+   back_chest:["Bench Press","Incline Bench Press","Dumbbell Row","Dumbbell Pullover","Rear Delt Fly","Push-ups"],
+   core:["Decline Crunch","Plank","Side Plank","Leg Raise","Dead Bug","Russian Twist"]
+  }
+ },
+ home:{
+  guided:{
+   upper:["Resistance Band Chest Press","Band Row","Band Shoulder Press","Band Lat Pulldown","Band Biceps Curl","Band Triceps Extension"],
+   lower:["Band Squat","Band Romanian Deadlift","Glute Bridge","Band Leg Curl","Lateral Band Walk","Calf Raise"],
+   full:["Band Squat","Push-ups","Band Row","Glute Bridge","Band Shoulder Press","Plank"],
+   arms_shoulders:["Band Shoulder Press","Lateral Raise","Band Biceps Curl","Band Triceps Extension","Rear Delt Band Pull","Hammer Curl"],
+   back_chest:["Push-ups","Band Row","Band Chest Press","Band Lat Pulldown","Band Fly","Band Pull-apart"],
+   core:["Plank","Dead Bug","Bird Dog","Side Plank","Mountain Climbers","Glute Bridge"]
+  },
+  free:{
+   upper:["Push-ups","Dumbbell Row","Dumbbell Shoulder Press","Lateral Raise","Dumbbell Curl","Triceps Extension"],
+   lower:["Goblet Squat","Romanian Deadlift","Reverse Lunge","Glute Bridge","Split Squat","Calf Raise"],
+   full:["Goblet Squat","Push-ups","Dumbbell Row","Romanian Deadlift","Shoulder Press","Plank"],
+   arms_shoulders:["Dumbbell Shoulder Press","Lateral Raise","Dumbbell Curl","Hammer Curl","Triceps Extension","Rear Delt Fly"],
+   back_chest:["Push-ups","Dumbbell Row","Floor Press","Dumbbell Pullover","Rear Delt Fly","Band Pull-apart"],
+   core:["Plank","Side Plank","Dead Bug","Russian Twist","Mountain Climbers","Bird Dog"]
+  },
+  bench:{
+   upper:["Floor Press","Dumbbell Row","Seated Shoulder Press","Push-ups","Dumbbell Curl","Triceps Extension"],
+   lower:["Split Squat","Hip Thrust","Step-up","Romanian Deadlift","Goblet Squat","Calf Raise"],
+   full:["Floor Press","Goblet Squat","Dumbbell Row","Romanian Deadlift","Shoulder Press","Plank"],
+   arms_shoulders:["Seated Shoulder Press","Lateral Raise","Dumbbell Curl","Hammer Curl","Triceps Extension","Bench Dips"],
+   back_chest:["Floor Press","Push-ups","Dumbbell Row","Dumbbell Pullover","Rear Delt Fly","Band Row"],
+   core:["Plank","Side Plank","Leg Raise","Dead Bug","Russian Twist","Bird Dog"]
+  }
+ }
+};
+let wizardState={location:null,focus:null,style:null,generated:null};
+
+function openSessionWizard(){
+ wizardState={location:null,focus:null,style:null,generated:null};
+ document.getElementById("wizardSessionName").value="";
+ document.getElementById("wizardPreview").classList.add("hidden");
+ document.getElementById("saveGeneratedSessionBtn").classList.add("hidden");
+ document.getElementById("wizardMessage").textContent="";
+ document.querySelectorAll("#sessionWizardOverlay .wizard-choice").forEach(b=>b.classList.remove("active"));
+ document.getElementById("sessionWizardOverlay").classList.remove("hidden");
+}
+function closeSessionWizard(){document.getElementById("sessionWizardOverlay")?.classList.add("hidden");}
+function selectWizardChoice(kind,value,btn){
+ wizardState[kind]=value;
+ btn.parentElement.querySelectorAll(".wizard-choice").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
+}
+function generatedSessionExercises(location,focus,style){
+ const lib=SESSION_EXERCISE_LIBRARY[location]||SESSION_EXERCISE_LIBRARY.gym;
+ if(style==="mixed"){
+  const a=(lib.guided?.[focus]||lib.guided?.full||[]);
+  const b=(lib.free?.[focus]||lib.free?.full||[]);
+  return [a[0],b[0],a[1],b[1],a[2],b[2]].filter(Boolean).map(name=>({name,sets:4,target:"8–12"}));
+ }
+ const source=lib[style]||lib.guided;
+ return (source[focus]||source.full).slice(0,6).map(name=>({name,sets:4,target:"8–12"}));
+}
+function previewGeneratedSession(){
+ const name=document.getElementById("wizardSessionName").value.trim();
+ if(!name){document.getElementById("wizardMessage").textContent="Donne un nom à ta séance.";return;}
+ if(!wizardState.location||!wizardState.focus||!wizardState.style){document.getElementById("wizardMessage").textContent="Réponds aux trois questions.";return;}
+ wizardState.generated=generatedSessionExercises(wizardState.location,wizardState.focus,wizardState.style);
+ const box=document.getElementById("wizardPreview");
+ box.innerHTML=`<h2>${name}</h2><div class="sub">6 exercices • 4 séries par exercice</div>`+
+ wizardState.generated.map((x,i)=>`<div class="history-exercise"><strong>${i+1}. ${x.name}</strong><div class="sub">4 × ${x.target}</div></div>`).join("");
+ box.classList.remove("hidden");
+ document.getElementById("saveGeneratedSessionBtn").classList.remove("hidden");
+ document.getElementById("wizardMessage").textContent="";
+}
+async function saveGeneratedSession(){
+ const name=document.getElementById("wizardSessionName").value.trim();
+ if(!wizardState.generated||!currentUser)return;
+ const {data,error}=await supa.from("user_sessions").insert({
+  user_id:currentUser.id,name,location:wizardState.location,body_focus:wizardState.focus,
+  training_style:wizardState.style,exercises:wizardState.generated
+ }).select("*").single();
+ if(error){document.getElementById("wizardMessage").textContent="Erreur : "+error.message;return;}
+ db.customSessions=db.customSessions||[];
+ db.customSessions.push({id:data.id,name:data.name,location:data.location,body_focus:data.body_focus,training_style:data.training_style,exercises:data.exercises||[]});
+ saveLocalDB();renderCustomSessions();closeSessionWizard();alert(`Séance "${name}" créée.`);
+}
+async function loadCustomSessions(){
+ if(!currentUser)return;
+ const {data,error}=await supa.from("user_sessions").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:true});
+ if(error){console.warn("user_sessions",error);return;}
+ db.customSessions=(data||[]).map(x=>({id:x.id,name:x.name,location:x.location,body_focus:x.body_focus,training_style:x.training_style,exercises:x.exercises||[]}));
+ saveLocalDB();renderCustomSessions();
+}
+function customSessionByCode(code){
+ if(!String(code).startsWith("custom:"))return null;
+ const id=String(code).slice(7);
+ return (db.customSessions||[]).find(x=>String(x.id)===id)||null;
+}
+function renderCustomSessions(){
+ const sessions=db.customSessions||[];
+ const render=box=>{
+  if(!box)return;
+  box.innerHTML=sessions.length?sessions.map(s=>`<div class="custom-session-card"><div class="row between"><div><strong>✨ ${s.name}</strong><div class="sub">${(s.exercises||[]).length} exercices • ${s.location==="home"?"Maison":"Salle"}</div></div><button class="btn secondary small" onclick="startCustomSession('${s.id}')">Démarrer</button></div></div>`).join(""):'<div class="sub" style="margin:8px 0">Aucune séance personnalisée.</div>';
+ };
+ render(document.getElementById("customSessionsStartList"));render(document.getElementById("customSessionsWorkoutList"));
+ const picker=document.getElementById("sessionPicker");
+ if(picker){
+  [...picker.options].filter(o=>o.dataset.custom==="1").forEach(o=>o.remove());
+  sessions.forEach(s=>{const o=document.createElement("option");o.value=`custom:${s.id}`;o.textContent=`✨ ${s.name}`;o.dataset.custom="1";picker.appendChild(o);});
+ }
+}
+function startCustomSession(id){closeStartSessionPanel?.();showPage("workout");renderWorkout(`custom:${id}`);}
+
+
 let db = JSON.parse(localStorage.getItem("muscuProgress") || '{"workouts":[],"measurements":[],"pushups":[]}');
 if(!db.workouts) db.workouts=[];
 if(!db.measurements) db.measurements=[];
 if(!db.pushups) db.pushups=[];
 if(!db.fitness) db.fitness=[];
 if(!db.planning) db.planning=[];
+if(!db.customSessions) db.customSessions=[];
 let currentSession = "A";
 let timerId = null;
 
@@ -1509,6 +1703,7 @@ async function handleSession(session){
   showRequiredProfileIfNeeded();
   setSyncStatus("Synchronisation…");
   await syncFromCloud();
+  await loadCustomSessions();
 }
 async function syncFromCloud(){
   if(!currentUser||syncing)return; syncing=true; setSyncStatus("Synchronisation…");
@@ -2231,7 +2426,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout")renderCustomSessions(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -2521,37 +2716,23 @@ function confirmExerciseSwap(){
 
 
 function ensureImmersiveSetCount(exerciseIndex,count=4){
-  const ex=currentWorkoutExercises[exerciseIndex];
-  if(!ex)return;
-  const safe=Math.max(1,Math.min(10,Number(count)||4));
-  ex.sets=safe;
-
-  const node=document.querySelectorAll("#exerciseList .exercise")[exerciseIndex];
-  if(!node)return;
-
-  let inputs=[...node.querySelectorAll("input")];
-  let checks=[...node.querySelectorAll(".check")];
-  const currentSets=Math.floor(inputs.length/2);
-
-  if(currentSets<safe){
-    const setsContainer=node.querySelector(".sets") || node;
-    for(let s=currentSets;s<safe;s++){
-      const row=document.createElement("div");
-      row.className="set-row";
-      row.innerHTML=`<span class="set-index">${s+1}</span>
-        <input type="number" step="0.5" placeholder="kg" inputmode="decimal">
-        <input type="number" step="1" placeholder="reps" inputmode="numeric">
-        <button type="button" class="check" onclick="toggleSet(this)">✓</button>`;
-      setsContainer.appendChild(row);
-    }
-  }else if(currentSets>safe){
-    const rows=[...node.querySelectorAll(".set-row")];
-    rows.slice(safe).forEach(r=>r.remove());
-  }
-
-  saveWorkoutDraft();
+ const ex=currentWorkoutExercises[exerciseIndex];if(!ex)return;
+ const safe=Math.max(1,Math.min(10,Number(count)||4));
+ const snapshots=[...document.querySelectorAll("#exerciseList .exercise")].map(node=>{
+  const inputs=[...node.querySelectorAll("input")],checks=[...node.querySelectorAll(".check")],sets=[];
+  for(let i=0;i<inputs.length;i+=2){const si=i/2;sets.push({weight:inputs[i]?.value||"",reps:inputs[i+1]?.value||"",done:checks[si]?.classList.contains("done")||false,rating:checks[si]?.dataset.rating||""});}
+  return sets;
+ });
+ ex.sets=safe;renderCurrentWorkoutExercises();
+ [...document.querySelectorAll("#exerciseList .exercise")].forEach((node,ei)=>{
+  const inputs=[...node.querySelectorAll("input")],checks=[...node.querySelectorAll(".check")];
+  (snapshots[ei]||[]).slice(0,Math.floor(inputs.length/2)).forEach((s,si)=>{
+   if(inputs[si*2])inputs[si*2].value=s.weight;if(inputs[si*2+1])inputs[si*2+1].value=s.reps;
+   if(checks[si]){checks[si].classList.toggle("done",s.done);if(s.rating)checks[si].dataset.rating=s.rating;}
+  });
+ });
+ saveWorkoutDraft();
 }
-
 function changeImmersiveSeriesCount(delta){
   const ex=currentWorkoutExercises[immersiveExerciseIndex];
   if(!ex)return;
@@ -2605,10 +2786,8 @@ function startImmersiveWorkout(){
   }
 
   // New immersive sessions start on 4 sets per exercise.
-  currentWorkoutExercises.forEach((ex,i)=>{
-    ex.sets=4;
-    ensureImmersiveSetCount(i,4);
-  });
+  currentWorkoutExercises.forEach(ex=>ex.sets=4);
+  renderCurrentWorkoutExercises();
 
   immersiveExerciseIndex=0;
   immersiveSetIndex=0;
@@ -2651,6 +2830,12 @@ function renderImmersiveStep(){
   const count=Math.max(1,Number(ex.sets)||4);
   document.getElementById("immersiveSeriesCountLabel").textContent=`${count} série${count>1?"s":""}`;
   document.getElementById("immersiveSetLabel").textContent=`Série ${immersiveSetIndex+1} / ${count} • Exercice ${immersiveExerciseIndex+1} / ${currentWorkoutExercises.length}`;
+  const dotBox=document.getElementById("immersiveSeriesDots");
+  if(dotBox){
+    const node=document.querySelectorAll("#exerciseList .exercise")[immersiveExerciseIndex];
+    const checks=[...(node?.querySelectorAll(".check")||[])];
+    dotBox.innerHTML=Array.from({length:count},(_,i)=>`<div class="series-dot ${checks[i]?.classList.contains("done")?"done":""} ${i===immersiveSetIndex?"current":""}">${i+1}</div>`).join("");
+  }
   const finishHint=document.getElementById("finishExerciseHint");
   if(finishHint)finishHint.textContent="Tu peux terminer l’exercice après la dernière série souhaitée.";
 
@@ -2755,30 +2940,33 @@ function skipImmersiveRest(){
 }
 
 function renderWorkout(code){
-  currentSession=code;
-  startWorkoutClock();
-  const picker=document.getElementById("sessionPicker");
-  if(code==="Libre"){
-    currentWorkoutExercises=[];
-    if(picker){
-      if(![...picker.options].some(o=>o.value==="Libre")){
-        const opt=document.createElement("option"); opt.value="Libre"; opt.textContent="Libre"; picker.appendChild(opt);
-      }
-      picker.value="Libre";
-    }
-    document.getElementById("workoutTitle").textContent="✨ Séance libre";
-    document.getElementById("workoutDesc").textContent="Ajoute les exercices que tu souhaites réaliser aujourd’hui.";
-    renderCurrentWorkoutExercises();
-    return;
-  }
-  if(picker)picker.value=code;
-  const p=PROGRAM[code];
-  currentWorkoutExercises=p.exercises.map(x=>({name:x[0],sets:x[1],target:x[2]}));
-  document.getElementById("workoutTitle").textContent=p.title;
-  document.getElementById("workoutDesc").textContent=p.desc;
-  renderCurrentWorkoutExercises();
-}
+ currentSession=code;startWorkoutClock();
+ const picker=document.getElementById("sessionPicker");
 
+ if(code==="Libre"){
+  currentWorkoutExercises=[];
+  if(picker){if(![...picker.options].some(o=>o.value==="Libre")){const o=document.createElement("option");o.value="Libre";o.textContent="Libre";picker.appendChild(o);}picker.value="Libre";}
+  document.getElementById("workoutTitle").textContent="✨ Séance libre";
+  document.getElementById("workoutDesc").textContent="Ajoute les exercices que tu souhaites réaliser aujourd’hui.";
+  renderCurrentWorkoutExercises();return;
+ }
+
+ const custom=customSessionByCode(code);
+ if(custom){
+  if(picker)picker.value=code;
+  currentWorkoutExercises=(custom.exercises||[]).map(x=>({name:x.name,sets:Number(x.sets)||4,target:x.target||"8–12"}));
+  document.getElementById("workoutTitle").textContent=`✨ ${custom.name}`;
+  document.getElementById("workoutDesc").textContent=`Séance personnalisée • ${custom.location==="home"?"à la maison":"en salle"}`;
+  renderCurrentWorkoutExercises();return;
+ }
+
+ if(picker)picker.value=code;
+ const p=PROGRAM[code]||PROGRAM.A;
+ currentWorkoutExercises=p.exercises.map(x=>({name:x[0],sets:4,target:x[2]}));
+ document.getElementById("workoutTitle").textContent=p.title;
+ document.getElementById("workoutDesc").textContent=p.desc;
+ renderCurrentWorkoutExercises();
+}
 function renderCurrentWorkoutExercises(){
   const list=document.getElementById("exerciseList");
   list.innerHTML="";
@@ -2988,7 +3176,7 @@ function buildActivityHistory(){
     if(w.session==="Tapis"||w.treadmill){type="treadmill";icon="🏃";label="Tapis";}
     else if(w.session==="Rameur"||w.cardio?.type==="rower"){type="rower";icon="🚣";label="Rameur";}
     else if(w.session==="Libre"){label="Séance libre";}
-    else if(w.session&&PROGRAM[w.session]){label=PROGRAM[w.session].title;}
+    else if(w.session&&PROGRAM[w.session]){label=PROGRAM[w.session].title;} else if(customSessionByCode(w.session)){label=customSessionByCode(w.session).name;}
     else if(w.session){label=`Séance ${w.session}`;}
 
     const detail=[];
@@ -4449,4 +4637,11 @@ document.addEventListener("input",(e)=>{
 
 </script>
 </body>
-</html>
+</html><div class="card">
+      <div class="row between">
+        <div><h2>✨ Mes séances</h2><div class="sub">Tes programmes personnels sont privés et liés à ton compte.</div></div>
+        <button class="btn secondary small" onclick="openSessionWizard()">＋ Créer</button>
+      </div>
+      <div id="customSessionsWorkoutList"></div>
+    </div>
+    
