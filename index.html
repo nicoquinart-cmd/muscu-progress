@@ -222,6 +222,22 @@
 
     .sync-ok-dot{background:var(--brand-green)}
 
+
+    .fitness-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .fitness-quick{
+      padding:14px;border:1px solid #DCE7EB;border-radius:16px;background:white;
+      cursor:pointer;text-align:left;box-shadow:0 4px 14px rgba(8,30,59,.04)
+    }
+    .fitness-quick strong{display:block;color:var(--brand-navy);margin-top:5px}
+    .fitness-quick .emoji{font-size:24px}
+    .fitness-quick.favorite{border-color:#9ADFE4;background:#F0FBFB}
+    .intensity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .intensity-btn{padding:11px 5px;border-radius:12px;border:1px solid #D6E4E8;background:#fff;font-weight:700}
+    .intensity-btn.active{background:#E8F8FA;border-color:var(--brand-cyan);color:var(--brand-navy)}
+    .goal-ring{height:10px;background:#E4EEF0;border-radius:99px;overflow:hidden}
+    .goal-ring > div{height:100%;background:linear-gradient(90deg,var(--brand-cyan),var(--brand-green));border-radius:99px}
+    @media(min-width:650px){.fitness-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -358,7 +374,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.0.2</span>
+      <span class="pill">v3.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -394,9 +410,9 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.0.2</span>
+      <span class="pill">v3.1</span>
     </div>
-    <div class="sub">Planifie. Entraîne-toi. Progresse. • démarrage 24 août 2026</div>
+    <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
 
   
@@ -410,7 +426,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.0.2</span>
+        <span class="pill" style="background:white;color:#111827">v3.1</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -611,6 +627,35 @@
 
 
   <section id="fitness" class="page">
+    <div class="card hero">
+      <div class="sub">Bouge comme tu aimes</div>
+      <h2 style="color:white;margin-top:4px">🧘 Fitness</h2>
+      <div class="sub">Tes cours favoris, tes minutes et ta régularité en un coup d’œil.</div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <h2>⭐ Mes cours favoris</h2>
+        <button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button>
+      </div>
+      <div id="fitnessFavorites" class="fitness-quick-grid" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <h2>🎯 Objectif de la semaine</h2>
+        <span id="fitnessGoalLabel" class="pill">0 / 3 cours</span>
+      </div>
+      <div class="goal-ring" style="margin-top:12px"><div id="fitnessGoalBar" style="width:0%"></div></div>
+      <div id="fitnessGoalMinutes" class="sub" style="margin-top:8px">0 minute cette semaine</div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
+      <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes ce mois</span></div>
+      <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal estimées</span></div>
+    </div>
+
     <div class="card hero">
       <div class="sub">Cours collectifs</div>
       <h2 style="color:white;margin-top:4px">Fitness</h2>
@@ -2596,7 +2641,7 @@ function openHistoryDetail(key){
     }
   }else if(item.source==="fitness"){
     const f=db.fitness[item.sourceIndex];
-    body=`<div class="sub">Cours : ${f.name}<br>Durée : ${f.duration} min${f.calories_estimate?`<br>Calories : ~${Math.round(f.calories_estimate)} kcal`:""}</div>`;
+    body=`<div class="sub">Cours : ${f.name}<br>Durée : ${f.duration} min${f.intensity?`<br>Intensité : ${f.intensity==="light"?"Douce":f.intensity==="high"?"Intense":"Modérée"}`:""}${f.feeling?`<br>Ressenti : ${f.feeling}/5`:""}${f.calories_estimate?`<br>Calories : ~${Math.round(f.calories_estimate)} kcal`:""}</div>`;
   }else{
     body=`<div class="sub">Total du jour : ${item.pushupCount} pompes</div>`;
   }
@@ -2854,7 +2899,9 @@ async function saveHistoryActivity(){
     const name=document.getElementById("historyFitnessName").value.trim();
     const duration=Number(document.getElementById("historyFitnessDuration").value)||0;
     if(!name||duration<=0){alert("Indique le cours et la durée.");return;}
-    const calories_estimate=estimateFitnessCalories(name,duration);
+    const intensity=document.getElementById("fitnessIntensity")?.value||"moderate";
+  const feeling=Number(document.getElementById("fitnessFeeling")?.value)||3;
+  const calories_estimate=estimateFitnessCalories(name,duration) * (intensity==="light"?0.85:intensity==="high"?1.15:1);
     if(existingSource==="fitness"){
       const idx=Number(existingIndex);
       const old=db.fitness[idx];
@@ -2867,7 +2914,7 @@ async function saveHistoryActivity(){
         db.fitness[idx].pending_cloud=true; saveDB();
       }
     }else{
-      const local={date,name,duration,calories_estimate,created_at:new Date().toISOString(),pending_cloud:true};
+      const local={date,name,duration,intensity,feeling,calories_estimate,created_at:new Date().toISOString(),pending_cloud:true};
       db.fitness.push(local); saveLocalDB();
       if(currentUser){
         const {data,error}=await supa.from("fitness_classes").insert({user_id:currentUser.id,class_date:date,class_name:name,duration_minutes:duration,calories_estimate}).select("*").single();
@@ -3396,6 +3443,98 @@ function renderTodayPlan(){
   } else {
     detail.textContent="";
   }
+}
+
+
+const DEFAULT_FITNESS_COURSES=[
+  {name:"BodyPump",emoji:"🏋️"},{name:"Cycling / RPM",emoji:"🚴"},
+  {name:"BodyCombat",emoji:"🥊"},{name:"Pilates",emoji:"🧘"},
+  {name:"Yoga",emoji:"🌿"},{name:"CAF",emoji:"🍑"},
+  {name:"Cross Training",emoji:"⚡"},{name:"BodyAttack",emoji:"🔥"}
+];
+
+function fitnessPrefs(){
+  const raw=localStorage.getItem("fitpilot_fitness_prefs");
+  try{return raw?JSON.parse(raw):{favorites:["BodyPump","Cycling / RPM","Pilates"],weeklyGoal:3};}
+  catch(e){return {favorites:["BodyPump","Cycling / RPM","Pilates"],weeklyGoal:3};}
+}
+function saveFitnessPrefs(p){localStorage.setItem("fitpilot_fitness_prefs",JSON.stringify(p));renderFitnessFriendly();}
+
+function fitnessCourseMeta(name){
+  return DEFAULT_FITNESS_COURSES.find(x=>x.name===name)||{name,emoji:"🧘"};
+}
+
+function quickStartFitness(name){
+  const input=document.getElementById("fitnessName");
+  if(input)input.value=name;
+  const duration=document.getElementById("fitnessDuration");
+  if(duration && !duration.value)duration.value=45;
+  document.getElementById("fitnessIntensity").value="moderate";
+  selectFitnessIntensity("moderate");
+  input?.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function editFitnessFavorites(){
+  const p=fitnessPrefs();
+  const current=new Set(p.favorites||[]);
+  const list=DEFAULT_FITNESS_COURSES.map((c,i)=>`${i+1}. ${c.name}${current.has(c.name)?" ⭐":""}`).join("\n");
+  const answer=prompt("Choisis jusqu’à 4 favoris en indiquant leurs numéros séparés par des virgules :\n\n"+list,
+    DEFAULT_FITNESS_COURSES.map((c,i)=>current.has(c.name)?i+1:null).filter(Boolean).join(","));
+  if(answer===null)return;
+  const ids=answer.split(",").map(x=>Number(x.trim())-1).filter(i=>i>=0&&i<DEFAULT_FITNESS_COURSES.length);
+  p.favorites=[...new Set(ids)].slice(0,4).map(i=>DEFAULT_FITNESS_COURSES[i].name);
+  saveFitnessPrefs(p);
+}
+
+function selectFitnessIntensity(level){
+  const input=document.getElementById("fitnessIntensity");
+  if(input)input.value=level;
+  document.querySelectorAll("[data-fit-intensity]").forEach(b=>b.classList.toggle("active",b.dataset.fitIntensity===level));
+}
+
+function mondayISO(){
+  const d=new Date(); d.setHours(12,0,0,0);
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return d.toISOString().slice(0,10);
+}
+
+function renderFitnessFriendly(){
+  const p=fitnessPrefs();
+  const favBox=document.getElementById("fitnessFavorites");
+  if(favBox){
+    const favs=(p.favorites||[]).length?p.favorites:["BodyPump","Cycling / RPM","Pilates"];
+    favBox.innerHTML=favs.map(name=>{
+      const c=fitnessCourseMeta(name);
+      return `<button class="fitness-quick favorite" onclick="quickStartFitness('${name.replace(/'/g,"\\'")}')">
+        <span class="emoji">${c.emoji}</span><strong>${name}</strong><span class="sub">Démarrer rapidement</span>
+      </button>`;
+    }).join("");
+  }
+
+  const fitness=db.fitness||[];
+  const month=todayISO().slice(0,7);
+  const monthRows=fitness.filter(x=>x.date?.startsWith(month));
+  const monthMinutes=monthRows.reduce((s,x)=>s+(Number(x.duration)||0),0);
+  const monthCalories=monthRows.reduce((s,x)=>s+(Number(x.calories_estimate)||0),0);
+
+  const mc=document.getElementById("fitnessMonthClasses");
+  const mm=document.getElementById("fitnessMonthMinutes");
+  const mk=document.getElementById("fitnessMonthCalories");
+  if(mc)mc.textContent=monthRows.length;
+  if(mm)mm.textContent=Math.round(monthMinutes);
+  if(mk)mk.textContent=Math.round(monthCalories);
+
+  const monday=mondayISO();
+  const weekRows=fitness.filter(x=>x.date>=monday && x.date<=todayISO());
+  const goal=Number(p.weeklyGoal)||3;
+  const pct=Math.min(100,(weekRows.length/goal)*100);
+  const bar=document.getElementById("fitnessGoalBar");
+  const label=document.getElementById("fitnessGoalLabel");
+  const mins=document.getElementById("fitnessGoalMinutes");
+  if(bar)bar.style.width=pct+"%";
+  if(label)label.textContent=`${weekRows.length} / ${goal} cours`;
+  if(mins)mins.textContent=`${weekRows.reduce((s,x)=>s+(Number(x.duration)||0),0)} minutes cette semaine`;
 }
 
 function renderFitness(){
