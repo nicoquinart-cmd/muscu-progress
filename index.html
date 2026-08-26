@@ -451,7 +451,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.6</span>
+      <span class="pill">v3.7</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -522,7 +522,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.6</span>
+      <span class="pill">v3.7</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -552,7 +552,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.6</span>
+        <span class="pill" style="background:white;color:#111827">v3.7</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -670,6 +670,26 @@
         <div class="card stat"><strong id="v133Weight">—</strong><span>poids</span></div>
         <div class="card stat"><strong id="v133Waist">—</strong><span>taille</span></div>
       </div>
+    </div>
+  </section>
+
+
+  <section id="mysessions" class="page">
+    <div class="card hero">
+      <div class="sub">Tes programmes personnels</div>
+      <h2 style="color:white;margin-top:4px">✨ Mes séances</h2>
+      <div class="sub">Retrouve tes séances préparamétrées, crée-en de nouvelles et modifie-les.</div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <div>
+          <h2>Mes programmes</h2>
+          <div class="sub">Chaque séance est liée à ton compte.</div>
+        </div>
+        <button class="btn" onclick="openSessionWizard()">＋ Créer une séance</button>
+      </div>
+      <div id="mySessionsList"></div>
     </div>
   </section>
 
@@ -818,7 +838,28 @@
   </section>
 
 
-  <section id="planning" class="page">
+  
+  <section id="startworkout" class="page">
+    <div class="card hero">
+      <div class="sub">Séance rapide</div>
+      <h2 style="color:white;margin-top:4px">▶️ Démarrer une séance</h2>
+      <div class="sub">Choisis librement les exercices que tu souhaites faire aujourd’hui.</div>
+    </div>
+
+    <div class="card">
+      <h2>1. Choisis tes exercices</h2>
+      <div id="quickWorkoutExerciseChoices"></div>
+      <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice</button>
+    </div>
+
+    <div class="card">
+      <h2>2. Ta séance</h2>
+      <div id="quickWorkoutSelected"></div>
+      <button class="btn full" style="margin-top:12px" onclick="startQuickWorkout()">▶️ Commencer</button>
+    </div>
+  </section>
+
+<section id="planning" class="page">
     <div class="card hero">
       <div class="sub">Organisation de la semaine</div>
       <h2 style="color:white;margin-top:4px">📅 Planning</h2>
@@ -1302,16 +1343,15 @@
 
 </div>
 
-<nav class="tabs">
-  <div class="tabs-inner" style="grid-template-columns:repeat(6,1fr)">
+<nav class="tabs" style="grid-template-columns:repeat(7,1fr)">
     <button class="tab active" onclick="showPage('home',this)">🏠 Accueil</button>
-    <button class="tab" onclick="showPage('workout',this)">🏋️ Séance</button>
+    <button class="tab" onclick="showPage('mysessions',this)">✨ Mes séances</button>
+    <button class="tab" onclick="showPage('startworkout',this)">▶️ Démarrer</button>
     <button class="tab" onclick="showPage('planning',this)">📅 Planning</button>
     <button class="tab" onclick="showPage('progress',this)">📈 Progrès</button>
     <button class="tab" onclick="showPage('history',this)">📚 Historique</button>
     <button class="tab" onclick="showPage('more',this)">☰ Plus</button>
-  </div>
-</nav>
+  </nav>
 
 <script>
 const PROGRAM = {
@@ -1387,6 +1427,7 @@ const SESSION_EXERCISE_LIBRARY={
 let wizardState={location:null,focus:null,style:null,generated:null};
 
 function openSessionWizard(){
+ if(!editingCustomSessionId) editingCustomSessionId=null;
  wizardState={location:null,focus:null,style:null,generated:null};
  document.getElementById("wizardSessionName").value="";
  document.getElementById("wizardPreview").classList.add("hidden");
@@ -1426,27 +1467,139 @@ function previewGeneratedSession(){
 async function saveGeneratedSession(){
  const name=document.getElementById("wizardSessionName").value.trim();
  if(!wizardState.generated||!currentUser)return;
+
+ const payload={
+  name,
+  location:wizardState.location,
+  body_focus:wizardState.focus,
+  training_style:wizardState.style,
+  exercises:wizardState.generated
+ };
+
+ if(editingCustomSessionId){
+   const {data,error}=await supa.from("user_sessions")
+     .update(payload)
+     .eq("id",editingCustomSessionId)
+     .eq("user_id",currentUser.id)
+     .select("*")
+     .single();
+
+   if(error){document.getElementById("wizardMessage").textContent="Erreur : "+error.message;return;}
+
+   const idx=(db.customSessions||[]).findIndex(x=>String(x.id)===String(editingCustomSessionId));
+   if(idx>=0){
+     db.customSessions[idx]={
+       id:data.id,name:data.name,location:data.location,
+       body_focus:data.body_focus,training_style:data.training_style,
+       exercises:data.exercises||[]
+     };
+   }
+   saveLocalDB();
+   renderCustomSessions();
+   renderMySessionsPage();
+   closeSessionWizard();
+   resetSessionWizardMode();
+   alert(`Séance "${name}" modifiée.`);
+   return;
+ }
+
  const {data,error}=await supa.from("user_sessions").insert({
-  user_id:currentUser.id,name,location:wizardState.location,body_focus:wizardState.focus,
-  training_style:wizardState.style,exercises:wizardState.generated
+  user_id:currentUser.id,...payload
  }).select("*").single();
+
  if(error){document.getElementById("wizardMessage").textContent="Erreur : "+error.message;return;}
+
  db.customSessions=db.customSessions||[];
- db.customSessions.push({id:data.id,name:data.name,location:data.location,body_focus:data.body_focus,training_style:data.training_style,exercises:data.exercises||[]});
- saveLocalDB();renderCustomSessions();closeSessionWizard();alert(`Séance "${name}" créée.`);
+ db.customSessions.push({
+   id:data.id,name:data.name,location:data.location,
+   body_focus:data.body_focus,training_style:data.training_style,
+   exercises:data.exercises||[]
+ });
+ saveLocalDB();
+ renderCustomSessions();
+ renderMySessionsPage();
+ closeSessionWizard();
+ resetSessionWizardMode();
+ alert(`Séance "${name}" créée.`);
 }
 async function loadCustomSessions(){
  if(!currentUser)return;
  const {data,error}=await supa.from("user_sessions").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:true});
  if(error){console.warn("user_sessions",error);return;}
  db.customSessions=(data||[]).map(x=>({id:x.id,name:x.name,location:x.location,body_focus:x.body_focus,training_style:x.training_style,exercises:x.exercises||[]}));
- saveLocalDB();renderCustomSessions();
+ saveLocalDB();renderCustomSessions();renderMySessionsPage();
 }
 function customSessionByCode(code){
  if(!String(code).startsWith("custom:"))return null;
  const id=String(code).slice(7);
  return (db.customSessions||[]).find(x=>String(x.id)===id)||null;
 }
+
+let editingCustomSessionId=null;
+
+function renderMySessionsPage(){
+  const box=document.getElementById("mySessionsList");
+  if(!box)return;
+
+  const sessions=db.customSessions||[];
+  if(!sessions.length){
+    box.innerHTML='<div class="sub" style="margin-top:10px">Aucune séance créée pour le moment.</div>';
+    return;
+  }
+
+  box.innerHTML=sessions.map(s=>`
+    <div class="custom-session-card">
+      <div class="row between">
+        <div>
+          <strong>✨ ${s.name}</strong>
+          <div class="sub">${(s.exercises||[]).length} exercices • ${s.location==="home"?"Maison":"Salle"}</div>
+        </div>
+        <div class="row">
+          <button class="btn secondary small" onclick="startCustomSession('${s.id}')">▶️ Démarrer</button>
+          <button class="btn secondary small" onclick="editCustomSession('${s.id}')">✏️ Modifier</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function editCustomSession(id){
+  const s=(db.customSessions||[]).find(x=>String(x.id)===String(id));
+  if(!s)return;
+
+  editingCustomSessionId=id;
+  openSessionWizard();
+
+  document.getElementById("wizardSessionName").value=s.name||"";
+  wizardState.location=s.location||"gym";
+  wizardState.focus=s.body_focus||"full";
+  wizardState.style=s.training_style||"guided";
+  wizardState.generated=(s.exercises||[]).map(x=>({...x}));
+
+  document.querySelectorAll("#sessionWizardOverlay .wizard-choice").forEach(btn=>btn.classList.remove("active"));
+  document.querySelectorAll("#sessionWizardOverlay .wizard-choice").forEach(btn=>{
+    const txt=btn.getAttribute("onclick")||"";
+    if(txt.includes(`'location','${wizardState.location}'`)||
+       txt.includes(`'focus','${wizardState.focus}'`)||
+       txt.includes(`'style','${wizardState.style}'`)){
+      btn.classList.add("active");
+    }
+  });
+
+  const box=document.getElementById("wizardPreview");
+  box.innerHTML=`<h2>${s.name}</h2><div class="sub">${(s.exercises||[]).length} exercices</div>`+
+    (s.exercises||[]).map((x,i)=>`<div class="history-exercise"><strong>${i+1}. ${x.name}</strong><div class="sub">${x.sets||4} × ${x.target||"8–12"}</div></div>`).join("");
+  box.classList.remove("hidden");
+  document.getElementById("saveGeneratedSessionBtn").classList.remove("hidden");
+  document.getElementById("saveGeneratedSessionBtn").textContent="💾 Enregistrer les modifications";
+}
+
+function resetSessionWizardMode(){
+  editingCustomSessionId=null;
+  const btn=document.getElementById("saveGeneratedSessionBtn");
+  if(btn)btn.textContent="💾 Enregistrer cette séance";
+}
+
 function renderCustomSessions(){
  const sessions=db.customSessions||[];
  const render=box=>{
@@ -1460,6 +1613,68 @@ function renderCustomSessions(){
   sessions.forEach(s=>{const o=document.createElement("option");o.value=`custom:${s.id}`;o.textContent=`✨ ${s.name}`;o.dataset.custom="1";picker.appendChild(o);});
  }
 }
+
+let quickWorkoutExercises=[];
+
+function renderQuickWorkoutBuilder(){
+  const choices=document.getElementById("quickWorkoutExerciseChoices");
+  const selected=document.getElementById("quickWorkoutSelected");
+  if(!choices||!selected)return;
+
+  const all=allKnownExerciseNames();
+  choices.innerHTML=all.slice(0,12).map(name=>`
+    <button class="wizard-choice" style="margin:4px 0;width:100%" onclick="toggleQuickExercise('${name.replace(/'/g,"\\'")}')">
+      ${quickWorkoutExercises.includes(name)?"✓ ":""}${name}
+    </button>
+  `).join("");
+
+  selected.innerHTML=quickWorkoutExercises.length
+    ? quickWorkoutExercises.map((name,i)=>`
+      <div class="custom-session-card">
+        <div class="row between">
+          <strong>${i+1}. ${name}</strong>
+          <button class="btn secondary small" onclick="removeQuickExercise(${i})">✕</button>
+        </div>
+      </div>`).join("")
+    : '<div class="sub">Aucun exercice sélectionné.</div>';
+}
+
+function toggleQuickExercise(name){
+  if(quickWorkoutExercises.includes(name)){
+    quickWorkoutExercises=quickWorkoutExercises.filter(x=>x!==name);
+  }else{
+    quickWorkoutExercises.push(name);
+  }
+  renderQuickWorkoutBuilder();
+}
+
+function removeQuickExercise(index){
+  quickWorkoutExercises.splice(index,1);
+  renderQuickWorkoutBuilder();
+}
+
+function addQuickWorkoutExercise(){
+  const name=prompt("Nom de l’exercice à ajouter :");
+  if(!name)return;
+  if(!quickWorkoutExercises.includes(name.trim()))quickWorkoutExercises.push(name.trim());
+  renderQuickWorkoutBuilder();
+}
+
+function startQuickWorkout(){
+  if(!quickWorkoutExercises.length){
+    alert("Choisis au moins un exercice.");
+    return;
+  }
+
+  currentSession="Libre";
+  currentWorkoutExercises=quickWorkoutExercises.map(name=>({name,sets:4,target:"8–12"}));
+  showPage("workout");
+  document.getElementById("workoutTitle").textContent="✨ Séance rapide";
+  document.getElementById("workoutDesc").textContent="Séance libre créée à partir de tes exercices.";
+  renderCurrentWorkoutExercises();
+  quickWorkoutExercises=[];
+}
+
 function startCustomSession(id){closeStartSessionPanel?.();showPage("workout");renderWorkout(`custom:${id}`);}
 
 
@@ -2427,7 +2642,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout")renderCustomSessions(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -4638,11 +4853,4 @@ document.addEventListener("input",(e)=>{
 
 </script>
 </body>
-</html><div class="card">
-      <div class="row between">
-        <div><h2>✨ Mes séances</h2><div class="sub">Tes programmes personnels sont privés et liés à ton compte.</div></div>
-        <button class="btn secondary small" onclick="openSessionWizard()">＋ Créer</button>
-      </div>
-      <div id="customSessionsWorkoutList"></div>
-    </div>
-    
+</html>
