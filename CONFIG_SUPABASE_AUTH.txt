@@ -1,0 +1,31 @@
+FITPILOT 3.2 — AUTHENTIFICATION SUPABASE
+
+Dans Supabase :
+Authentication > URL Configuration
+
+1. Site URL
+   Mets l'URL publique exacte de FitPilot sur GitHub Pages.
+   Exemple :
+   https://mon-compte.github.io/fitpilot/
+
+2. Redirect URLs
+   Ajoute également cette même URL.
+   Si Supabase accepte les wildcards, tu peux aussi ajouter :
+   https://mon-compte.github.io/fitpilot/**
+
+Ces URLs sont nécessaires pour :
+- la confirmation de l'adresse email après création du compte ;
+- le lien « Mot de passe oublié ? » ;
+- le retour vers FitPilot après réinitialisation.
+
+Dans Authentication > Email :
+- Confirm email doit être activé si tu veux obliger la validation d'adresse.
+- Aucun SQL supplémentaire n'est nécessaire.
+
+Test conseillé :
+1. Crée un nouvel utilisateur avec une nouvelle adresse.
+2. Clique sur le lien de confirmation reçu.
+3. Vérifie que FitPilot s'ouvre.
+4. Déconnecte-toi.
+5. Clique « Mot de passe oublié ? ».
+6. Ouvre l'email et choisis un nouveau mot de passe.

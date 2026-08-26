@@ -374,7 +374,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.1</span>
+      <span class="pill">v3.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -383,7 +383,42 @@
       <button class="btn" onclick="signIn()">Se connecter</button>
       <button class="btn secondary" onclick="signUp()">Créer mon compte</button>
     </div>
+    <button class="btn secondary full" style="margin-top:10px" onclick="requestPasswordReset()">Mot de passe oublié ?</button>
     <div id="authMessage" class="sub" style="margin-top:12px"></div>
+  </div>
+</div>
+
+
+<div id="passwordRecoveryOverlay" class="auth-overlay hidden" style="z-index:10020">
+  <div class="auth-box">
+    <div class="brand-lockup">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <path d="M12 18C22 10 35 8 52 8C45 16 38 21 29 23L18 26L12 18Z" fill="white"/>
+          <path d="M13 31C23 24 35 22 48 22C42 29 35 34 27 36L17 39L13 31Z" fill="white" opacity=".92"/>
+          <path d="M15 44C23 38 31 36 40 36C35 42 29 47 22 50L15 53V44Z" fill="white" opacity=".84"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Fit<span>Pilot</span></div>
+        <div class="brand-tagline">Nouveau mot de passe</div>
+      </div>
+    </div>
+
+    <div class="sub" style="margin-top:12px">Choisis un nouveau mot de passe pour ton compte FitPilot.</div>
+
+    <div class="field">
+      <label>Nouveau mot de passe</label>
+      <input id="newPassword" type="password" autocomplete="new-password" placeholder="8 caractères minimum">
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Confirmer le mot de passe</label>
+      <input id="newPasswordConfirm" type="password" autocomplete="new-password" placeholder="Confirme le mot de passe">
+    </div>
+
+    <button class="btn full" style="margin-top:14px" onclick="saveNewPassword()">Enregistrer le nouveau mot de passe</button>
+    <div id="passwordRecoveryMessage" class="sub" style="margin-top:10px"></div>
   </div>
 </div>
 
@@ -410,7 +445,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.1</span>
+      <span class="pill">v3.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -426,7 +461,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.1</span>
+        <span class="pill" style="background:white;color:#111827">v3.2</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -1280,16 +1315,121 @@ function authMsg(text,isError=false){
   const el=document.getElementById("authMessage"); if(!el)return;
   el.textContent=text; el.style.color=isError?"#b91c1c":"#0f766e";
 }
+
+function authReturnUrl(){
+  // Exact current FitPilot page without OAuth/recovery query or hash.
+  return window.location.origin + window.location.pathname;
+}
+
+async function requestPasswordReset(){
+  const email=document.getElementById("authEmail").value.trim();
+
+  if(!email){
+    authMsg("Saisis d’abord ton adresse email.",true);
+    document.getElementById("authEmail")?.focus();
+    return;
+  }
+
+  authMsg("Envoi du lien de réinitialisation…");
+
+  try{
+    const {error}=await supa.auth.resetPasswordForEmail(email,{
+      redirectTo:authReturnUrl()
+    });
+
+    if(error)throw error;
+
+    authMsg("Email envoyé. Clique sur le lien reçu pour choisir un nouveau mot de passe.");
+  }catch(e){
+    console.error("Password reset request",e);
+    authMsg("Impossible d’envoyer l’email : "+(e.message||"erreur inconnue"),true);
+  }
+}
+
+function showPasswordRecovery(){
+  document.getElementById("authOverlay")?.classList.add("hidden");
+  document.getElementById("passwordRecoveryOverlay")?.classList.remove("hidden");
+  const msg=document.getElementById("passwordRecoveryMessage");
+  if(msg)msg.textContent="";
+}
+
+async function saveNewPassword(){
+  const p1=document.getElementById("newPassword").value;
+  const p2=document.getElementById("newPasswordConfirm").value;
+  const msg=document.getElementById("passwordRecoveryMessage");
+
+  if(p1.length<8){
+    msg.textContent="Le mot de passe doit contenir au moins 8 caractères.";
+    msg.style.color="#b91c1c";
+    return;
+  }
+  if(p1!==p2){
+    msg.textContent="Les deux mots de passe ne correspondent pas.";
+    msg.style.color="#b91c1c";
+    return;
+  }
+
+  msg.textContent="Mise à jour du mot de passe…";
+  msg.style.color="";
+
+  try{
+    const {error}=await supa.auth.updateUser({password:p1});
+    if(error)throw error;
+
+    msg.textContent="Mot de passe modifié avec succès.";
+    msg.style.color="#0f766e";
+
+    document.getElementById("newPassword").value="";
+    document.getElementById("newPasswordConfirm").value="";
+
+    setTimeout(()=>{
+      document.getElementById("passwordRecoveryOverlay")?.classList.add("hidden");
+      if(currentUser){
+        document.getElementById("authOverlay")?.classList.add("hidden");
+      }else{
+        document.getElementById("authOverlay")?.classList.remove("hidden");
+      }
+    },900);
+  }catch(e){
+    console.error("Update password",e);
+    msg.textContent="Impossible de modifier le mot de passe : "+(e.message||"erreur inconnue");
+    msg.style.color="#b91c1c";
+  }
+}
+
 async function signUp(){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
-  if(!email||password.length<6){authMsg("Saisis un email valide et un mot de passe d’au moins 6 caractères.",true);return;}
+
+  if(!email||password.length<8){
+    authMsg("Saisis un email valide et un mot de passe d’au moins 8 caractères.",true);
+    return;
+  }
+
   authMsg("Création du compte…");
-  const {data,error}=await supa.auth.signUp({email,password});
-  if(error){authMsg(error.message,true);return;}
-  if(data.session){await handleSession(data.session);}
-  else authMsg("Compte créé. Vérifie ton email pour confirmer l’inscription, puis connecte-toi.");
+
+  try{
+    const {data,error}=await supa.auth.signUp({
+      email,
+      password,
+      options:{
+        emailRedirectTo:authReturnUrl()
+      }
+    });
+
+    if(error)throw error;
+
+    if(data.session){
+      await handleSession(data.session);
+    }else{
+      authMsg("Compte créé. Ouvre l’email FitPilot et clique sur « Confirmer mon adresse ». Tu reviendras ensuite automatiquement dans l’application.");
+    }
+  }catch(e){
+    console.error("Sign up",e);
+    authMsg("Création impossible : "+(e.message||"erreur inconnue"),true);
+  }
 }
+
 async function signIn(){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
@@ -1821,6 +1961,18 @@ function handleWithingsReturn(){
   },400);
 }
 
+
+function detectRecoveryFromUrl(){
+  const url=new URL(window.location.href);
+  const queryType=url.searchParams.get("type");
+  const hash=new URLSearchParams(window.location.hash.replace(/^#/,""));
+  const hashType=hash.get("type");
+
+  if(queryType==="recovery" || hashType==="recovery"){
+    setTimeout(showPasswordRecovery,300);
+  }
+}
+
 async function initAuth(){
   try{
     const {data,error}=await supa.auth.getSession();
@@ -1839,15 +1991,27 @@ async function initAuth(){
     }
 
     supa.auth.onAuthStateChange((event,session)=>{
+      if(event==="PASSWORD_RECOVERY"){
+        currentUser=session?.user||null;
+        showPasswordRecovery();
+        return;
+      }
+
       if(event==="SIGNED_OUT"){
         currentUser=null;
+        document.getElementById("passwordRecoveryOverlay")?.classList.add("hidden");
         document.getElementById("authOverlay")?.classList.remove("hidden");
         document.getElementById("syncBar")?.classList.add("hidden");
         return;
       }
+
       if(session){
         currentUser=session.user;
         document.getElementById("authOverlay")?.classList.add("hidden");
+
+        if(event==="SIGNED_IN"){
+          authMsg("");
+        }
       }
     });
   }catch(e){
@@ -3877,7 +4041,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); handleWithingsReturn();
+renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); detectRecoveryFromUrl(); handleWithingsReturn();
 
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();
