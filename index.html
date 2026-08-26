@@ -288,7 +288,7 @@
     <div class="card">
       <div class="row between">
         <div>
-          <div class="sub">Mode immersif</div>
+          <div class="sub">Mode immersif</div><div id="draftSaveStatus" class="sub" style="margin-top:3px">☁️ Séance sauvegardée</div>
           <h2 id="immersiveExerciseTitle">Exercice</h2>
           <div id="immersiveSetLabel" class="sub">Série 1 / 3</div>
         </div>
@@ -374,7 +374,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.2</span>
+      <span class="pill">v3.3</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -445,7 +445,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.2</span>
+      <span class="pill">v3.3</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -454,6 +454,20 @@
   
   
   <section id="home" class="page active">
+    <div id="resumeWorkoutCard" class="card hidden">
+      <div class="row between">
+        <div>
+          <div class="sub">Séance interrompue détectée</div>
+          <h2>🔄 Reprendre ma séance</h2>
+          <div id="resumeWorkoutText" class="sub">Ta dernière séance a été sauvegardée automatiquement.</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="resumeDraftWorkout()">Reprendre</button>
+        <button class="btn secondary" onclick="discardDraftWorkout()">Abandonner</button>
+      </div>
+    </div>
+
     <div class="card hero">
       <div class="row between">
         <div>
@@ -461,7 +475,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.2</span>
+        <span class="pill" style="background:white;color:#111827">v3.3</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -2200,7 +2214,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -2222,6 +2236,175 @@ function latestExercise(name){
 
 let currentWorkoutExercises=[];
 
+
+
+const FITPILOT_DRAFT_KEY="fitpilot_active_workout_v1";
+let draftSaveTimer=null;
+
+function setDraftSaveStatus(text){
+  const el=document.getElementById("draftSaveStatus");
+  if(el)el.textContent=text;
+}
+
+function collectCurrentWorkoutDraft(){
+  if(!currentWorkoutExercises?.length || !currentSession) return null;
+
+  const exerciseNodes=[...document.querySelectorAll("#exerciseList .exercise")];
+  const exercises=currentWorkoutExercises.map((ex,idx)=>{
+    const node=exerciseNodes[idx];
+    if(!node) return {name:ex.name,sets:[]};
+
+    const inputs=[...node.querySelectorAll("input")];
+    const checks=[...node.querySelectorAll(".check")];
+    const sets=[];
+
+    for(let i=0;i<inputs.length;i+=2){
+      const setIndex=i/2;
+      sets.push({
+        weight:inputs[i]?.value ?? "",
+        reps:inputs[i+1]?.value ?? "",
+        done:checks[setIndex]?.classList.contains("done")||false,
+        rating:checks[setIndex]?.dataset.rating ? Number(checks[setIndex].dataset.rating) : null
+      });
+    }
+
+    return {name:ex.name,sets};
+  });
+
+  return {
+    version:1,
+    saved_at:new Date().toISOString(),
+    session:currentSession,
+    workoutStartedAt:workoutStartedAt||Date.now(),
+    exercises,
+    immersive:{
+      exerciseIndex:immersiveExerciseIndex||0,
+      setIndex:immersiveSetIndex||0
+    }
+  };
+}
+
+function saveWorkoutDraft(immediate=false){
+  const run=()=>{
+    try{
+      const draft=collectCurrentWorkoutDraft();
+      if(!draft)return;
+      localStorage.setItem(FITPILOT_DRAFT_KEY,JSON.stringify(draft));
+      setDraftSaveStatus("☁️ Séance sauvegardée");
+      renderDraftResumeCard();
+    }catch(e){
+      console.warn("Draft workout save",e);
+      setDraftSaveStatus("⚠️ Sauvegarde locale impossible");
+    }
+  };
+
+  setDraftSaveStatus("⏳ Sauvegarde…");
+  clearTimeout(draftSaveTimer);
+  if(immediate) run();
+  else draftSaveTimer=setTimeout(run,120);
+}
+
+function loadWorkoutDraft(){
+  try{
+    const raw=localStorage.getItem(FITPILOT_DRAFT_KEY);
+    if(!raw)return null;
+    const d=JSON.parse(raw);
+    if(!d?.session || !Array.isArray(d.exercises))return null;
+    return d;
+  }catch(e){
+    return null;
+  }
+}
+
+function clearWorkoutDraft(){
+  clearTimeout(draftSaveTimer);
+  localStorage.removeItem(FITPILOT_DRAFT_KEY);
+  renderDraftResumeCard();
+}
+
+function renderDraftResumeCard(){
+  const card=document.getElementById("resumeWorkoutCard");
+  const text=document.getElementById("resumeWorkoutText");
+  if(!card)return;
+
+  const draft=loadWorkoutDraft();
+  if(!draft){
+    card.classList.add("hidden");
+    return;
+  }
+
+  card.classList.remove("hidden");
+  if(text){
+    const saved=new Date(draft.saved_at);
+    const sessionLabel=PROGRAM?.[draft.session]?.title || (draft.session==="Libre"?"Séance libre":`Séance ${draft.session}`);
+    text.textContent=`${sessionLabel} • sauvegardée ${saved.toLocaleDateString("fr-FR")} à ${saved.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}`;
+  }
+}
+
+function discardDraftWorkout(){
+  if(!confirm("Abandonner définitivement la séance sauvegardée ?"))return;
+  clearWorkoutDraft();
+}
+
+function applyDraftToRenderedWorkout(draft){
+  const nodes=[...document.querySelectorAll("#exerciseList .exercise")];
+
+  draft.exercises.forEach((saved,idx)=>{
+    const node=nodes[idx];
+    if(!node)return;
+
+    // Preserve exercise replacement done during immersive mode.
+    if(currentWorkoutExercises[idx] && saved.name){
+      currentWorkoutExercises[idx].name=saved.name;
+      const title=node.querySelector(".exercise-title");
+      if(title)title.textContent=saved.name;
+    }
+
+    const inputs=[...node.querySelectorAll("input")];
+    const checks=[...node.querySelectorAll(".check")];
+
+    (saved.sets||[]).forEach((s,setIdx)=>{
+      if(inputs[setIdx*2])inputs[setIdx*2].value=s.weight ?? "";
+      if(inputs[setIdx*2+1])inputs[setIdx*2+1].value=s.reps ?? "";
+
+      if(checks[setIdx]){
+        checks[setIdx].classList.toggle("done",!!s.done);
+        if(s.rating!=null)checks[setIdx].dataset.rating=String(s.rating);
+        else delete checks[setIdx].dataset.rating;
+      }
+    });
+  });
+}
+
+function resumeDraftWorkout(){
+  const draft=loadWorkoutDraft();
+  if(!draft)return;
+
+  currentSession=draft.session;
+  renderWorkout(draft.session);
+
+  // renderWorkout may reset timer; restore original start time afterwards.
+  workoutStartedAt=Number(draft.workoutStartedAt)||Date.now();
+
+  setTimeout(()=>{
+    applyDraftToRenderedWorkout(draft);
+
+    immersiveExerciseIndex=Number(draft.immersive?.exerciseIndex)||0;
+    immersiveSetIndex=Number(draft.immersive?.setIndex)||0;
+
+    showPage("workout");
+    document.getElementById("immersiveOverlay")?.classList.remove("hidden");
+    renderImmersiveStep();
+    setDraftSaveStatus("☁️ Séance restaurée");
+  },50);
+}
+
+// Save when browser/app is backgrounded or reloaded.
+window.addEventListener("pagehide",()=>saveWorkoutDraft(true));
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden")saveWorkoutDraft(true);
+});
+window.addEventListener("beforeunload",()=>saveWorkoutDraft(true));
 
 let immersiveExerciseIndex=0;
 let immersiveSetIndex=0;
@@ -2313,6 +2496,7 @@ function confirmExerciseSwap(){
 
   closeExerciseSwap();
   renderImmersiveStep();
+  saveWorkoutDraft();
 }
 
 function startImmersiveWorkout(){
@@ -2324,6 +2508,7 @@ function startImmersiveWorkout(){
   immersiveSetIndex=0;
   document.getElementById("immersiveOverlay")?.classList.remove("hidden");
   renderImmersiveStep();
+  saveWorkoutDraft(true);
 }
 
 function closeImmersiveWorkout(){
@@ -2398,6 +2583,7 @@ function validateImmersiveSet(){
   nodes.weightInput.value=weight;
   nodes.repsInput.value=reps;
   nodes.check.classList.add("done");
+  saveWorkoutDraft();
 
   document.getElementById("immersiveInputCard").classList.add("hidden");
   document.getElementById("immersiveRatingCard").classList.remove("hidden");
@@ -2406,6 +2592,7 @@ function validateImmersiveSet(){
 function rateImmersiveSet(rating){
   const nodes=currentImmersiveNodes();
   if(nodes?.check)nodes.check.dataset.rating=String(rating);
+  saveWorkoutDraft();
 
   document.getElementById("immersiveRatingCard").classList.add("hidden");
   startImmersiveRest(60);
@@ -2546,6 +2733,7 @@ function removeCurrentExercise(idx){
 function toggleSet(btn){
   btn.classList.toggle("done");
   if(!btn.classList.contains("done")) delete btn.dataset.rating;
+  saveWorkoutDraft();
 }
 
 function finishWorkout(){
@@ -2583,6 +2771,7 @@ function finishWorkout(){
   clearInterval(workoutElapsedTimer);
   workoutStartedAt=null;
   saveDB();
+  clearWorkoutDraft();
 
   const d=document.getElementById("treadmillDuration");
   const i=document.getElementById("treadmillIncline");
@@ -4041,7 +4230,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); detectRecoveryFromUrl(); handleWithingsReturn();
+renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); detectRecoveryFromUrl(); handleWithingsReturn(); renderDraftResumeCard();
 
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();
@@ -4141,6 +4330,13 @@ if("serviceWorker" in navigator){
       .catch(err=>console.error("Service worker FitPilot",err));
   });
 }
+
+
+document.addEventListener("input",(e)=>{
+  if(e.target?.closest?.("#workout") && e.target.matches("input")){
+    saveWorkoutDraft();
+  }
+});
 
 </script>
 </body>
