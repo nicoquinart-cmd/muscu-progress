@@ -253,6 +253,21 @@
     .wizard-choice.active{border-color:var(--brand-cyan);background:#EAFBFD}
     .custom-session-card{border:1px solid #DCE7EB;border-radius:15px;padding:12px;margin-top:9px;background:#fff}
     @media(max-width:520px){.wizard-choices{grid-template-columns:1fr}}
+
+  .generator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .generator-choice{border:1px solid var(--border,#dbe2ea);background:#fff;border-radius:14px;padding:12px;text-align:left;cursor:pointer}
+  .generator-choice.active{outline:2px solid #06B6D4;background:#ecfeff}
+  .proposal-exercise{border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin-top:8px;background:#fff}
+  .admin-user-card{border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin-top:10px}
+  .status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#94a3b8}
+  .status-dot.online{background:#22c55e}
+  .admin-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .nav-scroll{overflow-x:auto;scrollbar-width:none}
+  .nav-scroll::-webkit-scrollbar{display:none}
+  @media(max-width:620px){
+    .generator-grid,.admin-detail-grid{grid-template-columns:1fr}
+    nav.tabs .tab{min-width:78px}
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -435,6 +450,102 @@
     <div id="wizardMessage" class="sub" style="margin-top:8px"></div>
   </div>
 </div>
+
+<div id="smartWorkoutOverlay" class="auth-overlay hidden" style="z-index:10018;overflow:auto;padding:16px">
+  <div class="auth-box" style="max-width:720px">
+    <div class="row between">
+      <div>
+        <div class="sub">Générateur FitPilot • gratuit</div>
+        <h1 style="margin:4px 0">✨ Ta séance sur mesure</h1>
+      </div>
+      <button class="btn secondary small" onclick="closeSmartWorkoutGenerator()">Fermer</button>
+    </div>
+
+    <div id="smartWorkoutForm">
+      <div class="field">
+        <label>Ton objectif principal</label>
+        <select id="genGoal">
+          <option value="fatloss">Perte de graisse / remise en forme</option>
+          <option value="muscle">Développer la masse musculaire</option>
+          <option value="strength">Force</option>
+          <option value="general">Forme générale</option>
+        </select>
+      </div>
+
+      <div class="generator-grid" style="margin-top:10px">
+        <div class="field"><label>Niveau</label>
+          <select id="genLevel">
+            <option value="beginner">Débutant</option>
+            <option value="intermediate">Intermédiaire</option>
+            <option value="advanced">Avancé</option>
+          </select>
+        </div>
+        <div class="field"><label>Durée disponible</label>
+          <select id="genDuration">
+            <option value="20">20 min</option>
+            <option value="30">30 min</option>
+            <option value="40" selected>40 min</option>
+            <option value="50">50 min</option>
+            <option value="60">60 min</option>
+          </select>
+        </div>
+        <div class="field"><label>Lieu</label>
+          <select id="genLocation">
+            <option value="gym">Salle</option>
+            <option value="home">Maison</option>
+          </select>
+        </div>
+        <div class="field"><label>Zone à travailler</label>
+          <select id="genFocus">
+            <option value="full">Full body</option>
+            <option value="upper">Haut du corps</option>
+            <option value="lower">Bas du corps</option>
+            <option value="arms_shoulders">Bras & épaules</option>
+            <option value="back_chest">Dos & pectoraux</option>
+            <option value="core">Abdos / gainage</option>
+          </select>
+        </div>
+        <div class="field"><label>Préférence</label>
+          <select id="genStyle">
+            <option value="guided">Machines guidées</option>
+            <option value="mixed">Mixte</option>
+            <option value="free">Poids libres</option>
+            <option value="bodyweight">Poids du corps</option>
+          </select>
+        </div>
+        <div class="field"><label>Séances par semaine</label>
+          <select id="genFrequency">
+            <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
+            <option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <label>Exercices / mouvements à éviter (facultatif)</label>
+        <input id="genAvoid" placeholder="Ex. squat, développé couché…">
+      </div>
+
+      <button class="btn full" style="margin-top:14px" onclick="generateSmartWorkout()">✨ Proposer ma séance</button>
+    </div>
+
+    <div id="smartWorkoutResult" class="hidden" style="margin-top:14px">
+      <div class="card" style="margin:0">
+        <div class="row between">
+          <div><h2 id="smartWorkoutTitle">Séance proposée</h2><div id="smartWorkoutMeta" class="sub"></div></div>
+          <button class="btn secondary small" onclick="generateSmartWorkout()">↻ Autre proposition</button>
+        </div>
+        <div id="smartWorkoutExercises"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn secondary" onclick="editSmartWorkoutName()">✏️ Renommer</button>
+        <button class="btn" onclick="saveSmartWorkout()">💾 Enregistrer dans Mes séances</button>
+      </div>
+      <div id="smartWorkoutMsg" class="sub" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
     <div class="row between">
@@ -451,7 +562,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.7</span>
+      <span class="pill">v4.0</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -522,7 +633,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v3.7</span>
+      <span class="pill">v4.0</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -552,7 +663,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v3.7</span>
+        <span class="pill" style="background:white;color:#111827">v4.0</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -689,7 +800,13 @@
         </div>
         <button class="btn" onclick="openSessionWizard()">＋ Créer une séance</button>
       </div>
+      
+      <div style="margin-top:14px">
+        <button class="btn full" onclick="openSmartWorkoutGenerator()">✨ FitPilot me propose une séance</button>
+        <div class="sub" style="margin-top:6px">Génération gratuite basée sur ton objectif, ton niveau, ton temps et ton matériel.</div>
+      </div>
       <div id="mySessionsList"></div>
+
     </div>
   </section>
 
@@ -1241,7 +1358,7 @@
     <div class="card hero">
       <div class="sub">Navigation</div>
       <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">FitPilot • 2.7</div>
+      <div class="sub">FitPilot • 4.0</div>
     </div>
     <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
     <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
@@ -1276,7 +1393,7 @@
     <div class="card hero">
       <div class="sub">Portail administration</div>
       <h2 style="color:white;margin-top:4px">FitPilot Admin</h2>
-      <div class="sub">Gestion des utilisateurs, exercices, machines et séances modèles.</div>
+      <div class="sub">Utilisateurs, connexions, séances, exercices et programmes.</div>
     </div>
 
     <div class="grid">
@@ -1286,13 +1403,34 @@
       <div class="card stat"><strong id="adminWorkoutsCount">0</strong><span>séances enregistrées</span></div>
     </div>
 
+    
     <div class="card">
       <div class="row between">
-        <div><h2>Gestion des utilisateurs</h2><div class="sub">Nom, rôle et accès à l'application.</div></div>
+        <div><h2>Utilisateurs & activité</h2><div class="sub">Présence, dernière connexion et nombre de séances.</div></div>
         <button class="btn secondary small" onclick="loadAdminDashboard()">Actualiser</button>
       </div>
       <div id="adminUsersList" class="sub" style="margin-top:10px">Chargement…</div>
-      <div class="hint" style="margin-top:12px">Les nouveaux comptes sont créés via « Créer mon compte ». Tu peux ensuite les gérer ici.</div>
+    </div>
+
+    <div id="adminUserDetailCard" class="card hidden">
+      <div class="row between">
+        <div>
+          <div class="sub">Fiche utilisateur</div>
+          <h2 id="adminDetailUserName">Utilisateur</h2>
+          <div id="adminDetailUserEmail" class="sub"></div>
+        </div>
+        <button class="btn secondary small" onclick="closeAdminUserDetail()">Fermer</button>
+      </div>
+      <div class="admin-detail-grid" style="margin-top:12px">
+        <div>
+          <h3>🔐 Historique des connexions</h3>
+          <div id="adminLoginHistory" class="sub">Chargement…</div>
+        </div>
+        <div>
+          <h3>🏋️ Historique des séances</h3>
+          <div id="adminWorkoutHistory" class="sub">Chargement…</div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -1343,7 +1481,7 @@
 
 </div>
 
-<nav class="tabs" style="grid-template-columns:repeat(7,1fr)">
+<nav class="tabs nav-scroll" style="grid-template-columns:repeat(8,minmax(78px,1fr))">
     <button class="tab active" onclick="showPage('home',this)">🏠 Accueil</button>
     <button class="tab" onclick="showPage('mysessions',this)">✨ Mes séances</button>
     <button class="tab" onclick="showPage('startworkout',this)">▶️ Démarrer</button>
@@ -1351,6 +1489,7 @@
     <button class="tab" onclick="showPage('progress',this)">📈 Progrès</button>
     <button class="tab" onclick="showPage('history',this)">📚 Historique</button>
     <button class="tab" onclick="showPage('more',this)">☰ Plus</button>
+    <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)">⚙️ Admin</button>
   </nav>
 
 <script>
@@ -1612,6 +1751,158 @@ function renderCustomSessions(){
   [...picker.options].filter(o=>o.dataset.custom==="1").forEach(o=>o.remove());
   sessions.forEach(s=>{const o=document.createElement("option");o.value=`custom:${s.id}`;o.textContent=`✨ ${s.name}`;o.dataset.custom="1";picker.appendChild(o);});
  }
+}
+
+
+const FITPILOT_EXERCISE_LIBRARY=[
+ {name:"Chest Press",muscles:["chest","triceps"],focus:["upper","back_chest","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Lat Pulldown",muscles:["back","biceps"],focus:["upper","back_chest","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Seated Row",muscles:["back","biceps"],focus:["upper","back_chest","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Shoulder Press",muscles:["shoulders","triceps"],focus:["upper","arms_shoulders","full"],location:["gym","home"],styles:["guided","free","mixed"],level:"beginner"},
+ {name:"Lateral Raise",muscles:["shoulders"],focus:["upper","arms_shoulders","full"],location:["gym","home"],styles:["free","mixed"],level:"beginner"},
+ {name:"Biceps Curl",muscles:["biceps"],focus:["upper","arms_shoulders"],location:["gym","home"],styles:["free","mixed"],level:"beginner"},
+ {name:"Triceps Pushdown",muscles:["triceps"],focus:["upper","arms_shoulders"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Leg Press",muscles:["quads","glutes"],focus:["lower","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Leg Curl",muscles:["hamstrings"],focus:["lower","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Leg Extension",muscles:["quads"],focus:["lower","full"],location:["gym"],styles:["guided","mixed"],level:"beginner"},
+ {name:"Hip Thrust",muscles:["glutes","hamstrings"],focus:["lower","full"],location:["gym","home"],styles:["free","mixed","bodyweight"],level:"beginner"},
+ {name:"Goblet Squat",muscles:["quads","glutes"],focus:["lower","full"],location:["gym","home"],styles:["free","mixed"],level:"beginner"},
+ {name:"Squat au poids du corps",muscles:["quads","glutes"],focus:["lower","full"],location:["gym","home"],styles:["bodyweight","mixed"],level:"beginner"},
+ {name:"Pompes",muscles:["chest","triceps"],focus:["upper","back_chest","full"],location:["gym","home"],styles:["bodyweight","mixed"],level:"beginner"},
+ {name:"Rowing élastique",muscles:["back","biceps"],focus:["upper","back_chest","full"],location:["home"],styles:["mixed","free"],level:"beginner"},
+ {name:"Développé épaules haltères",muscles:["shoulders","triceps"],focus:["upper","arms_shoulders","full"],location:["home","gym"],styles:["free","mixed"],level:"beginner"},
+ {name:"Fentes",muscles:["quads","glutes"],focus:["lower","full"],location:["home","gym"],styles:["free","bodyweight","mixed"],level:"beginner"},
+ {name:"Planche",muscles:["core"],focus:["core","full"],location:["home","gym"],styles:["bodyweight","mixed","guided","free"],level:"beginner"},
+ {name:"Dead Bug",muscles:["core"],focus:["core","full"],location:["home","gym"],styles:["bodyweight","mixed"],level:"beginner"},
+ {name:"Abdominal Crunch",muscles:["core"],focus:["core","full"],location:["gym","home"],styles:["guided","bodyweight","mixed"],level:"beginner"},
+ {name:"Romanian Deadlift haltères",muscles:["hamstrings","glutes","back"],focus:["lower","full"],location:["gym","home"],styles:["free","mixed"],level:"intermediate"},
+ {name:"Cable Face Pull",muscles:["back","shoulders"],focus:["upper","back_chest","arms_shoulders"],location:["gym"],styles:["guided","mixed"],level:"beginner"}
+];
+
+let smartWorkoutProposal=null;
+
+function openSmartWorkoutGenerator(){
+  document.getElementById("smartWorkoutOverlay")?.classList.remove("hidden");
+  document.getElementById("smartWorkoutResult")?.classList.add("hidden");
+  document.getElementById("smartWorkoutMsg").textContent="";
+}
+
+function closeSmartWorkoutGenerator(){
+  document.getElementById("smartWorkoutOverlay")?.classList.add("hidden");
+}
+
+function shuffleFitPilot(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function smartPrescription(goal,level){
+  if(goal==="strength") return {sets:4,target:level==="beginner"?"6–8":"5–8",rest:90};
+  if(goal==="muscle") return {sets:4,target:"8–12",rest:75};
+  if(goal==="fatloss") return {sets:3,target:"10–15",rest:45};
+  return {sets:3,target:"8–12",rest:60};
+}
+
+function generateSmartWorkout(){
+  const goal=document.getElementById("genGoal").value;
+  const level=document.getElementById("genLevel").value;
+  const duration=Number(document.getElementById("genDuration").value)||40;
+  const location=document.getElementById("genLocation").value;
+  const focus=document.getElementById("genFocus").value;
+  const style=document.getElementById("genStyle").value;
+  const frequency=Number(document.getElementById("genFrequency").value)||3;
+  const avoid=(document.getElementById("genAvoid").value||"").toLowerCase().split(",").map(x=>x.trim()).filter(Boolean);
+
+  let pool=FITPILOT_EXERCISE_LIBRARY.filter(e=>
+    e.location.includes(location) &&
+    (e.focus.includes(focus) || focus==="full" && e.focus.includes("full")) &&
+    (e.styles.includes(style) || style==="mixed") &&
+    !avoid.some(a=>e.name.toLowerCase().includes(a))
+  );
+
+  // Fallbacks progressively loosen style/focus, never location/avoid.
+  if(pool.length<4) pool=FITPILOT_EXERCISE_LIBRARY.filter(e=>e.location.includes(location) && e.focus.includes(focus) && !avoid.some(a=>e.name.toLowerCase().includes(a)));
+  if(pool.length<4) pool=FITPILOT_EXERCISE_LIBRARY.filter(e=>e.location.includes(location) && !avoid.some(a=>e.name.toLowerCase().includes(a)));
+
+  const exerciseCount=duration<=20?4:duration<=30?5:duration<=45?6:7;
+  let selected=shuffleFitPilot(pool).slice(0,exerciseCount);
+
+  // Diversify muscle groups where possible.
+  const seen=new Set();
+  selected=selected.sort((a,b)=>{
+    const au=a.muscles.some(m=>seen.has(m))?1:0;
+    a.muscles.forEach(m=>seen.add(m));
+    return au;
+  });
+
+  const rx=smartPrescription(goal,level);
+  const exercises=selected.map((e,i)=>({
+    name:e.name,
+    sets:(i>=5 && duration<=40)?Math.max(2,rx.sets-1):rx.sets,
+    target:rx.target,
+    rest:rx.rest
+  }));
+
+  const focusLabels={full:"Full body",upper:"Haut du corps",lower:"Bas du corps",arms_shoulders:"Bras & épaules",back_chest:"Dos & pectoraux",core:"Abdos / gainage"};
+  const goalLabels={fatloss:"Remise en forme",muscle:"Développement musculaire",strength:"Force",general:"Forme générale"};
+  const locationLabels={gym:"Salle",home:"Maison"};
+
+  smartWorkoutProposal={
+    name:`${focusLabels[focus]} • ${duration} min`,
+    location,
+    body_focus:focus,
+    training_style:style,
+    exercises,
+    meta:{goal,level,duration,frequency}
+  };
+
+  document.getElementById("smartWorkoutTitle").textContent=smartWorkoutProposal.name;
+  document.getElementById("smartWorkoutMeta").textContent=`${goalLabels[goal]} • ${locationLabels[location]} • ${duration} min • ${exercises.length} exercices`;
+  document.getElementById("smartWorkoutExercises").innerHTML=exercises.map((x,i)=>`
+    <div class="proposal-exercise">
+      <strong>${i+1}. ${x.name}</strong>
+      <div class="sub">${x.sets} séries × ${x.target} • repos ${x.rest}s</div>
+    </div>`).join("");
+  document.getElementById("smartWorkoutResult").classList.remove("hidden");
+  document.getElementById("smartWorkoutResult").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function editSmartWorkoutName(){
+  if(!smartWorkoutProposal)return;
+  const name=prompt("Nom de la séance :",smartWorkoutProposal.name);
+  if(!name?.trim())return;
+  smartWorkoutProposal.name=name.trim();
+  document.getElementById("smartWorkoutTitle").textContent=smartWorkoutProposal.name;
+}
+
+async function saveSmartWorkout(){
+  if(!smartWorkoutProposal || !currentUser)return;
+  const msg=document.getElementById("smartWorkoutMsg");
+  msg.textContent="Enregistrement…";
+  const payload={
+    user_id:currentUser.id,
+    name:smartWorkoutProposal.name,
+    location:smartWorkoutProposal.location,
+    body_focus:smartWorkoutProposal.body_focus,
+    training_style:smartWorkoutProposal.training_style,
+    exercises:smartWorkoutProposal.exercises.map(x=>({name:x.name,sets:x.sets,target:x.target,rest:x.rest}))
+  };
+  const {data,error}=await supa.from("user_sessions").insert(payload).select("*").single();
+  if(error){msg.textContent="Erreur : "+error.message;return;}
+  db.customSessions=db.customSessions||[];
+  db.customSessions.push({
+    id:data.id,name:data.name,location:data.location,body_focus:data.body_focus,
+    training_style:data.training_style,exercises:data.exercises||[]
+  });
+  saveLocalDB();
+  renderCustomSessions();
+  renderMySessionsPage();
+  msg.textContent="✓ Séance enregistrée dans Mes séances.";
+  setTimeout(()=>closeSmartWorkoutGenerator(),650);
 }
 
 let quickWorkoutExercises=[];
@@ -1891,6 +2182,8 @@ async function signIn(){
 
     currentUser=data.session.user;
     document.getElementById("authOverlay")?.classList.add("hidden");
+    await recordConnectionEvent("login");
+    startPresenceTracking();
 
     // Load profile + cloud data without blocking the login screen.
     handleSession(data.session).catch(err=>{
@@ -1906,6 +2199,8 @@ async function signIn(){
   }
 }
 async function signOut(){
+  stopPresenceTracking();
+  try{await recordConnectionEvent("logout");}catch(e){}
   await supa.auth.signOut(); currentUser=null;
   document.getElementById("authOverlay").classList.remove("hidden");
   document.getElementById("syncBar").classList.add("hidden");
@@ -2074,8 +2369,52 @@ async function migrateLocalToCloud(){
   el.textContent="Import terminé. Tes données locales sont maintenant dans le cloud.";
 }
 
+
+const FITPILOT_VERSION="4.0";
+let presenceTimer=null;
+
+async function recordConnectionEvent(eventType="session_start"){
+  if(!currentUser)return;
+  try{
+    await supa.from("login_history").insert({
+      user_id:currentUser.id,
+      event_type:eventType,
+      user_agent:(navigator.userAgent||"").slice(0,500),
+      app_version:FITPILOT_VERSION
+    });
+  }catch(e){console.warn("login_history",e);}
+}
+
+async function updatePresence(){
+  if(!currentUser)return;
+  try{
+    await supa.from("user_presence").upsert({
+      user_id:currentUser.id,
+      last_seen_at:new Date().toISOString(),
+      app_version:FITPILOT_VERSION
+    },{onConflict:"user_id"});
+  }catch(e){console.warn("presence",e);}
+}
+
+function startPresenceTracking(){
+  if(presenceTimer)clearInterval(presenceTimer);
+  updatePresence();
+  presenceTimer=setInterval(updatePresence,120000);
+}
+
+function stopPresenceTracking(){
+  if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null;}
+}
+
+function formatAdminDate(value){
+  if(!value)return"—";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return"—";
+  return d.toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"});
+}
+
 let currentProfile=null;
-let adminCache={users:[],exercises:[],templates:[],workouts:[]};
+let adminCache={users:[],exercises:[],templates:[],workouts:[],presence:[],logins:[]};
 
 async function loadCurrentProfile(){
   if(!currentUser) return null;
@@ -2100,6 +2439,7 @@ async function ensureProfile(){
     });
   }
   await loadCurrentProfile();
+  startPresenceTracking();
 }
 
 async function adminGuard(){
@@ -2113,23 +2453,26 @@ async function adminGuard(){
 
 async function loadAdminDashboard(){
   if(!(await adminGuard())) return;
-  const [u,e,t,w]=await Promise.all([
+  const [u,e,t,w,p,l]=await Promise.all([
     supa.from("profiles").select("*").order("created_at",{ascending:false}),
     supa.from("exercises").select("*").order("name"),
     supa.from("workout_templates").select("*").order("name"),
-    supa.from("workouts").select("id,user_id,workout_date,session_type").order("workout_date",{ascending:false})
+    supa.from("workouts").select("id,user_id,workout_date,session_type").order("workout_date",{ascending:false}),
+    supa.from("user_presence").select("*").order("last_seen_at",{ascending:false}),
+    supa.from("login_history").select("*").order("created_at",{ascending:false}).limit(1000)
   ]);
-  if(u.error||e.error||t.error||w.error){
-    console.error(u.error||e.error||t.error||w.error);
+  if(u.error||e.error||t.error||w.error||p.error||l.error){
+    console.error(u.error||e.error||t.error||w.error||p.error||l.error);
     return;
   }
-  adminCache={users:u.data||[],exercises:e.data||[],templates:t.data||[],workouts:w.data||[]};
-
+  adminCache={
+    users:u.data||[],exercises:e.data||[],templates:t.data||[],workouts:w.data||[],
+    presence:p.data||[],logins:l.data||[]
+  };
   document.getElementById("adminUsersCount").textContent=adminCache.users.length;
   document.getElementById("adminExercisesCount").textContent=adminCache.exercises.filter(x=>x.active!==false).length;
   document.getElementById("adminTemplatesCount").textContent=adminCache.templates.length;
   document.getElementById("adminWorkoutsCount").textContent=adminCache.workouts.length;
-
   renderAdminUsers();
   renderAdminExercises();
   renderAdminTemplates();
@@ -2139,12 +2482,24 @@ function renderAdminUsers(){
   const box=document.getElementById("adminUsersList");
   if(!box)return;
   if(!adminCache.users.length){box.innerHTML="Aucun utilisateur.";return;}
+  const now=Date.now();
   box.innerHTML=adminCache.users.map(u=>{
-    const count=adminCache.workouts.filter(w=>w.user_id===u.user_id).length;
-    return `<div class="history-item">
-      <div class="row">
+    const workouts=adminCache.workouts.filter(w=>w.user_id===u.user_id);
+    const presence=adminCache.presence.find(p=>p.user_id===u.user_id);
+    const lastLogin=adminCache.logins.find(l=>l.user_id===u.user_id && (l.event_type==="login"||l.event_type==="session_start"));
+    const lastSeen=presence?.last_seen_at ? new Date(presence.last_seen_at).getTime() : 0;
+    const online=lastSeen && (now-lastSeen)<5*60*1000;
+    return `<div class="admin-user-card">
+      <div class="row between">
+        <div>
+          <strong><span class="status-dot ${online?"online":""}"></span>${u.display_name||u.email||"Utilisateur"}</strong>
+          <div class="sub">${u.email||""}</div>
+          <div class="sub">${online?"En ligne maintenant":"Dernière activité : "+formatAdminDate(presence?.last_seen_at)} • ${workouts.length} séance${workouts.length>1?"s":""}</div>
+        </div>
+        <button class="btn secondary small" onclick="openAdminUserDetail('${u.user_id}')">Voir l’activité</button>
+      </div>
+      <div class="row" style="margin-top:10px">
         <div class="field"><label>Nom affiché</label><input id="name-${u.user_id}" value="${u.display_name||""}"></div>
-        <div class="field"><label>Email</label><input value="${u.email||""}" disabled></div>
         <div class="field"><label>Rôle</label>
           <select id="role-${u.user_id}">
             <option value="user" ${u.role==="user"?"selected":""}>Utilisateur</option>
@@ -2153,7 +2508,7 @@ function renderAdminUsers(){
         </div>
       </div>
       <div class="row between" style="margin-top:8px">
-        <div class="sub">${count} séance${count>1?"s":""} • ${u.age||"?"} ans • ${u.weight_kg||"?"} kg • ${u.height_cm||"?"} cm • ${u.active===false?"Accès désactivé":"Accès actif"}</div>
+        <div class="sub">Dernière connexion : ${formatAdminDate(lastLogin?.created_at)} • ${u.active===false?"Accès désactivé":"Accès actif"}</div>
         <div class="row">
           <button class="btn secondary small" onclick="adminSaveUser('${u.user_id}')">Enregistrer</button>
           <button class="btn secondary small" onclick="adminToggleUser('${u.user_id}',${u.active!==false})">${u.active===false?"Réactiver":"Désactiver"}</button>
@@ -2161,6 +2516,34 @@ function renderAdminUsers(){
       </div>
     </div>`;
   }).join("");
+}
+
+function openAdminUserDetail(userId){
+  const u=adminCache.users.find(x=>x.user_id===userId);
+  if(!u)return;
+  document.getElementById("adminDetailUserName").textContent=u.display_name||"Utilisateur";
+  document.getElementById("adminDetailUserEmail").textContent=u.email||"";
+  const logins=adminCache.logins.filter(x=>x.user_id===userId).slice(0,50);
+  const workouts=adminCache.workouts.filter(x=>x.user_id===userId).slice(0,50);
+
+  document.getElementById("adminLoginHistory").innerHTML=logins.length?logins.map(x=>`
+    <div class="history-item">
+      <strong>${x.event_type==="logout"?"Déconnexion":x.event_type==="login"?"Connexion":"Ouverture de session"}</strong>
+      <div class="sub">${formatAdminDate(x.created_at)} • v${x.app_version||"?"}</div>
+    </div>`).join(""):"Aucune connexion enregistrée.";
+
+  document.getElementById("adminWorkoutHistory").innerHTML=workouts.length?workouts.map(x=>`
+    <div class="history-item">
+      <strong>${x.session_type||"Séance"}</strong>
+      <div class="sub">${formatAdminDate(x.workout_date)}</div>
+    </div>`).join(""):"Aucune séance enregistrée.";
+
+  document.getElementById("adminUserDetailCard").classList.remove("hidden");
+  document.getElementById("adminUserDetailCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeAdminUserDetail(){
+  document.getElementById("adminUserDetailCard")?.classList.add("hidden");
 }
 async function adminSaveUser(userId){
   if(!(await adminGuard()))return;
@@ -2642,7 +3025,7 @@ function showPage(id,btn){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   if(btn) if(btn)btn.classList.add("active");
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
