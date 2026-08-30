@@ -613,7 +613,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4</span>
+      <span class="pill">v4.4.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -684,7 +684,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4</span>
+      <span class="pill">v4.4.1</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -715,7 +715,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.4</span>
+        <span class="pill" style="background:white;color:#111827">v4.4.1</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -727,12 +727,8 @@
         <button class="btn secondary" onclick="openActivityHub()">＋ Autres activités</button>
       </div>
     </div>
-        <span class="pill" style="background:white;color:#111827">v4.4</span>
+        <span class="pill" style="background:white;color:#111827">v4.4.1</span>
       </div>
-
-      <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
-        ▶️ Démarrer une séance
-      </button>
 
       <div class="quick-actions" style="margin-top:10px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
         <button class="btn secondary" onclick="openStartSessionPanel()">🏋️ Programme</button>
@@ -2481,7 +2477,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.4";
+const FITPILOT_VERSION="4.4.1";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -5448,6 +5444,16 @@ document.addEventListener("input",(e)=>{
   }
 });
 
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",async()=>{
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.update();
+    }catch(e){console.warn("SW update",e);}
+  });
+}
 </script>
 </body>
 </html>
