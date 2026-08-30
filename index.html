@@ -357,6 +357,12 @@
   .workout-summary-stat{background:#f6fafb;border:1px solid #e0eaed;border-radius:16px;padding:14px;text-align:center}
   .workout-summary-stat strong{display:block;font-size:25px;color:#081e3b}
   .swap-option{width:100%;text-align:left;border:1px solid #dbe7ea;background:#fff;border-radius:15px;padding:12px;margin-top:8px}
+
+  /* FitPilot 4.6.1 — exercise instructions on demand */
+  .exercise-help-toggle{margin-top:9px}
+  .immersive-help{margin-top:10px;border:1px solid #dce7eb;border-radius:17px;padding:13px;background:#f8fbfc}
+  .immersive-help .exercise-visual{margin-top:10px}
+  .immersive-help ul{margin:6px 0 0 18px;padding:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -415,7 +421,15 @@
     <div class="card">
       <div class="sub" id="immersiveSetLabel">Série 1 / 4</div>
       <h1 id="immersiveExerciseTitle" style="margin:5px 0 8px">Exercice</h1>
-      <div id="immersiveExerciseVisual" class="exercise-visual hidden"><img id="immersiveExerciseImage" alt=""></div>
+      <button id="immersiveGuideBtn" class="btn secondary full" style="margin-top:8px" onclick="toggleImmersiveGuide()">👁️ Voir les consignes</button>
+      <div id="immersiveGuidePanel" class="immersive-help hidden">
+        <div id="immersiveGuideMuscles" class="sub"></div>
+        <strong>Exécution</strong>
+        <div id="immersiveGuideTip" class="sub" style="margin-top:5px"></div>
+        <strong style="display:block;margin-top:10px">À éviter</strong>
+        <ul id="immersiveGuideErrors"></ul>
+        <div id="immersiveExerciseVisual" class="exercise-visual hidden"><img id="immersiveExerciseImage" alt=""></div>
+      </div>
       <div id="immersiveSeriesDots" class="series-dots" style="margin-top:10px"></div>
       <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
       <div id="immersiveSuggestion" class="hint" style="margin-top:8px"></div>
@@ -679,7 +693,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6</span>
+      <span class="pill">v4.6.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -750,7 +764,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6</span>
+      <span class="pill">v4.6.1</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -780,7 +794,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.6</span>
+        <span class="pill" style="background:white;color:#111827">v4.6.1</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -1357,7 +1371,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 4.6</div>
+      <div class="sub">FitPilot • 4.6.1</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('connections')"><div class="row between"><div><h3 class="fp-section-title">🔗 Connexions</h3><div class="sub">Withings et futurs services</div></div><strong>›</strong></div></div>
@@ -1904,16 +1918,34 @@ async function saveSportActivity(){
 
 let quickWorkoutExercises=[];
 
+
+function toggleQuickGuide(idx){
+  const panel=document.getElementById(`quick-guide-${idx}`);
+  const btn=document.getElementById(`quick-guide-btn-${idx}`);
+  if(!panel)return;
+  panel.classList.toggle("hidden");
+  if(btn)btn.textContent=panel.classList.contains("hidden")?"👁️ Voir les consignes":"🙈 Masquer les consignes";
+}
+
 function renderQuickWorkoutBuilder(){
   const choices=document.getElementById("quickWorkoutExerciseChoices");
   const selected=document.getElementById("quickWorkoutSelected");
   if(!choices||!selected)return;
   const all=allKnownExerciseNames();
-  choices.innerHTML=all.slice(0,14).map(name=>`
-    <button class="fp-exercise-choice ${quickWorkoutExercises.includes(name)?"selected":""}" onclick="toggleQuickExercise('${name.replace(/'/g,"\\'")}')">
-      ${exerciseImage(name)?`<img class="fp-thumb" src="${exerciseImage(name)}" alt="">`:""}
-      <span style="flex:1"><strong>${quickWorkoutExercises.includes(name)?"✓ ":""}${name}</strong><span class="sub" style="display:block">${exerciseGuide(name).muscles}</span></span>
-    </button>`).join("");
+  choices.innerHTML=all.slice(0,14).map((name,i)=>`
+    <div class="fp-exercise-choice ${quickWorkoutExercises.includes(name)?"selected":""}" style="display:block">
+      <button style="all:unset;display:block;width:100%;cursor:pointer" onclick="toggleQuickExercise('${name.replace(/'/g,"\\'")}')">
+        <strong>${quickWorkoutExercises.includes(name)?"✓ ":""}${name}</strong>
+        <span class="sub" style="display:block">${exerciseGuide(name).muscles}</span>
+      </button>
+      <button id="quick-guide-btn-${i}" class="btn secondary small exercise-help-toggle" onclick="event.stopPropagation();toggleQuickGuide(${i})">👁️ Voir les consignes</button>
+      <div id="quick-guide-${i}" class="exercise-help hidden">
+        <strong>Exécution</strong>${exerciseGuide(name).tip}
+        <strong style="margin-top:8px">À éviter</strong>
+        <ul>${exerciseGuide(name).errors.map(x=>`<li>${x}</li>`).join("")}</ul>
+        ${exerciseImage(name)?`<div class="exercise-visual"><img src="${exerciseImage(name)}" alt="Illustration ${name}"></div>`:""}
+      </div>
+    </div>`).join("");
   selected.innerHTML=quickWorkoutExercises.length?quickWorkoutExercises.map((name,i)=>`<div class="history-item"><div class="row between"><strong>${i+1}. ${name}</strong><button class="btn secondary small" onclick="removeQuickExercise(${i})">✕</button></div></div>`).join(""):'<div class="sub">Aucun exercice sélectionné.</div>';
   const n=quickWorkoutExercises.length;
   const label=document.getElementById("quickWorkoutCountLabel"); if(label)label.textContent=`${n} exercice${n>1?"s":""}`;
@@ -2383,7 +2415,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.6";
+const FITPILOT_VERSION="4.6.1";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3512,6 +3544,15 @@ function currentImmersiveNodes(){
   };
 }
 
+
+function toggleImmersiveGuide(){
+  const panel=document.getElementById("immersiveGuidePanel");
+  const btn=document.getElementById("immersiveGuideBtn");
+  if(!panel)return;
+  panel.classList.toggle("hidden");
+  if(btn)btn.textContent=panel.classList.contains("hidden")?"👁️ Voir les consignes":"🙈 Masquer les consignes";
+}
+
 function renderImmersiveStep(){
   const ex=currentWorkoutExercises[immersiveExerciseIndex];
   if(!ex){
@@ -3530,6 +3571,15 @@ function renderImmersiveStep(){
 
 
   document.getElementById("immersiveExerciseTitle").textContent=ex.name;
+
+  const guide=exerciseGuide(ex.name);
+  const guidePanel=document.getElementById("immersiveGuidePanel");
+  const guideBtn=document.getElementById("immersiveGuideBtn");
+  if(guidePanel)guidePanel.classList.add("hidden");
+  if(guideBtn)guideBtn.textContent="👁️ Voir les consignes";
+  const muscles=document.getElementById("immersiveGuideMuscles"); if(muscles)muscles.textContent=guide.muscles||"";
+  const tip=document.getElementById("immersiveGuideTip"); if(tip)tip.textContent=guide.tip||"";
+  const errs=document.getElementById("immersiveGuideErrors"); if(errs)errs.innerHTML=(guide.errors||[]).map(x=>`<li>${x}</li>`).join("");
 
   const immersiveVisual=document.getElementById("immersiveExerciseVisual");
   const immersiveImg=document.getElementById("immersiveExerciseImage");
@@ -3721,7 +3771,11 @@ function exerciseGuide(name){
   return FITPILOT_EXERCISE_GUIDES[name]||{muscles:"Exercice de renforcement",tip:"Effectue le mouvement lentement et avec contrôle. Arrête si tu ressens une douleur inhabituelle.",errors:["Privilégier la charge au détriment de la technique"]};
 }
 function toggleExerciseHelp(idx){
-  document.getElementById(`exercise-help-${idx}`)?.classList.toggle("hidden");
+  const panel=document.getElementById(`exercise-help-${idx}`);
+  const btn=document.getElementById(`exercise-help-btn-${idx}`);
+  if(!panel)return;
+  panel.classList.toggle("hidden");
+  if(btn)btn.textContent=panel.classList.contains("hidden")?"👁️ Voir les consignes":"🙈 Masquer les consignes";
 }
 
 function renderCurrentWorkoutExercises(){
@@ -3736,12 +3790,11 @@ function renderCurrentWorkoutExercises(){
           <div class="exercise-title">${ex.name}</div>
           <div class="exercise-meta">${exerciseGuide(ex.name).muscles}</div>
           <div class="exercise-meta">Objectif ${ex.sets} × ${ex.target} • ${lastText}</div>
-          ${exerciseImage(ex.name)?`<div class="exercise-visual"><img src="${exerciseImage(ex.name)}" alt="Illustration ${ex.name}"></div>`:""}
         </div>
         <button class="btn secondary small" onclick="removeCurrentExercise(${idx})">Retirer</button>
       </div>
       <div class="row" style="margin-top:8px">
-        <button class="btn secondary small" onclick="toggleExerciseHelp(${idx})">👁️ Comment faire ?</button>
+        <button id="exercise-help-btn-${idx}" class="btn secondary small" onclick="toggleExerciseHelp(${idx})">👁️ Voir les consignes</button>
       </div>
       <div id="exercise-help-${idx}" class="exercise-help hidden">
         <strong>Exécution</strong>${exerciseGuide(ex.name).tip}
