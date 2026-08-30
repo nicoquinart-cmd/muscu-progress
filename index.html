@@ -613,7 +613,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4.1</span>
+      <span class="pill">v4.4.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -684,7 +684,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4.1</span>
+      <span class="pill">v4.4.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -698,7 +698,7 @@
         <div>
           <div class="sub">Séance interrompue détectée</div>
           <h2>🔄 Reprendre ma séance</h2>
-          <div id="resumeWorkoutText" class="sub">Ta dernière séance a été sauvegardée automatiquement.</div>
+          <div id="resumeWorkoutText" class="sub">Ta séance en cours a été sauvegardée automatiquement.</div>
         </div>
       </div>
       <div class="row" style="margin-top:12px">
@@ -707,7 +707,6 @@
       </div>
     </div>
 
-    
     <div class="card hero">
       <div class="row between">
         <div>
@@ -715,7 +714,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.4.1</span>
+        <span class="pill" style="background:white;color:#111827">v4.4.2</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -727,33 +726,16 @@
         <button class="btn secondary" onclick="openActivityHub()">＋ Autres activités</button>
       </div>
     </div>
-        <span class="pill" style="background:white;color:#111827">v4.4.1</span>
-      </div>
-
-      <div class="quick-actions" style="margin-top:10px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-        <button class="btn secondary" onclick="openStartSessionPanel()">🏋️ Programme</button>
-        <button class="btn secondary" onclick="startFreeWorkout()">✨ Séance libre</button>
-        <button class="btn secondary" onclick="openSessionWizard()">✨ Créer ma séance</button>
-        <button class="btn secondary" onclick="showPage('fitness')">🧘 Fitness</button>
-        <button class="btn secondary" onclick="openCardioShortcut('treadmill')">🏃 Tapis</button>
-        <button class="btn secondary" onclick="openCardioShortcut('rower')">🚣 Rameur</button>
-        <button class="btn secondary" onclick="openPushupChallenge()">💪 Challenge Pompes</button>
-        <button class="btn secondary" onclick="openSportActivity('Tennis')">🎾 Tennis</button>
-        <button class="btn secondary" onclick="openSportActivity('Football')">⚽ Football</button>
-        <button class="btn secondary" onclick="openSportActivity('Running')">🏃 Running</button>
-        <button class="btn secondary" onclick="openSportActivity('custom')">＋ Autre activité</button>
-      </div>
-    </div>
 
     <div id="quickCardioPanel" class="card hidden">
       <div class="row between">
-        <h2 id="quickCardioTitle">🏃 Cardio</h2>
+        <h2 id="quickCardioTitle">🚣 Rameur</h2>
         <button class="btn secondary small" onclick="closeCardioShortcut()">✕</button>
       </div>
       <div class="row">
         <div class="field"><label>Durée (min)</label><input id="quickCardioDuration" oninput="updateQuickCardioCalories()" type="number" min="1" step="5" placeholder="30"></div>
-        <div id="quickCardioInclineField" class="field"><label>Inclinaison (%)</label><input id="quickCardioIncline" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.5" placeholder="5"></div>
-        <div id="quickCardioSpeedField" class="field"><label>Vitesse (km/h)</label><input id="quickCardioSpeed" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.1" placeholder="5.8"></div>
+        <div id="quickCardioInclineField" class="field hidden"><label>Inclinaison (%)</label><input id="quickCardioIncline" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.5" placeholder="5"></div>
+        <div id="quickCardioSpeedField" class="field hidden"><label>Vitesse (km/h)</label><input id="quickCardioSpeed" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.1" placeholder="5.8"></div>
       </div>
       <div id="quickCardioCalories" class="hint" style="margin-top:12px">🔥 Estimation : renseigne la durée.</div>
       <button class="btn full" style="margin-top:12px" onclick="saveCardioShortcut()">💾 Enregistrer</button>
@@ -761,58 +743,33 @@
 
     <div id="startSessionPanel" class="card hidden">
       <div class="row between">
-        <h2>🧭 Démarrer une séance</h2>
+        <h2>📋 Programme</h2>
         <button class="btn secondary small" onclick="closeStartSessionPanel()">✕</button>
       </div>
-      <div class="sub" style="margin-bottom:12px">Que veux-tu faire aujourd’hui ?</div>
+      <div class="sub" style="margin-bottom:12px">Choisis une séance préconfigurée.</div>
 
       <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('A')">
         <div class="row between">
-          <div>
-            <strong>🏋️ Haut du corps A</strong>
-            <div class="sub">Pecs • épaules • triceps</div>
-          </div>
+          <div><strong>🏋️ Haut du corps A</strong><div class="sub">Pecs • épaules • triceps</div></div>
           <strong>›</strong>
         </div>
       </div>
 
       <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('B')">
         <div class="row between">
-          <div>
-            <strong>🏋️ Full Body B</strong>
-            <div class="sub">Corps entier • dépense énergétique</div>
-          </div>
+          <div><strong>🏋️ Full Body B</strong><div class="sub">Corps entier • dépense énergétique</div></div>
           <strong>›</strong>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('C')">
+      <div class="card" style="cursor:pointer" onclick="v131StartWorkout('C')">
         <div class="row between">
-          <div>
-            <strong>🏋️ Dos / épaules / bras C</strong>
-            <div class="sub">Dos • épaules • biceps • triceps</div>
-          </div>
-          <strong>›</strong>
-        </div>
-      </div>
-
-      <div class="sub" style="text-align:center;margin:10px 0">──────── ou ────────</div>
-
-      <div class="card" style="cursor:pointer" onclick="startFreeWorkout()">
-        <div class="row between">
-          <div>
-            <strong>✨ Séance libre</strong>
-            <div class="sub">Je choisis mes exercices</div>
-          </div>
+          <div><strong>🏋️ Dos / épaules / bras C</strong><div class="sub">Dos • épaules • biceps • triceps</div></div>
           <strong>›</strong>
         </div>
       </div>
     </div>
-<div id="v133TodayActivityDetail" class="sub" style="margin-top:4px"></div>
-      <button id="v133PlannedBtn" class="btn full" style="margin-top:12px" onclick="v133StartPlanned()">▶ Démarrer la séance planifiée</button>
-    </div>
-
-    </section>
+  </section>
 
 
   <section id="mysessions" class="page">
@@ -2477,7 +2434,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.4.1";
+const FITPILOT_VERSION="4.4.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
