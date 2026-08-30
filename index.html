@@ -272,6 +272,13 @@
   #planningDays{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:8px;overflow-x:auto;padding-bottom:6px}
   #planningDays>.card{margin:0;min-width:120px}
   @media(max-width:620px){#planningDays{grid-template-columns:1fr;overflow-x:visible}#planningDays>.card{min-width:0}}
+
+  .exercise-visual{margin:10px 0;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#f8fafc}
+  .exercise-visual img{display:block;width:100%;max-height:190px;object-fit:cover;object-position:center}
+  .exercise-help{margin-top:8px;padding:10px;border-radius:12px;background:#f8fafc;font-size:13px}
+  .exercise-help strong{display:block;margin-bottom:4px}
+  .exercise-help ul{margin:5px 0 0 18px;padding:0}
+  .exercise-help li{margin:3px 0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -580,7 +587,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.1</span>
+      <span class="pill">v4.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -651,7 +658,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.1</span>
+      <span class="pill">v4.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -681,7 +688,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.1</span>
+        <span class="pill" style="background:white;color:#111827">v4.2</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -948,7 +955,11 @@
 
 
   
-  <section id="startworkout" class="page">
+  <section id="startworkout" class="page"><div class="card">
+      <div class="row between"><div><h2>📘 Guide des exercices</h2><div class="sub">Positions de départ, mouvements et muscles sollicités.</div></div></div>
+      <div class="exercise-visual" style="margin-top:12px"><img src="fitpilot-exercises-guide.png" alt="Bibliothèque illustrée FitPilot" style="max-height:none;object-fit:contain"></div>
+    </div>
+    
     <div class="card hero">
       <div class="sub">Séance rapide</div>
       <h2 style="color:white;margin-top:4px">▶️ Démarrer une séance</h2>
@@ -1865,7 +1876,9 @@ function generateSmartWorkout(){
   document.getElementById("smartWorkoutExercises").innerHTML=exercises.map((x,i)=>`
     <div class="proposal-exercise">
       <strong>${i+1}. ${x.name}</strong>
+      <div class="sub">${exerciseGuide(x.name).muscles}</div>
       <div class="sub">${x.sets} séries × ${x.target} • repos ${x.rest}s</div>
+      <div class="sub" style="margin-top:5px">💡 ${exerciseGuide(x.name).tip}</div>
     </div>`).join("");
   document.getElementById("smartWorkoutResult").classList.remove("hidden");
   document.getElementById("smartWorkoutResult").scrollIntoView({behavior:"smooth",block:"start"});
@@ -2398,7 +2411,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.1";
+const FITPILOT_VERSION="4.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3594,6 +3607,38 @@ function renderWorkout(code){
  document.getElementById("workoutDesc").textContent=p.desc;
  renderCurrentWorkoutExercises();
 }
+
+const FITPILOT_EXERCISE_GUIDES={
+ "Chest Press":{muscles:"Pectoraux • Triceps • Épaules",tip:"Dos plaqué contre le dossier, poignets alignés. Pousse sans verrouiller brutalement les coudes.",errors:["Décoller les épaules du dossier","Descendre les coudes trop loin derrière le buste"]},
+ "Lat Pulldown":{muscles:"Dos • Biceps",tip:"Poitrine haute. Tire la barre vers le haut de la poitrine en ramenant les coudes vers le bas.",errors:["Tirer derrière la nuque","Se balancer pour aider le mouvement"]},
+ "Seated Row":{muscles:"Dos • Biceps",tip:"Garde le buste stable et tire les poignées vers le nombril en rapprochant les omoplates.",errors:["Arrondir le dos","Tirer uniquement avec les bras"]},
+ "Shoulder Press":{muscles:"Épaules • Triceps",tip:"Garde les abdos engagés et pousse au-dessus de la tête sans cambrer excessivement.",errors:["Cambrer le bas du dos","Descendre trop bas si l’épaule est inconfortable"]},
+ "Lateral Raise":{muscles:"Épaules",tip:"Coudes légèrement fléchis. Monte les bras jusqu’à hauteur d’épaules avec contrôle.",errors:["Hausser les épaules","Donner de l’élan avec le buste"]},
+ "Biceps Curl":{muscles:"Biceps",tip:"Coudes proches du corps. Fléchis les avant-bras sans déplacer les épaules.",errors:["Balancer le dos","Avancer les coudes"]},
+ "Triceps Pushdown":{muscles:"Triceps",tip:"Coudes collés au corps. Étends les avant-bras jusqu’en bas puis remonte avec contrôle.",errors:["Écarter les coudes","Pencher tout le corps sur la charge"]},
+ "Leg Press":{muscles:"Quadriceps • Fessiers • Ischios",tip:"Pieds stables, genoux dans l’axe des pieds. Pousse sans verrouiller brutalement les genoux.",errors:["Décoller le bassin du dossier","Rentrer les genoux vers l’intérieur"]},
+ "Leg Curl":{muscles:"Ischio-jambiers",tip:"Garde le bassin stable et fléchis les genoux lentement.",errors:["Soulever le bassin","Relâcher brutalement la charge"]},
+ "Leg Extension":{muscles:"Quadriceps",tip:"Aligne l’axe de la machine avec le genou et tends les jambes sans à-coup.",errors:["Donner de l’élan","Verrouiller brutalement les genoux"]},
+ "Hip Thrust":{muscles:"Fessiers • Ischios",tip:"Pousse dans les talons et termine avec le bassin aligné, abdos engagés.",errors:["Hypercambrer en haut","Pousser surtout sur les pointes de pieds"]},
+ "Goblet Squat":{muscles:"Quadriceps • Fessiers",tip:"Charge près de la poitrine, genoux dans l’axe des pieds, poitrine ouverte.",errors:["Talons qui décollent","Genoux qui rentrent vers l’intérieur"]},
+ "Squat au poids du corps":{muscles:"Quadriceps • Fessiers",tip:"Recule légèrement les hanches et garde les pieds entièrement au sol.",errors:["Arrondir fortement le dos","Genoux qui s’effondrent vers l’intérieur"]},
+ "Fentes":{muscles:"Quadriceps • Fessiers • Ischios",tip:"Fais un pas suffisamment long et descends verticalement en gardant le buste droit.",errors:["Pas trop court","Perdre l’alignement du genou avant"]},
+ "Pompes":{muscles:"Pectoraux • Triceps • Épaules",tip:"Corps gainé en ligne droite. Descends la poitrine entre les mains puis repousse le sol.",errors:["Creuser le bas du dos","Écarter excessivement les coudes"]},
+ "Rowing élastique":{muscles:"Dos • Biceps",tip:"Garde le buste stable et tire les coudes vers l’arrière en serrant les omoplates.",errors:["Arrondir le dos","Hausser les épaules"]},
+ "Développé épaules haltères":{muscles:"Épaules • Triceps",tip:"Pousse les haltères verticalement avec le tronc gainé.",errors:["Cambrer excessivement","Cogner les haltères en haut"]},
+ "Romanian Deadlift haltères":{muscles:"Ischios • Fessiers • Bas du dos",tip:"Genoux légèrement fléchis. Recule les hanches en gardant le dos neutre et les charges proches des jambes.",errors:["Arrondir le dos","Transformer le mouvement en squat"]},
+ "Planche":{muscles:"Gainage • Abdominaux profonds",tip:"Aligne épaules, bassin et chevilles. Contracte abdos et fessiers.",errors:["Laisser tomber le bassin","Monter excessivement les fesses"]},
+ "Dead Bug":{muscles:"Abdominaux profonds",tip:"Garde le bas du dos contrôlé contre le sol pendant l’extension bras-jambe opposés.",errors:["Creuser le bas du dos","Aller trop vite"]},
+ "Abdominal Crunch":{muscles:"Abdominaux",tip:"Enroule légèrement le haut du buste en rapprochant les côtes du bassin.",errors:["Tirer sur la nuque","Utiliser l’élan"]},
+ "Cable Face Pull":{muscles:"Arrière des épaules • Haut du dos",tip:"Tire la corde vers le visage, coudes hauts, en rapprochant les omoplates.",errors:["Hausser les épaules","Cambrer pour tirer plus lourd"]}
+};
+function exerciseGuide(name){
+  return FITPILOT_EXERCISE_GUIDES[name]||{muscles:"Exercice de renforcement",tip:"Effectue le mouvement lentement et avec contrôle. Arrête si tu ressens une douleur inhabituelle.",errors:["Privilégier la charge au détriment de la technique"]};
+}
+function toggleExerciseHelp(idx){
+  document.getElementById(`exercise-help-${idx}`)?.classList.toggle("hidden");
+}
+
 function renderCurrentWorkoutExercises(){
   const list=document.getElementById("exerciseList");
   list.innerHTML="";
@@ -3604,9 +3649,20 @@ function renderCurrentWorkoutExercises(){
     wrap.innerHTML=`<div class="row between">
         <div>
           <div class="exercise-title">${ex.name}</div>
+          <div class="exercise-meta">${exerciseGuide(ex.name).muscles}</div>
           <div class="exercise-meta">Objectif ${ex.sets} × ${ex.target} • ${lastText}</div>
         </div>
         <button class="btn secondary small" onclick="removeCurrentExercise(${idx})">Retirer</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn secondary small" onclick="toggleExerciseHelp(${idx})">👁️ Comment faire ?</button>
+      </div>
+      <div id="exercise-help-${idx}" class="exercise-help hidden">
+        <strong>Exécution</strong>${exerciseGuide(ex.name).tip}
+        <strong style="margin-top:8px">À éviter</strong>
+        <ul>${exerciseGuide(ex.name).errors.map(x=>`<li>${x}</li>`).join("")}</ul>
+        <div class="exercise-visual"><img src="fitpilot-exercises-guide.png" alt="Guide visuel FitPilot des exercices"></div>
+        <div class="sub">Repère l’exercice correspondant dans la planche FitPilot ci-dessus.</div>
       </div>
       <div class="sets" id="ex-${idx}">
         ${Array.from({length:ex.sets},(_,s)=>`

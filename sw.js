@@ -1,1 +1,1 @@
-const CACHE="fitpilot-v4-1";
+const CACHE="fitpilot-v4-2";
