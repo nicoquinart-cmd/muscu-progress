@@ -279,6 +279,12 @@
   .exercise-help strong{display:block;margin-bottom:4px}
   .exercise-help ul{margin:5px 0 0 18px;padding:0}
   .exercise-help li{margin:3px 0}
+
+  nav.tabs .tab:first-child{
+    position:sticky;left:0;z-index:6;background:#fff;
+    box-shadow:8px 0 12px rgba(8,30,59,.07);
+  }
+  nav.tabs .tab:first-child.active{background:var(--brand-navy);color:#fff}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -587,7 +593,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.2</span>
+      <span class="pill">v4.3</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -658,7 +664,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.2</span>
+      <span class="pill">v4.3</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -688,7 +694,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.2</span>
+        <span class="pill" style="background:white;color:#111827">v4.3</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -2246,6 +2252,25 @@ async function signOut(){
   document.getElementById("authOverlay").classList.remove("hidden");
   document.getElementById("syncBar").classList.add("hidden");
 }
+
+function restoreFitPilotView(){
+  if(fitpilotViewRestored)return;
+  fitpilotViewRestored=true;
+  let page="home";
+  try{page=localStorage.getItem(FITPILOT_LAST_PAGE_KEY)||"home";}catch(e){}
+  const validPages=["home","mysessions","startworkout","planning","progress","history","more","workout","pushups","fitness","connections","profile","admin"];
+  if(!validPages.includes(page))page="home";
+
+  const draft=loadWorkoutDraft();
+  const savedAt=draft?.saved_at ? new Date(draft.saved_at).getTime() : 0;
+  const recentDraft=Boolean(savedAt && (Date.now()-savedAt)<12*60*60*1000);
+  if(page==="workout" && draft && recentDraft){
+    resumeDraftWorkout();
+    return;
+  }
+  showPage(page);
+}
+
 async function handleSession(session){
   if(!session?.user)return;
   currentUser=session.user;
@@ -2256,6 +2281,7 @@ async function handleSession(session){
   setSyncStatus("Synchronisation…");
   await syncFromCloud();
   await loadCustomSessions();
+  restoreFitPilotView();
 }
 async function syncFromCloud(){
   if(!currentUser||syncing)return; syncing=true; setSyncStatus("Synchronisation…");
@@ -2411,7 +2437,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.2";
+const FITPILOT_VERSION="4.3";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3061,11 +3087,18 @@ function updateQuickCardioCalories(){
 
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
+const FITPILOT_LAST_PAGE_KEY="fitpilot_last_page_v1";
+let fitpilotViewRestored=false;
 function showPage(id,btn){
+  try{localStorage.setItem(FITPILOT_LAST_PAGE_KEY,id);}catch(e){}
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  if(btn) if(btn)btn.classList.add("active");
+  if(btn)btn.classList.add("active");
+  else{
+    const matching=[...document.querySelectorAll("nav.tabs .tab")].find(t=>(t.getAttribute("onclick")||"").includes(`'${id}'`));
+    if(matching)matching.classList.add("active");
+  }
   if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
 }
 function openWorkout(){
@@ -3142,6 +3175,7 @@ function saveWorkoutDraft(immediate=false){
       const draft=collectCurrentWorkoutDraft();
       if(!draft)return;
       localStorage.setItem(FITPILOT_DRAFT_KEY,JSON.stringify(draft));
+      localStorage.setItem(FITPILOT_LAST_PAGE_KEY,"workout");
       setDraftSaveStatus("☁️ Séance sauvegardée");
       renderDraftResumeCard();
     }catch(e){
@@ -5034,14 +5068,36 @@ function renderPushups(){
 function drawPushupChart(){
   const c=document.getElementById("pushupChart");if(!c)return;
   const ctx=c.getContext("2d"),W=c.width,H=c.height,data=getDailyPushups().slice(-31);
+  const left=38,right=12,top=16,bottom=40;
+  const plotW=W-left-right,plotH=H-top-bottom;
   ctx.clearRect(0,0,W,H);ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
-  for(let i=1;i<5;i++){const y=i*H/5;ctx.beginPath();ctx.moveTo(36,y);ctx.lineTo(W-12,y);ctx.stroke();}
-  if(!data.length){ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";ctx.fillText("Ajoute tes premières pompes pour voir la courbe.",40,H/2);return;}
+
+  for(let i=0;i<5;i++){
+    const y=top+(plotH*i/4);
+    ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(W-right,y);ctx.stroke();
+  }
+  if(!data.length){
+    ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";
+    ctx.fillText("Ajoute tes premières pompes pour voir la courbe.",40,H/2);return;
+  }
+
   const max=Math.max(10,...data.map(x=>x.count));
+  const pointX=i=>left+plotW*(data.length===1?.5:i/(data.length-1));
+  const pointY=count=>top+plotH*(1-count/max);
+
   ctx.strokeStyle="#111827";ctx.lineWidth=3;ctx.beginPath();
-  data.forEach((d,i)=>{const x=36+(W-52)*(data.length===1?.5:i/(data.length-1)),y=16+(H-48)*(1-d.count/max);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  data.forEach((d,i)=>{const x=pointX(i),y=pointY(d.count);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.stroke();ctx.fillStyle="#111827";
-  data.forEach((d,i)=>{const x=36+(W-52)*(data.length===1?.5:i/(data.length-1)),y=16+(H-48)*(1-d.count/max);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();});
+  data.forEach((d,i)=>{const x=pointX(i),y=pointY(d.count);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();});
+
+  const labelCount=Math.min(5,data.length);
+  const indexes=[...new Set(Array.from({length:labelCount},(_,k)=>Math.round(k*(data.length-1)/Math.max(1,labelCount-1))))];
+  ctx.font="11px sans-serif";ctx.fillStyle="#64748b";ctx.textAlign="center";ctx.textBaseline="top";
+  indexes.forEach(i=>{
+    const d=new Date(data[i].date+"T12:00:00");
+    ctx.fillText(d.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}),pointX(i),H-bottom+11);
+  });
+  ctx.textAlign="start";ctx.textBaseline="alphabetic";
 }
 
 function drawChart(canvas){
