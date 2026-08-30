@@ -288,6 +288,58 @@
 
   .exercise-visual img{width:100%;height:auto;object-fit:contain;background:#fff}
   #immersiveExerciseVisual img{max-height:250px}
+
+  /* FitPilot 4.5 — unified mobile UI */
+  .fp-page-head{
+    border-radius:22px;padding:18px;margin-bottom:14px;
+    background:linear-gradient(135deg,var(--brand-navy),#0b4168 60%,#0e8a8d);
+    color:#fff;box-shadow:0 12px 30px rgba(8,30,59,.12)
+  }
+  .fp-page-head h2{color:#fff;margin:4px 0 2px;font-size:25px}
+  .fp-page-head .sub{color:rgba(255,255,255,.78)}
+  .fp-section-title{margin:0 0 4px;font-size:19px;color:var(--brand-navy)}
+  .fp-card{border:1px solid #dce7eb;border-radius:18px;background:#fff;padding:14px;box-shadow:0 4px 16px rgba(8,30,59,.035)}
+  .fp-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .fp-actions .btn{flex:1;min-width:105px}
+  .fp-chip-row{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+  .fp-chip-row::-webkit-scrollbar{display:none}
+  .fp-chip{
+    white-space:nowrap;border:1px solid #d6e4e8;background:#fff;color:var(--brand-navy);
+    padding:9px 12px;border-radius:999px;font-weight:750;cursor:pointer
+  }
+  .fp-chip.active{background:var(--brand-navy);color:#fff;border-color:var(--brand-navy)}
+  .fp-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .fp-kpi{padding:13px;border-radius:17px;background:#fff;border:1px solid #dce7eb;text-align:center}
+  .fp-kpi strong{font-size:22px;color:var(--brand-navy);display:block}
+  .fp-kpi span{font-size:11px;color:var(--muted)}
+  .fp-session-card{border:1px solid #dce7eb;border-radius:18px;background:#fff;padding:14px;margin-top:10px}
+  .fp-session-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+  .fp-tag{font-size:11px;border-radius:999px;padding:5px 8px;background:#eef7f8;color:#24506a}
+  .fp-thumb{width:70px;height:55px;object-fit:contain;border-radius:10px;background:#f8fafc;border:1px solid #edf2f4}
+  .fp-exercise-choice{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border:1px solid #dce7eb;border-radius:15px;background:#fff;margin-top:8px;text-align:left}
+  .fp-exercise-choice.selected{border-color:var(--brand-cyan);background:#ecfbfc}
+  .fp-sticky-action{
+    position:sticky;bottom:74px;z-index:30;margin-top:12px;padding:10px;
+    border:1px solid #dce7eb;border-radius:17px;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(8,30,59,.12)
+  }
+  .fp-day-card{border:1px solid #dce7eb;border-radius:17px;background:#fff;padding:13px}
+  .fp-day-card.today{border:2px solid var(--brand-cyan);background:#f2fcfd}
+  .fp-day-name{text-transform:capitalize;font-size:15px;font-weight:850;color:var(--brand-navy)}
+  .fp-timeline{position:relative}
+  .fp-timeline .history-item{border-left:3px solid #dce7eb;margin-left:5px;padding-left:14px}
+  .fp-admin-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .fp-admin-tab{border:1px solid #d6e4e8;border-radius:13px;padding:10px;background:#fff;font-weight:800}
+  .fp-admin-tab.active{background:var(--brand-navy);color:#fff}
+  .fp-settings-card{cursor:pointer}
+  .fp-settings-card:hover{border-color:#b8d8df}
+  #planningEditorCard.hidden{display:none}
+  @media(max-width:650px){
+    .fp-kpis{grid-template-columns:repeat(2,1fr)}
+    .fp-actions .btn{min-width:0}
+    #planningDays{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;overflow:visible!important}
+    .fp-sticky-action{bottom:68px}
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -613,7 +665,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4.2</span>
+      <span class="pill">v4.5</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -684,7 +736,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.4.2</span>
+      <span class="pill">v4.5</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -714,7 +766,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.4.2</span>
+        <span class="pill" style="background:white;color:#111827">v4.5</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -773,28 +825,24 @@
 
 
   <section id="mysessions" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Tes programmes personnels</div>
-      <h2 style="color:white;margin-top:4px">✨ Mes séances</h2>
-      <div class="sub">Retrouve tes séances préparamétrées, crée-en de nouvelles et modifie-les.</div>
+      <h2>✨ Mes séances</h2>
+      <div class="sub">Retrouve, démarre ou adapte tes séances enregistrées.</div>
     </div>
 
-    <div class="card">
+    <div class="fp-card">
       <div class="row between">
-        <div>
-          <h2>Mes programmes</h2>
-          <div class="sub">Chaque séance est liée à ton compte.</div>
-        </div>
-        <button class="btn" onclick="openSessionWizard()">＋ Créer une séance</button>
+        <div><h3 class="fp-section-title">Mes programmes</h3><div class="sub">Des séances simples, prêtes à lancer.</div></div>
       </div>
-      
-      <div style="margin-top:14px">
-        <button class="btn full" onclick="openSmartWorkoutGenerator()">✨ FitPilot me propose une séance</button>
-        <div class="sub" style="margin-top:6px">Génération gratuite basée sur ton objectif, ton niveau, ton temps et ton matériel.</div>
+      <div class="fp-actions" style="margin-top:12px">
+        <button class="btn" onclick="openSessionWizard()">＋ Créer une séance</button>
+        <button class="btn secondary" onclick="openSmartWorkoutGenerator()">✨ Proposition FitPilot</button>
       </div>
       <div id="mySessionsList"></div>
-
     </div>
+
   </section>
 
 <section id="workout" class="page">
@@ -878,353 +926,293 @@
 
 
   <section id="fitness" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Bouge comme tu aimes</div>
-      <h2 style="color:white;margin-top:4px">🧘 Fitness</h2>
-      <div class="sub">Tes cours favoris, tes minutes et ta régularité en un coup d’œil.</div>
+      <h2>🧘 Fitness</h2>
+      <div class="sub">Tes favoris d’abord, tes statistiques ensuite.</div>
     </div>
 
-    <div class="card">
-      <div class="row between">
-        <h2>⭐ Mes cours favoris</h2>
-        <button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button>
-      </div>
+    <div class="fp-card">
+      <div class="row between"><div><h3 class="fp-section-title">⭐ Mes favoris</h3><div class="sub">Un appui pour préparer ton cours.</div></div><button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button></div>
       <div id="fitnessFavorites" class="fitness-quick-grid" style="margin-top:10px"></div>
     </div>
 
-    <div class="card">
-      <div class="row between">
-        <h2>🎯 Objectif de la semaine</h2>
-        <span id="fitnessGoalLabel" class="pill">0 / 3 cours</span>
-      </div>
+    <div class="fp-card" style="margin-top:12px">
+      <div class="row between"><h3 class="fp-section-title">🎯 Cette semaine</h3><span id="fitnessGoalLabel" class="pill">0 / 3 cours</span></div>
       <div class="goal-ring" style="margin-top:12px"><div id="fitnessGoalBar" style="width:0%"></div></div>
       <div id="fitnessGoalMinutes" class="sub" style="margin-top:8px">0 minute cette semaine</div>
     </div>
 
-    <div class="grid">
+    <div class="grid" style="margin-top:12px">
       <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
       <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes ce mois</span></div>
       <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal estimées</span></div>
     </div>
 
-    <div class="card hero">
-      <div class="sub">Cours collectifs</div>
-      <h2 style="color:white;margin-top:4px">Fitness</h2>
-      <div class="row between">
-        <div><strong id="fitnessMonthMinutes" style="font-size:34px">0</strong><div class="sub">minutes ce mois-ci</div></div>
-        <div><strong id="fitnessMonthClasses" style="font-size:34px">0</strong><div class="sub">cours ce mois-ci</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Ajouter un cours</h2>
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">▶️ Démarrer / enregistrer un cours</h3>
       <div class="row">
         <div class="field"><label>Date</label><input id="fitnessDate" type="date"></div>
-        <div class="field">
-          <label>Nom du cours</label>
-          <input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="Ex. BodyPump, Cycling, Yoga..." oninput="updateFitnessCaloriesPreview()">
-          <datalist id="fitnessCourseSuggestions">
-            <option value="BodyPump"><option value="Cycling"><option value="RPM"><option value="Yoga">
-            <option value="Pilates"><option value="BodyAttack"><option value="BodyCombat"><option value="CAF">
-            <option value="Stretching"><option value="Cross Training">
-          </datalist>
+        <div class="field"><label>Nom du cours</label><input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="BodyPump, Cycling..." oninput="updateFitnessCaloriesPreview()">
+          <datalist id="fitnessCourseSuggestions"><option value="BodyPump"><option value="Cycling"><option value="RPM"><option value="Yoga"><option value="Pilates"><option value="BodyAttack"><option value="BodyCombat"><option value="CAF"><option value="Stretching"><option value="Cross Training"></datalist>
         </div>
-        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45" oninput="updateFitnessCaloriesPreview()"></div>
+        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" oninput="updateFitnessCaloriesPreview()"></div>
       </div>
-      <div id="fitnessCaloriesPreview" class="hint" style="margin-top:12px">🔥 Estimation : renseigne le cours et la durée.</div>
-      <button class="btn" style="margin-top:12px" onclick="saveFitnessClass()">Enregistrer le cours</button>
+      <div id="fitnessCaloriesPreview" class="hint" style="margin-top:10px">🔥 Estimation : renseigne le cours et la durée.</div>
+      <button class="btn full" style="margin-top:12px" onclick="saveFitnessClass()">Enregistrer le cours</button>
     </div>
 
-    <div class="card">
-      <h2>📚 Historique des cours</h2>
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">Derniers cours</h3>
       <div id="fitnessHistory"></div>
     </div>
+
   </section>
 
 
   
   <section id="startworkout" class="page">
-    
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Séance rapide</div>
-      <h2 style="color:white;margin-top:4px">▶️ Démarrer une séance</h2>
-      <div class="sub">Choisis librement les exercices que tu souhaites faire aujourd’hui.</div>
+      <h2>▶️ Démarrer</h2>
+      <div class="sub">Choisis tes exercices puis démarre immédiatement.</div>
     </div>
 
-    <div class="card">
-      <h2>1. Choisis tes exercices</h2>
-      <div id="quickWorkoutExerciseChoices"></div>
-      <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice</button>
+    <div class="fp-card">
+      <h3 class="fp-section-title">Choisis tes exercices</h3>
+      <div class="sub">Appuie pour ajouter ou retirer un exercice.</div>
+      <div id="quickWorkoutExerciseChoices" style="margin-top:10px"></div>
+      <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice personnalisé</button>
     </div>
 
-    <div class="card">
-      <h2>2. Ta séance</h2>
-      <div id="quickWorkoutSelected"></div>
-      <button class="btn full" style="margin-top:12px" onclick="startQuickWorkout()">▶️ Commencer</button>
+    <div class="fp-card" style="margin-top:12px">
+      <div class="row between">
+        <div><h3 class="fp-section-title">Ta séance</h3><div class="sub" id="quickWorkoutCountLabel">0 exercice</div></div>
+      </div>
+      <div id="quickWorkoutSelected" style="margin-top:8px"></div>
     </div>
+
+    <div class="fp-sticky-action">
+      <button id="quickWorkoutStartBtn" class="btn full" onclick="startQuickWorkout()">▶️ Démarrer • 0 exercice</button>
+    </div>
+
   </section>
 
 <section id="planning" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Organisation de la semaine</div>
-      <h2 style="color:white;margin-top:4px">📅 Planning</h2>
-      <div class="sub">Visualise et planifie précisément les 7 prochains jours.</div>
+      <h2>📅 Planning</h2>
+      <div class="sub">Une vue claire sur tes 7 prochains jours.</div>
     </div>
 
-    <div class="card">
+    <div class="fp-card">
       <div class="row between">
-        <button class="btn secondary small" onclick="changePlanningRange(-7)">← 7 jours</button>
+        <button class="btn secondary small" onclick="changePlanningRange(-7)">←</button>
         <strong id="planningRangeLabel"></strong>
-        <button class="btn secondary small" onclick="changePlanningRange(7)">7 jours →</button>
+        <button class="btn secondary small" onclick="changePlanningRange(7)">→</button>
       </div>
     </div>
 
-    <div id="planningDays"></div>
+    <div id="planningDays" style="margin-top:10px"></div>
 
-    <div class="card">
-      <h2>Ajouter / modifier une activité</h2>
-      <div class="row">
+    <div id="planningEditorCard" class="fp-card hidden" style="margin-top:12px">
+      <div class="row between">
+        <div><h3 class="fp-section-title">Planifier une activité</h3><div class="sub">Choisis le jour et l’activité.</div></div>
+        <button class="btn secondary small" onclick="closePlanningEditor()">✕</button>
+      </div>
+      <div class="row" style="margin-top:10px">
         <div class="field"><label>Date</label><input id="planDate" type="date"></div>
         <div class="field">
           <label>Type</label>
           <select id="planType" onchange="updatePlanningForm()">
-            <option value="workout">Musculation</option>
-            <option value="treadmill">Tapis</option>
-            <option value="fitness">Fitness</option>
+            <option value="workout">🏋️ Musculation</option>
+            <option value="fitness">🧘 Fitness</option>
+            <option value="treadmill">🏃 Tapis</option>
             <option value="tennis">🎾 Tennis</option>
             <option value="football">⚽ Football</option>
             <option value="running">🏃 Running</option>
             <option value="other">＋ Autre activité</option>
-            <option value="rest">Repos</option>
+            <option value="rest">😴 Repos</option>
           </select>
         </div>
       </div>
-
       <div id="planWorkoutFields" class="row" style="margin-top:10px">
-        <div class="field">
-          <label>🏋️ Séance</label>
-          <select id="planWorkoutSession">
-            <option value="A">Séance A</option>
-            <option value="B">Séance B</option>
-            <option value="C">Séance C</option>
-          </select>
-        </div>
+        <div class="field"><label>Séance</label><select id="planWorkoutSession"><option value="A">Séance A</option><option value="B">Séance B</option><option value="C">Séance C</option></select></div>
       </div>
-
       <div id="planTreadmillFields" class="row hidden" style="margin-top:10px">
-        <div class="field"><label>Durée (min)</label><input id="planTreadmillDuration" type="number" min="1" step="5" placeholder="Ex. 30"></div>
-        <div class="field"><label>Inclinaison (%)</label><input id="planTreadmillIncline" type="number" min="0" step="0.5" placeholder="Ex. 5"></div>
-        <div class="field"><label>Vitesse (km/h)</label><input id="planTreadmillSpeed" type="number" min="0" step="0.1" placeholder="Ex. 5.8"></div>
+        <div class="field"><label>Durée (min)</label><input id="planTreadmillDuration" type="number" min="1" step="5"></div>
+        <div class="field"><label>Inclinaison (%)</label><input id="planTreadmillIncline" type="number" min="0" step="0.5"></div>
+        <div class="field"><label>Vitesse (km/h)</label><input id="planTreadmillSpeed" type="number" min="0" step="0.1"></div>
       </div>
-
       <div id="planFitnessFields" class="row hidden" style="margin-top:10px">
         <div class="field"><label>Nom du cours</label><input id="planFitnessName" placeholder="Ex. BodyPump"></div>
-        <div class="field"><label>Durée (min)</label><input id="planFitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45"></div>
+        <div class="field"><label>Durée (min)</label><input id="planFitnessDuration" type="number" min="1" step="5"></div>
       </div>
       <div id="planSportFields" class="row hidden" style="margin-top:10px">
-        <div id="planSportNameField" class="field hidden"><label>Nom de l’activité</label><input id="planSportName" placeholder="Ex. Padel, Natation, Vélo…"></div>
-        <div class="field"><label>Durée (min)</label><input id="planSportDuration" type="number" min="1" step="5" placeholder="Ex. 60"></div>
+        <div id="planSportNameField" class="field hidden"><label>Nom de l’activité</label><input id="planSportName" placeholder="Ex. Padel, Natation…"></div>
+        <div class="field"><label>Durée (min)</label><input id="planSportDuration" type="number" min="1" step="5"></div>
       </div>
-
-      <button class="btn" style="margin-top:12px" onclick="savePlanningItem()">Enregistrer dans le planning</button>
+      <button class="btn full" style="margin-top:12px" onclick="savePlanningItem();closePlanningEditor()">💾 Enregistrer</button>
     </div>
+
+    <div class="fp-sticky-action">
+      <button class="btn full" onclick="openPlanningEditor()">＋ Planifier une activité</button>
+    </div>
+
   </section>
 
   <section id="progress" class="page">
-    <div class="card">
-      <h2>⚖️ Mesures</h2>
+
+    <div class="fp-page-head">
+      <div class="sub">Ta progression</div>
+      <h2>📈 Progrès</h2>
+      <div class="sub">Corps, entraînement et performances dans un même tableau de bord.</div>
+    </div>
+
+    <div class="fp-kpis">
+      <div class="fp-kpi"><strong id="progressKpiWeight">—</strong><span>poids</span></div>
+      <div class="fp-kpi"><strong id="progressKpiFat">—</strong><span>graisse</span></div>
+      <div class="fp-kpi"><strong id="progressKpiWeek">0</strong><span>activités / 7 j</span></div>
+      <div class="fp-kpi"><strong id="progressKpiPushups">0</strong><span>record pompes</span></div>
+    </div>
+
+    <div class="fp-card">
+      <h3 class="fp-section-title">⚖️ Corps</h3>
       <div class="row">
-        <div class="field">
-          <label>Date</label>
-          <input id="measureDate" type="date">
-        </div>
-        <div class="field">
-          <label>Poids (kg)</label>
-          <input id="weightInput" type="number" step="0.1" inputmode="decimal">
-        </div>
-        <div class="field">
-          <label>Tour de taille (cm)</label>
-          <input id="waistInput" type="number" step="0.1" inputmode="decimal">
-        </div>
+        <div class="field"><label>Date</label><input id="measureDate" type="date"></div>
+        <div class="field"><label>Poids (kg)</label><input id="weightInput" type="number" step="0.1" inputmode="decimal"></div>
+        <div class="field"><label>Tour de taille (cm)</label><input id="waistInput" type="number" step="0.1" inputmode="decimal"></div>
       </div>
-
       <div class="row" style="margin-top:10px">
-        <div class="field">
-          <label>Graisse corporelle (%)</label>
-          <input id="fatPctInput" type="number" min="1" max="80" step="0.1" inputmode="decimal">
-        </div>
-        <div class="field">
-          <label>Muscle (%)</label>
-          <input id="musclePctInput" type="number" min="1" max="80" step="0.1" inputmode="decimal">
-        </div>
+        <div class="field"><label>Graisse (%)</label><input id="fatPctInput" type="number" min="1" max="80" step="0.1"></div>
+        <div class="field"><label>Muscle (%)</label><input id="musclePctInput" type="number" min="1" max="80" step="0.1"></div>
       </div>
-
-      <button class="btn" style="margin-top:12px" onclick="saveMeasurement()">💾 Enregistrer la pesée</button>
+      <button class="btn full" style="margin-top:12px" onclick="saveMeasurement()">💾 Enregistrer la mesure</button>
     </div>
 
-    <div class="card">
-      <div class="row between">
-        <h2>📚 Historique des pesées</h2>
-        <span id="measurementsCount" class="pill">0 mesure</span>
-      </div>
-      <div id="measurementsHistory"></div>
-    </div>
-    <div class="card">
-      <h2>📈 Évolution</h2>
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">📊 Évolution corporelle</h3>
       <canvas id="progressChart" width="700" height="260"></canvas>
     </div>
-    <div class="card">
-      <h2>Conseil de suivi</h2>
-      <p class="sub" style="margin:0">Pèse-toi dans des conditions comparables, idéalement le matin. Pour le tour de taille, mesure au même endroit et sans rentrer le ventre.</p>
+
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">🏃 Entraînement</h3>
+      <div class="grid">
+        <div class="card stat"><strong id="progressWeekMinutes">0</strong><span>minutes / 7 j</span></div>
+        <div class="card stat"><strong id="progressMonthActivities">0</strong><span>activités ce mois</span></div>
+        <div class="card stat"><strong id="progressMonthCalories">0</strong><span>kcal estimées</span></div>
+      </div>
     </div>
+
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">🏆 Performances</h3>
+      <div class="grid">
+        <div class="card stat"><strong id="progressStrengthSessions">0</strong><span>séances musculation</span></div>
+        <div class="card stat"><strong id="progressBestPushups">0</strong><span>meilleur jour pompes</span></div>
+      </div>
+    </div>
+
+    <div class="fp-card" style="margin-top:12px">
+      <div class="row between"><h3 class="fp-section-title">Historique des mesures</h3><span id="measurementsCount" class="pill">0 mesure</span></div>
+      <div id="measurementsHistory"></div>
+    </div>
+
   </section>
 
 
   <section id="pushups" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Défi quotidien</div>
-      <h2 style="color:white;margin-top:4px">Pompes</h2>
+      <h2>💪 Challenge Pompes</h2>
       <div class="row between">
         <div><strong id="pushupsTodayBig" style="font-size:34px">0</strong><div class="sub">aujourd’hui</div></div>
-        <div><strong id="pushupsMonthBig" style="font-size:34px">0</strong><div class="sub">ce mois-ci</div></div>
+        <div><strong id="pushupsMonthBig" style="font-size:34px">0</strong><div class="sub">ce mois</div></div>
+        <div><strong id="pushupsRecordBig" style="font-size:34px">0</strong><div class="sub">record</div></div>
       </div>
     </div>
-    <div class="card">
-      <h2>⚡ Saisie rapide</h2>
-      <div class="row">
-        <button class="btn" onclick="addPushups(10)">+10 pompes</button>
-        <button class="btn secondary" onclick="addPushups(5)">+5</button>
-        <button class="btn secondary" onclick="addPushups(1)">+1</button>
+    <div class="fp-card">
+      <h3 class="fp-section-title">⚡ Ajouter des pompes</h3>
+      <div class="fp-actions">
+        <button class="btn" onclick="addPushups(10)">+10</button><button class="btn secondary" onclick="addPushups(5)">+5</button><button class="btn secondary" onclick="addPushups(1)">+1</button>
       </div>
-      <div class="row" style="margin-top:12px">
-        <div class="field"><label>Nombre précis</label><input id="pushupCustom" type="number" min="1" step="1" placeholder="Ex. 12"></div>
-        <button class="btn secondary" style="margin-top:18px" onclick="addCustomPushups()">Ajouter</button>
-      </div>
-      <div class="hint" style="margin-top:12px">Chaque série est ajoutée au total du jour. Tu peux cliquer sur +10 plusieurs fois dans la journée.</div>
+      <div class="row" style="margin-top:12px"><div class="field"><label>Nombre précis</label><input id="pushupCustom" type="number" min="1"></div><button class="btn secondary" style="margin-top:18px" onclick="addCustomPushups()">Ajouter</button></div>
     </div>
-    <div class="card">
-      <h2>📈 Courbe de progression</h2>
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">📈 Progression</h3>
       <canvas id="pushupChart" width="700" height="260"></canvas>
-      <div class="sub">Total de pompes réalisé chaque jour.</div>
+      <div class="sub">Total quotidien • dates affichées sous la courbe.</div>
     </div>
-    <div class="card">
-      <div class="row between"><h2>Derniers jours</h2><button class="btn secondary small" onclick="undoLastPushup()">Annuler dernier ajout</button></div>
+    <div class="fp-card" style="margin-top:12px">
+      <div class="row between"><h3 class="fp-section-title">Derniers jours</h3><button class="btn secondary small" onclick="undoLastPushup()">Annuler dernier ajout</button></div>
       <div id="pushupHistory"></div>
     </div>
+
   </section>
 
   
   
   <section id="history" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="row between">
-        <div>
-          <div class="sub">Toutes tes activités</div>
-          <h2 style="color:white;margin-top:4px">📚 Historique</h2>
-          <div class="sub">Consulte, ajoute ou corrige une activité passée.</div>
-        </div>
+        <div><div class="sub">Toutes tes activités</div><h2>📚 Historique</h2><div class="sub">Une timeline simple de tout ce que tu as réalisé.</div></div>
         <button class="btn" style="background:white;color:#111827" onclick="openPastActivityEditor()">＋ Ajouter</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="field">
-        <label>Filtrer</label>
-        <select id="historyTypeFilter" onchange="renderHistory()">
-          <option value="all">Toutes les activités</option>
-          <option value="workout">🏋️ Musculation</option>
-          <option value="fitness">🧘 Fitness</option>
-          <option value="treadmill">🏃 Tapis</option>
-          <option value="rower">🚣 Rameur</option>
-          <option value="pushups">💪 Pompes</option>
-        </select>
-      </div>
+    <select id="historyTypeFilter" class="hidden" onchange="renderHistory()">
+      <option value="all">Tout</option><option value="workout">Musculation</option><option value="fitness">Fitness</option>
+      <option value="running">Running</option><option value="tennis">Tennis</option><option value="football">Football</option>
+      <option value="sport">Autres</option><option value="treadmill">Tapis</option><option value="rower">Rameur</option><option value="pushups">Pompes</option>
+    </select>
+    <div class="fp-chip-row" id="historyFilterChips">
+      <button class="fp-chip active" onclick="setHistoryFilter('all',this)">Tout</button>
+      <button class="fp-chip" onclick="setHistoryFilter('workout',this)">🏋️ Musculation</button>
+      <button class="fp-chip" onclick="setHistoryFilter('fitness',this)">🧘 Fitness</button>
+      <button class="fp-chip" onclick="setHistoryFilter('running',this)">🏃 Running</button>
+      <button class="fp-chip" onclick="setHistoryFilter('tennis',this)">🎾 Tennis</button>
+      <button class="fp-chip" onclick="setHistoryFilter('football',this)">⚽ Football</button>
+      <button class="fp-chip" onclick="setHistoryFilter('sport',this)">＋ Autres</button>
+      <button class="fp-chip" onclick="setHistoryFilter('pushups',this)">💪 Pompes</button>
     </div>
 
     <div class="grid">
-      <div class="card stat"><strong id="historyTotalActivities">0</strong><span>activités enregistrées</span></div>
-      <div class="card stat"><strong id="historyMonthActivities">0</strong><span>activités ce mois</span></div>
+      <div class="card stat"><strong id="historyTotalActivities">0</strong><span>activités</span></div>
+      <div class="card stat"><strong id="historyMonthActivities">0</strong><span>ce mois</span></div>
     </div>
 
-    <div id="historyDetailCard" class="card hidden"></div>
+    <div id="historyDetailCard" class="fp-card hidden" style="margin-top:12px"></div>
 
-    <div id="historyEditorCard" class="card hidden">
-      <div class="row between">
-        <h2 id="historyEditorTitle">➕ Ajouter une activité</h2>
-        <button class="btn secondary small" onclick="closeHistoryEditor()">✕</button>
-      </div>
-
-      <input type="hidden" id="historyEditType">
-      <input type="hidden" id="historyEditIndex">
-      <input type="hidden" id="historyEditId">
-
+    <div id="historyEditorCard" class="fp-card hidden" style="margin-top:12px">
+      <div class="row between"><h3 id="historyEditorTitle" class="fp-section-title">➕ Ajouter une activité</h3><button class="btn secondary small" onclick="closeHistoryEditor()">✕</button></div>
+      <input type="hidden" id="historyEditType"><input type="hidden" id="historyEditIndex"><input type="hidden" id="historyEditId">
       <div class="row" style="margin-top:10px">
-        <div class="field">
-          <label>Date</label>
-          <input id="historyEditDate" type="date">
-        </div>
-        <div class="field">
-          <label>Type d'activité</label>
-          <select id="historyEditActivityType" onchange="updateHistoryEditorFields()">
-            <option value="workout">🏋️ Musculation</option>
-            <option value="fitness">🧘 Fitness</option>
-            <option value="treadmill">🏃 Tapis</option>
-            <option value="rower">🚣 Rameur</option>
-            <option value="pushups">💪 Pompes</option>
-          </select>
-        </div>
+        <div class="field"><label>Date</label><input id="historyEditDate" type="date"></div>
+        <div class="field"><label>Type</label><select id="historyEditActivityType" onchange="updateHistoryEditorFields()">
+          <option value="workout">🏋️ Musculation</option><option value="fitness">🧘 Fitness</option>
+          <option value="treadmill">🏃 Tapis</option><option value="rower">🚣 Rameur</option><option value="pushups">💪 Pompes</option>
+        </select></div>
       </div>
-
       <div id="historyWorkoutFields" style="margin-top:10px">
-        <div class="row">
-          <div class="field">
-            <label>Programme</label>
-            <select id="historyWorkoutSession">
-              <option value="A">Séance A</option>
-              <option value="B">Séance B</option>
-              <option value="C">Séance C</option>
-              <option value="Libre">Séance libre</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Durée (min)</label>
-            <input id="historyWorkoutDuration" type="number" min="1">
-          </div>
-        </div>
+        <div class="row"><div class="field"><label>Programme</label><select id="historyWorkoutSession"><option value="A">Séance A</option><option value="B">Séance B</option><option value="C">Séance C</option><option value="Libre">Séance libre</option></select></div>
+        <div class="field"><label>Durée (min)</label><input id="historyWorkoutDuration" type="number" min="1"></div></div>
         <div id="historyWorkoutExercisesEditor" style="margin-top:10px"></div>
       </div>
-
-      <div id="historyFitnessFields" class="hidden" style="margin-top:10px">
-        <div class="row">
-          <div class="field"><label>Nom du cours</label><input id="historyFitnessName" placeholder="BodyPump, Cycling..."></div>
-          <div class="field"><label>Durée (min)</label><input id="historyFitnessDuration" type="number" min="1"></div>
-        </div>
-      </div>
-
-      <div id="historyTreadmillFields" class="hidden" style="margin-top:10px">
-        <div class="row">
-          <div class="field"><label>Durée (min)</label><input id="historyTreadDuration" type="number" min="1"></div>
-          <div class="field"><label>Inclinaison (%)</label><input id="historyTreadIncline" type="number" min="0" step="0.5"></div>
-          <div class="field"><label>Vitesse (km/h)</label><input id="historyTreadSpeed" type="number" min="0" step="0.1"></div>
-        </div>
-      </div>
-
-      <div id="historyRowerFields" class="hidden" style="margin-top:10px">
-        <div class="field"><label>Durée (min)</label><input id="historyRowerDuration" type="number" min="1"></div>
-      </div>
-
-      <div id="historyPushupFields" class="hidden" style="margin-top:10px">
-        <div class="hint" style="margin-bottom:8px">Tu peux saisir ici des pompes réalisées à n’importe quelle date passée.</div>
-        <div class="field"><label>Nombre total de pompes</label><input id="historyPushupCount" type="number" min="1"></div>
-      </div>
-
+      <div id="historyFitnessFields" class="hidden" style="margin-top:10px"><div class="row"><div class="field"><label>Nom du cours</label><input id="historyFitnessName"></div><div class="field"><label>Durée (min)</label><input id="historyFitnessDuration" type="number" min="1"></div></div></div>
+      <div id="historyTreadmillFields" class="hidden" style="margin-top:10px"><div class="row"><div class="field"><label>Durée (min)</label><input id="historyTreadDuration" type="number" min="1"></div><div class="field"><label>Inclinaison (%)</label><input id="historyTreadIncline" type="number" min="0" step="0.5"></div><div class="field"><label>Vitesse (km/h)</label><input id="historyTreadSpeed" type="number" min="0" step="0.1"></div></div></div>
+      <div id="historyRowerFields" class="hidden" style="margin-top:10px"><div class="field"><label>Durée (min)</label><input id="historyRowerDuration" type="number" min="1"></div></div>
+      <div id="historyPushupFields" class="hidden" style="margin-top:10px"><div class="field"><label>Nombre total de pompes</label><input id="historyPushupCount" type="number" min="1"></div></div>
       <button class="btn full" style="margin-top:14px" onclick="saveHistoryActivity()">💾 Enregistrer</button>
     </div>
 
-    <div class="card">
+    <div class="fp-card fp-timeline" style="margin-top:12px">
       <div id="historyList"></div>
-      <div class="hint" style="margin-top:12px">Appuie sur une activité pour afficher son détail.</div>
     </div>
+
   </section>
 
 <section id="calories" class="page">
@@ -1351,128 +1339,62 @@
   </section>
 
 <section id="more" class="page">
-    <div class="card hero">
-      <div class="sub">Navigation</div>
-      <h2 style="color:white;margin-top:4px">☰ Plus</h2>
-      <div class="sub">FitPilot • 4.0</div>
+
+    <div class="fp-page-head">
+      <div class="sub">Réglages et services</div>
+      <h2>☰ Plus</h2>
+      <div class="sub">FitPilot • 4.5</div>
     </div>
-    <div class="card" onclick="showPage('fitness')" style="cursor:pointer"><div class="row between"><div><h2>🧘 Fitness</h2><div class="sub">Cours collectifs et historique</div></div><strong>›</strong></div></div>
-    <div class="card" onclick="showPage('pushups')" style="cursor:pointer"><div class="row between"><div><h2>💪 Pompes</h2><div class="sub">Séries et progression</div></div><strong>›</strong></div></div>
-    <div class="card" onclick="showPage('connections')" style="cursor:pointer">
-      <div class="row between"><div><h2>🔗 Connexions</h2><div class="sub">Withings et futurs services</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('profile')" style="cursor:pointer">
-      <div class="row between"><div><h2>👤 Mon profil</h2><div class="sub">Âge, sexe, poids et taille</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('calories')" style="cursor:pointer">
-      <div class="row between"><div><h2>🔥 Calories</h2><div class="sub">Estimer la dépense d’une activité</div></div><strong>›</strong></div>
-    </div>
-    <div class="card" onclick="showPage('history')" style="cursor:pointer"><div class="row between"><div><h2>📚 Historique</h2><div class="sub">Toutes les séances enregistrées</div></div><strong>›</strong></div></div>
-    <div id="v131AdminLink" class="card hidden" onclick="showPage('admin')" style="cursor:pointer"><div class="row between"><div><h2>⚙️ Administration</h2><div class="sub">Utilisateurs, exercices et programmes</div></div><strong>›</strong></div></div>
-    
-    <div id="installFitPilotCard" class="card">
-      <div class="row between">
-        <div>
-          <h2>📲 Installer FitPilot</h2>
-          <div id="installFitPilotText" class="sub">Ajoute FitPilot à l’écran d’accueil de ton téléphone.</div>
-        </div>
-      </div>
-      <button id="installFitPilotBtn" class="btn full" style="margin-top:12px" onclick="installFitPilot()">Installer l’application</button>
-    </div>
-<div class="card">
-      <button class="btn secondary full" onclick="syncFromCloud()">↻ Synchroniser</button>
-      <button class="btn secondary full" style="margin-top:8px" onclick="signOut()">Déconnexion</button>
-    </div>
+    <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
+    <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('connections')"><div class="row between"><div><h3 class="fp-section-title">🔗 Connexions</h3><div class="sub">Withings et futurs services</div></div><strong>›</strong></div></div>
+    <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('calories')"><div class="row between"><div><h3 class="fp-section-title">🔥 Calculateur calories</h3><div class="sub">Estimer une dépense énergétique</div></div><strong>›</strong></div></div>
+    <div id="v131AdminLink" class="fp-card fp-settings-card hidden" style="margin-top:10px" onclick="showPage('admin')"><div class="row between"><div><h3 class="fp-section-title">⚙️ Administration</h3><div class="sub">Utilisateurs et configuration</div></div><strong>›</strong></div></div>
+    <div id="installFitPilotCard" class="fp-card" style="margin-top:10px"><h3 class="fp-section-title">📲 Installer FitPilot</h3><div id="installFitPilotText" class="sub">Ajoute FitPilot à l’écran d’accueil.</div><button id="installFitPilotBtn" class="btn full" style="margin-top:10px" onclick="installFitPilot()">Installer</button></div>
+    <div class="fp-card" style="margin-top:10px"><button class="btn secondary full" onclick="syncFromCloud()">↻ Synchroniser</button><button class="btn secondary full" style="margin-top:8px" onclick="signOut()">Déconnexion</button></div>
+
   </section>
 
 <section id="admin" class="page">
-    <div class="card hero">
+
+    <div class="fp-page-head">
       <div class="sub">Portail administration</div>
-      <h2 style="color:white;margin-top:4px">FitPilot Admin</h2>
-      <div class="sub">Utilisateurs, connexions, séances, exercices et programmes.</div>
+      <h2>⚙️ FitPilot Admin</h2>
+      <div class="sub">Pilotage des utilisateurs et configuration de l’application.</div>
+    </div>
+    <div class="fp-kpis">
+      <div class="fp-kpi"><strong id="adminUsersCount">0</strong><span>utilisateurs</span></div>
+      <div class="fp-kpi"><strong id="adminExercisesCount">0</strong><span>exercices actifs</span></div>
+      <div class="fp-kpi"><strong id="adminTemplatesCount">0</strong><span>séances modèles</span></div>
+      <div class="fp-kpi"><strong id="adminWorkoutsCount">0</strong><span>séances</span></div>
+    </div>
+    <div class="fp-admin-tabs">
+      <button id="adminUsersTabBtn" class="fp-admin-tab active" onclick="showAdminPanel('users',this)">👥 Utilisateurs</button>
+      <button id="adminConfigTabBtn" class="fp-admin-tab" onclick="showAdminPanel('config',this)">🛠️ Configuration</button>
     </div>
 
-    <div class="grid">
-      <div class="card stat"><strong id="adminUsersCount">0</strong><span>utilisateurs</span></div>
-      <div class="card stat"><strong id="adminExercisesCount">0</strong><span>exercices actifs</span></div>
-      <div class="card stat"><strong id="adminTemplatesCount">0</strong><span>séances modèles</span></div>
-      <div class="card stat"><strong id="adminWorkoutsCount">0</strong><span>séances enregistrées</span></div>
-    </div>
-
-    
-    <div class="card">
-      <div class="row between">
-        <div><h2>Utilisateurs & activité</h2><div class="sub">Présence, dernière connexion et nombre de séances.</div></div>
-        <button class="btn secondary small" onclick="loadAdminDashboard()">Actualiser</button>
+    <div id="adminUsersPanel">
+      <div class="fp-card" style="margin-top:12px">
+        <div class="row between"><div><h3 class="fp-section-title">Utilisateurs & activité</h3><div class="sub">Présence, connexions et séances.</div></div><button class="btn secondary small" onclick="loadAdminDashboard()">Actualiser</button></div>
+        <div id="adminUsersList" class="sub" style="margin-top:10px">Chargement…</div>
       </div>
-      <div id="adminUsersList" class="sub" style="margin-top:10px">Chargement…</div>
-    </div>
-
-    <div id="adminUserDetailCard" class="card hidden">
-      <div class="row between">
-        <div>
-          <div class="sub">Fiche utilisateur</div>
-          <h2 id="adminDetailUserName">Utilisateur</h2>
-          <div id="adminDetailUserEmail" class="sub"></div>
-        </div>
-        <button class="btn secondary small" onclick="closeAdminUserDetail()">Fermer</button>
-      </div>
-      <div class="admin-detail-grid" style="margin-top:12px">
-        <div>
-          <h3>🔐 Historique des connexions</h3>
-          <div id="adminLoginHistory" class="sub">Chargement…</div>
-        </div>
-        <div>
-          <h3>🏋️ Historique des séances</h3>
-          <div id="adminWorkoutHistory" class="sub">Chargement…</div>
-        </div>
+      <div id="adminUserDetailCard" class="fp-card hidden" style="margin-top:12px">
+        <div class="row between"><div><div class="sub">Fiche utilisateur</div><h3 id="adminDetailUserName" class="fp-section-title">Utilisateur</h3><div id="adminDetailUserEmail" class="sub"></div></div><button class="btn secondary small" onclick="closeAdminUserDetail()">Fermer</button></div>
+        <div class="admin-detail-grid" style="margin-top:12px"><div><h3>🔐 Connexions</h3><div id="adminLoginHistory" class="sub">Chargement…</div></div><div><h3>🏋️ Séances</h3><div id="adminWorkoutHistory" class="sub">Chargement…</div></div></div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>Créer un exercice / une machine</h2>
-      <div class="row">
-        <div class="field"><label>Nom</label><input id="adminExerciseName" placeholder="Ex. Shoulder Press"></div>
-        <div class="field"><label>Groupe musculaire</label><input id="adminExerciseMuscle" placeholder="Ex. Épaules"></div>
-        <div class="field">
-          <label>Type</label>
-          <select id="adminExerciseType">
-            <option value="machine">Machine</option>
-            <option value="cable">Poulie</option>
-            <option value="cardio">Cardio</option>
-            <option value="bodyweight">Poids du corps</option>
-            <option value="other">Autre</option>
-          </select>
-        </div>
+    <div id="adminConfigPanel" class="hidden">
+      <div class="fp-card" style="margin-top:12px">
+        <h3 class="fp-section-title">Créer un exercice</h3>
+        <div class="row"><div class="field"><label>Nom</label><input id="adminExerciseName"></div><div class="field"><label>Groupe musculaire</label><input id="adminExerciseMuscle"></div><div class="field"><label>Type</label><select id="adminExerciseType"><option value="machine">Machine</option><option value="cable">Poulie</option><option value="cardio">Cardio</option><option value="bodyweight">Poids du corps</option><option value="other">Autre</option></select></div></div>
+        <div class="row" style="margin-top:10px"><div class="field"><label>Séries</label><input id="adminExerciseSets" type="number" min="1" value="3"></div><div class="field"><label>Répétitions</label><input id="adminExerciseTarget" value="10–12"></div><div class="field"><label>Repos (s)</label><input id="adminExerciseRest" type="number" min="0" value="60"></div></div>
+        <button class="btn full" style="margin-top:12px" onclick="adminCreateExercise()">Créer l’exercice</button><div id="adminExerciseMsg" class="sub" style="margin-top:8px"></div>
       </div>
-      <div class="row" style="margin-top:10px">
-        <div class="field"><label>Séries par défaut</label><input id="adminExerciseSets" type="number" min="1" value="3"></div>
-        <div class="field"><label>Répétitions cible</label><input id="adminExerciseTarget" value="10–12"></div>
-        <div class="field"><label>Repos (s)</label><input id="adminExerciseRest" type="number" min="0" value="60"></div>
-      </div>
-      <button class="btn" style="margin-top:12px" onclick="adminCreateExercise()">Créer l’exercice</button>
-      <div id="adminExerciseMsg" class="sub" style="margin-top:8px"></div>
+      <div class="fp-card" style="margin-top:12px"><h3 class="fp-section-title">Catalogue exercices</h3><div id="adminExercisesList" class="sub">Chargement…</div></div>
+      <div class="fp-card" style="margin-top:12px"><h3 class="fp-section-title">Créer une séance modèle</h3><div class="row"><div class="field"><label>Nom</label><input id="adminTemplateName"></div><div class="field"><label>Description</label><input id="adminTemplateDesc"></div></div><button class="btn full" style="margin-top:12px" onclick="adminCreateTemplate()">Créer la séance</button><div id="adminTemplateMsg" class="sub" style="margin-top:8px"></div></div>
+      <div class="fp-card" style="margin-top:12px"><h3 class="fp-section-title">Séances modèles</h3><div id="adminTemplatesList" class="sub">Chargement…</div></div>
     </div>
 
-    <div class="card">
-      <h2>Catalogue exercices</h2>
-      <div id="adminExercisesList" class="sub">Chargement…</div>
-    </div>
-
-    <div class="card">
-      <h2>Créer une séance modèle</h2>
-      <div class="row">
-        <div class="field"><label>Nom</label><input id="adminTemplateName" placeholder="Ex. Haut du corps A"></div>
-        <div class="field"><label>Description</label><input id="adminTemplateDesc" placeholder="Ex. Pecs • épaules • triceps"></div>
-      </div>
-      <button class="btn" style="margin-top:12px" onclick="adminCreateTemplate()">Créer la séance</button>
-      <div id="adminTemplateMsg" class="sub" style="margin-top:8px"></div>
-    </div>
-
-    <div class="card">
-      <h2>Séances modèles</h2>
-      <div id="adminTemplatesList" class="sub">Chargement…</div>
-    </div>
   </section>
 
 </div>
@@ -1673,30 +1595,37 @@ function customSessionByCode(code){
 let editingCustomSessionId=null;
 
 function renderMySessionsPage(){
-  const box=document.getElementById("mySessionsList");
-  if(!box)return;
-
+  const box=document.getElementById("mySessionsList"); if(!box)return;
   const sessions=db.customSessions||[];
-  if(!sessions.length){
-    box.innerHTML='<div class="sub" style="margin-top:10px">Aucune séance créée pour le moment.</div>';
-    return;
-  }
-
-  box.innerHTML=sessions.map(s=>`
-    <div class="custom-session-card">
+  if(!sessions.length){box.innerHTML='<div class="sub" style="margin-top:12px">Aucune séance créée. Utilise les boutons ci-dessus pour commencer.</div>';return;}
+  const focusLabel={full:"Full body",upper:"Haut du corps",lower:"Bas du corps",arms_shoulders:"Bras & épaules",back_chest:"Dos & pectoraux",core:"Abdos / gainage"};
+  box.innerHTML=sessions.map(s=>{
+    const n=(s.exercises||[]).length;
+    const duration=Math.max(20,Math.round(n*6));
+    return `<div class="fp-session-card">
       <div class="row between">
-        <div>
-          <strong>✨ ${s.name}</strong>
-          <div class="sub">${(s.exercises||[]).length} exercices • ${s.location==="home"?"Maison":"Salle"}</div>
-        </div>
-        <div class="row">
-          <button class="btn secondary small" onclick="startCustomSession('${s.id}')">▶️ Démarrer</button>
-          <button class="btn secondary small" onclick="editCustomSession('${s.id}')">✏️ Modifier</button>
+        <div style="min-width:0"><strong style="font-size:17px">✨ ${s.name}</strong>
+          <div class="fp-session-meta"><span class="fp-tag">${n} exercices</span><span class="fp-tag">~${duration} min</span><span class="fp-tag">${focusLabel[s.body_focus]||"Personnalisée"}</span><span class="fp-tag">${s.location==="home"?"Maison":"Salle"}</span></div>
         </div>
       </div>
-    </div>
-  `).join("");
+      <div class="fp-actions" style="margin-top:12px">
+        <button class="btn" onclick="startCustomSession('${s.id}')">▶ Démarrer</button>
+        <button class="btn secondary" onclick="editCustomSession('${s.id}')">✏ Modifier</button>
+        <button class="btn secondary" onclick="deleteCustomSession('${s.id}')">⋯</button>
+      </div>
+    </div>`;
+  }).join("");
 }
+async function deleteCustomSession(id){
+  const s=(db.customSessions||[]).find(x=>String(x.id)===String(id)); if(!s)return;
+  if(!confirm(`Supprimer la séance "${s.name}" ?`))return;
+  db.customSessions=(db.customSessions||[]).filter(x=>String(x.id)!==String(id)); saveLocalDB(); renderMySessionsPage();
+  if(currentUser){
+    const {error}=await supa.from("user_sessions").delete().eq("id",id).eq("user_id",currentUser.id);
+    if(error)alert("Séance supprimée localement, mais erreur cloud : "+error.message);
+  }
+}
+
 
 function editCustomSession(id){
   const s=(db.customSessions||[]).find(x=>String(x.id)===String(id));
@@ -1933,6 +1862,16 @@ function openSportActivity(type){
   document.getElementById("sportActivityOverlay").classList.remove("hidden");
 }
 function closeSportActivity(){document.getElementById("sportActivityOverlay")?.classList.add("hidden");}
+async function loadSportActivities(){
+  if(!currentUser)return;
+  try{
+    const {data,error}=await supa.from("sport_activities").select("*").eq("user_id",currentUser.id).order("activity_date");
+    if(error)throw error;
+    db.sports=(data||[]).map(x=>({id:x.id,name:x.activity_name,date:x.activity_date,duration:Number(x.duration_minutes)||0,note:x.note||"",created_at:x.created_at}));
+    saveLocalDB();
+  }catch(e){console.warn("sport_activities",e);}
+}
+
 async function saveSportActivity(){
   if(!currentUser)return;
   const custom=pendingSportType==="custom";
@@ -1941,8 +1880,9 @@ async function saveSportActivity(){
   const date=document.getElementById("sportActivityDate").value;
   const note=document.getElementById("sportActivityNote").value.trim();
   if(!name||!date||duration<=0){document.getElementById("sportActivityMsg").textContent="Renseigne l’activité, la date et la durée.";return;}
-  const {error}=await supa.from("sport_activities").insert({user_id:currentUser.id,activity_name:name,activity_date:date,duration_minutes:duration,note});
+  const {data,error}=await supa.from("sport_activities").insert({user_id:currentUser.id,activity_name:name,activity_date:date,duration_minutes:duration,note}).select("*").single();
   if(error){document.getElementById("sportActivityMsg").textContent="Erreur : "+error.message;return;}
+  db.sports=db.sports||[]; db.sports.push({id:data?.id,name,date,duration,note,created_at:data?.created_at||new Date().toISOString()}); saveLocalDB();
   document.getElementById("sportActivityMsg").textContent="✓ Activité enregistrée.";
   setTimeout(closeSportActivity,500);
   if(typeof renderHistory==="function")renderHistory();
@@ -1954,23 +1894,16 @@ function renderQuickWorkoutBuilder(){
   const choices=document.getElementById("quickWorkoutExerciseChoices");
   const selected=document.getElementById("quickWorkoutSelected");
   if(!choices||!selected)return;
-
   const all=allKnownExerciseNames();
-  choices.innerHTML=all.slice(0,12).map(name=>`
-    <button class="wizard-choice" style="margin:4px 0;width:100%" onclick="toggleQuickExercise('${name.replace(/'/g,"\\'")}')">
-      ${quickWorkoutExercises.includes(name)?"✓ ":""}${name}
-    </button>
-  `).join("");
-
-  selected.innerHTML=quickWorkoutExercises.length
-    ? quickWorkoutExercises.map((name,i)=>`
-      <div class="custom-session-card">
-        <div class="row between">
-          <strong>${i+1}. ${name}</strong>
-          <button class="btn secondary small" onclick="removeQuickExercise(${i})">✕</button>
-        </div>
-      </div>`).join("")
-    : '<div class="sub">Aucun exercice sélectionné.</div>';
+  choices.innerHTML=all.slice(0,14).map(name=>`
+    <button class="fp-exercise-choice ${quickWorkoutExercises.includes(name)?"selected":""}" onclick="toggleQuickExercise('${name.replace(/'/g,"\\'")}')">
+      ${exerciseImage(name)?`<img class="fp-thumb" src="${exerciseImage(name)}" alt="">`:""}
+      <span style="flex:1"><strong>${quickWorkoutExercises.includes(name)?"✓ ":""}${name}</strong><span class="sub" style="display:block">${exerciseGuide(name).muscles}</span></span>
+    </button>`).join("");
+  selected.innerHTML=quickWorkoutExercises.length?quickWorkoutExercises.map((name,i)=>`<div class="history-item"><div class="row between"><strong>${i+1}. ${name}</strong><button class="btn secondary small" onclick="removeQuickExercise(${i})">✕</button></div></div>`).join(""):'<div class="sub">Aucun exercice sélectionné.</div>';
+  const n=quickWorkoutExercises.length;
+  const label=document.getElementById("quickWorkoutCountLabel"); if(label)label.textContent=`${n} exercice${n>1?"s":""}`;
+  const btn=document.getElementById("quickWorkoutStartBtn"); if(btn)btn.textContent=`▶️ Démarrer • ${n} exercice${n>1?"s":""}`;
 }
 
 function toggleQuickExercise(name){
@@ -2019,12 +1952,13 @@ if(!db.pushups) db.pushups=[];
 if(!db.fitness) db.fitness=[];
 if(!db.planning) db.planning=[];
 if(!db.customSessions) db.customSessions=[];
+if(!db.sports) db.sports=[];
 let currentSession = "A";
 let timerId = null;
 
 function saveLocalDB(){
   localStorage.setItem("muscuProgress",JSON.stringify(db));
-  const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,renderMeasurementsHistory,drawCharts,drawPushupChart];
+  const jobs=[updateDashboard,renderHomeDashboard,renderHistory,renderPushups,renderFitness,renderPlanning,renderMeasurementsHistory,renderProgressDashboard,drawCharts,drawPushupChart];
   jobs.forEach(fn=>{
     try{
       if(typeof fn==="function") fn();
@@ -2278,6 +2212,7 @@ async function handleSession(session){
   setSyncStatus("Synchronisation…");
   await syncFromCloud();
   await loadCustomSessions();
+  await loadSportActivities();
   restoreFitPilotView();
 }
 async function syncFromCloud(){
@@ -2434,7 +2369,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.4.2";
+const FITPILOT_VERSION="4.5";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -2504,6 +2439,14 @@ async function ensureProfile(){
   }
   await loadCurrentProfile();
   startPresenceTracking();
+}
+
+
+function showAdminPanel(panel,btn){
+  document.getElementById("adminUsersPanel")?.classList.toggle("hidden",panel!=="users");
+  document.getElementById("adminConfigPanel")?.classList.toggle("hidden",panel!=="config");
+  document.querySelectorAll(".fp-admin-tab").forEach(x=>x.classList.remove("active"));
+  if(btn)btn.classList.add("active");
 }
 
 async function adminGuard(){
@@ -3096,7 +3039,7 @@ function showPage(id,btn){
     const matching=[...document.querySelectorAll("nav.tabs .tab")].find(t=>(t.getAttribute("onclick")||"").includes(`'${id}'`));
     if(matching)matching.classList.add("active");
   }
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress")renderMeasurementsHistory(); if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
+  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress"){renderMeasurementsHistory();renderProgressDashboard();} if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -3945,6 +3888,16 @@ function buildActivityHistory(){
     });
   });
 
+
+  (db.sports||[]).forEach((s,index)=>{
+    const lower=(s.name||"").toLowerCase();
+    let type="sport",icon="🏃";
+    if(lower.includes("tennis")){type="tennis";icon="🎾";}
+    else if(lower.includes("football")||lower.includes("foot")){type="football";icon="⚽";}
+    else if(lower.includes("running")||lower.includes("course")){type="running";icon="🏃";}
+    items.push({key:`sport-${index}`,source:"sport",sourceIndex:index,id:s.id||null,type,icon,label:s.name||"Activité",date:s.date||"",sort:s.created_at||`${s.date||""}T14:00:00`,detail:`${Number(s.duration)||0} min${s.note?` • ${s.note}`:""}`});
+  });
+
   const byDay={};
   (db.pushups||[]).forEach((p,index)=>{
     const date=p.date||"";
@@ -3973,6 +3926,13 @@ function buildActivityHistory(){
 
 function historyItemByKey(key){
   return buildActivityHistory().find(x=>x.key===key)||null;
+}
+
+
+function setHistoryFilter(value,btn){
+  const select=document.getElementById("historyTypeFilter"); if(select)select.value=value;
+  document.querySelectorAll("#historyFilterChips .fp-chip").forEach(x=>x.classList.remove("active"));
+  if(btn)btn.classList.add("active"); renderHistory();
 }
 
 function renderHistory(){
@@ -4027,6 +3987,9 @@ function openHistoryDetail(key){
     }else{
       body=`<div class="sub">Durée : ${w.cardio?.duration||w.duration_minutes||0} min</div>`;
     }
+  }else if(item.source==="sport"){
+    const s=db.sports[item.sourceIndex];
+    body=`<div class="sub">Durée : ${s.duration||0} min${s.note?`<br>Note : ${s.note}`:""}</div>`;
   }else if(item.source==="fitness"){
     const f=db.fitness[item.sourceIndex];
     body=`<div class="sub">Cours : ${f.name}<br>Durée : ${f.duration} min${f.intensity?`<br>Intensité : ${f.intensity==="light"?"Douce":f.intensity==="high"?"Intense":"Modérée"}`:""}${f.feeling?`<br>Ressenti : ${f.feeling}/5`:""}${f.calories_estimate?`<br>Calories : ~${Math.round(f.calories_estimate)} kcal`:""}</div>`;
@@ -4041,7 +4004,7 @@ function openHistoryDetail(key){
   </div>
   ${body}
   <div class="row" style="margin-top:14px">
-    <button class="btn" onclick="editHistoryItem('${key}')">✏️ Modifier</button>
+    ${item.source!=="sport"?`<button class="btn" onclick="editHistoryItem('${key}')">✏️ Modifier</button>`:""}
     <button class="btn secondary" onclick="deleteHistoryItem('${key}')">🗑️ Supprimer</button>
   </div>`;
   card.classList.remove("hidden");
@@ -4078,6 +4041,15 @@ async function deleteHistoryItem(key){
         if(error)throw error;
       }else{
         saveDB();
+      }
+    }
+
+    if(item.source==="sport"){
+      const s=db.sports[item.sourceIndex];
+      db.sports.splice(item.sourceIndex,1); saveLocalDB();
+      if(currentUser&&s?.id){
+        const {error}=await supa.from("sport_activities").delete().eq("id",s.id).eq("user_id",currentUser.id);
+        if(error)throw error;
       }
     }
 
@@ -4707,51 +4679,40 @@ function startChosenWorkout(code){
   renderWorkout(code);
 }
 
+
+function openPlanningEditor(date){
+  const card=document.getElementById("planningEditorCard"); if(!card)return;
+  card.classList.remove("hidden");
+  if(date)document.getElementById("planDate").value=date;
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closePlanningEditor(){document.getElementById("planningEditorCard")?.classList.add("hidden");}
+
 function renderPlanning(){
   if(typeof planningStartOffset==="undefined") window.planningStartOffset=0;
-
-  const box=document.getElementById("planningDays");
-  if(!box)return;
-
-  const start=new Date(todayISO()+"T12:00:00");
-  start.setDate(start.getDate()+planningStartOffset);
-
-  const end=new Date(start);
-  end.setDate(end.getDate()+13);
-
+  const box=document.getElementById("planningDays"); if(!box)return;
+  const start=new Date(todayISO()+"T12:00:00"); start.setDate(start.getDate()+planningStartOffset);
+  const end=new Date(start); end.setDate(end.getDate()+6);
   const label=document.getElementById("planningRangeLabel");
-  if(label){
-    label.textContent=`${start.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})} → ${end.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"})}`;
-  }
-
+  if(label)label.textContent=`${start.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})} → ${end.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})}`;
   let out="";
   for(let i=0;i<7;i++){
-    const d=new Date(start);
-    d.setDate(start.getDate()+i);
-    const date=isoDate(d);
-    const item=db.planning.find(x=>x.plan_date===date);
-    const isToday=date===todayISO();
-
-    out+=`<div class="card" style="${isToday?'border:2px solid #111827;':''}">
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const date=isoDate(d), item=db.planning.find(x=>x.plan_date===date), isToday=date===todayISO();
+    out+=`<div class="fp-day-card ${isToday?"today":""}">
       <div class="row between">
-        <div>
-          <strong>${d.toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"2-digit"})}${isToday?" • Aujourd’hui":""}</strong>
-          <div class="sub">${planningLabel(item)}</div>
-          ${item?.type==="treadmill"?`<div class="sub">${item.incline||0}% • ${item.speed||0} km/h</div>`:""}
-        </div>
-        <div class="row">
-          <button class="btn secondary small" onclick="editPlanningItem('${date}')">${item?"Modifier":"Planifier"}</button>
-          ${item?`<button class="btn secondary small" onclick="deletePlanningItem('${date}')">Supprimer</button>`:""}
-        </div>
+        <div><div class="fp-day-name">${d.toLocaleDateString("fr-FR",{weekday:"long"})}${isToday?" • Aujourd’hui":""}</div>
+        <div class="sub">${d.toLocaleDateString("fr-FR",{day:"2-digit",month:"long"})}</div>
+        <div style="margin-top:7px"><strong>${planningLabel(item)}</strong>${item?.duration_minutes?`<div class="sub">${item.duration_minutes} min</div>`:""}</div></div>
+        <div class="fp-actions" style="max-width:150px"><button class="btn secondary small" onclick="editPlanningItem('${date}')">${item?"Modifier":"＋"}</button>${item?`<button class="btn secondary small" onclick="deletePlanningItem('${date}')">🗑</button>`:""}</div>
       </div>
     </div>`;
   }
-
-  box.innerHTML=out;
-  renderTodayPlan();
+  box.innerHTML=out; renderTodayPlan();
 }
 
 function editPlanningItem(date){
+  openPlanningEditor(date);
   document.getElementById("planDate").value=date;
   const item=db.planning.find(x=>x.plan_date===date);
   if(!item){
@@ -4807,7 +4768,7 @@ function savePlanningItem(){
   const today=new Date(todayISO()+"T12:00:00");
   const chosen=new Date(date+"T12:00:00");
   planningStartOffset=Math.floor((chosen-today)/(1000*60*60*24));
-  if(planningStartOffset>0) planningStartOffset=Math.floor(planningStartOffset/14)*14;
+  if(planningStartOffset>0) planningStartOffset=Math.floor(planningStartOffset/7)*7;
   renderPlanning();
 }
 
@@ -5082,6 +5043,7 @@ function renderPushups(){
   const month=d.filter(x=>x.date.startsWith(ym)).reduce((s,x)=>s+x.count,0);
   const a=document.getElementById("pushupsTodayBig"), b=document.getElementById("pushupsMonthBig");
   if(a)a.textContent=today;if(b)b.textContent=month;
+  const r=document.getElementById("pushupsRecordBig");if(r)r.textContent=d.length?Math.max(...d.map(x=>x.count)):0;
   const box=document.getElementById("pushupHistory"); if(!box)return;
   const recent=[...d].reverse().slice(0,10);
   box.innerHTML=recent.length?recent.map(x=>`<div class="history-item"><div class="row between"><strong>${new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"short"})}</strong><span class="pill">${x.count} pompe${x.count>1?"s":""}</span></div></div>`).join(""):'<div class="sub">Aucune pompe enregistrée pour le moment.</div>';
@@ -5200,6 +5162,31 @@ function editMeasurement(date){
   document.getElementById("measureDate").scrollIntoView({behavior:"smooth",block:"center"});
 }
 
+
+function renderProgressDashboard(){
+  const ms=[...(db.measurements||[])].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const latest=ms[ms.length-1]||{};
+  const w=document.getElementById("progressKpiWeight"); if(w)w.textContent=latest.weight!=null?`${Number(latest.weight).toFixed(1)} kg`:"—";
+  const f=document.getElementById("progressKpiFat"); if(f)f.textContent=latest.fat_pct!=null?`${Number(latest.fat_pct).toFixed(1)} %`:"—";
+  const now=new Date(), cutoff=new Date(now); cutoff.setDate(now.getDate()-6); cutoff.setHours(0,0,0,0);
+  const activities=buildActivityHistory();
+  const week=activities.filter(x=>x.date && new Date(x.date+"T12:00:00")>=cutoff);
+  const wk=document.getElementById("progressKpiWeek"); if(wk)wk.textContent=week.length;
+  const pushByDay=getDailyPushups(); const record=pushByDay.length?Math.max(...pushByDay.map(x=>x.count)):0;
+  ["progressKpiPushups","progressBestPushups"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=record});
+  const weekMinutes=(db.workouts||[]).filter(x=>x.date&&new Date(x.date+"T12:00:00")>=cutoff).reduce((s,x)=>s+(Number(x.duration_minutes)||Number(x.treadmill?.duration)||0),0)
+    +(db.fitness||[]).filter(x=>x.date&&new Date(x.date+"T12:00:00")>=cutoff).reduce((s,x)=>s+(Number(x.duration)||0),0)
+    +(db.sports||[]).filter(x=>x.date&&new Date(x.date+"T12:00:00")>=cutoff).reduce((s,x)=>s+(Number(x.duration)||0),0);
+  const wm=document.getElementById("progressWeekMinutes"); if(wm)wm.textContent=Math.round(weekMinutes);
+  const ym=todayISO().slice(0,7);
+  const monthActs=activities.filter(x=>x.date?.startsWith(ym));
+  const ma=document.getElementById("progressMonthActivities"); if(ma)ma.textContent=monthActs.length;
+  const monthCalories=(db.workouts||[]).filter(x=>x.date?.startsWith(ym)).reduce((s,x)=>s+(Number(x.calories_estimate)||0),0)
+    +(db.fitness||[]).filter(x=>x.date?.startsWith(ym)).reduce((s,x)=>s+(Number(x.calories_estimate)||0),0);
+  const mc=document.getElementById("progressMonthCalories"); if(mc)mc.textContent=Math.round(monthCalories);
+  const ss=document.getElementById("progressStrengthSessions"); if(ss)ss.textContent=(db.workouts||[]).filter(x=>!x.treadmill&&x.session!=="Rameur").length;
+}
+
 function drawCharts(){
   const home=document.getElementById("homeChart");
   const progress=document.getElementById("progressChart");
@@ -5293,7 +5280,7 @@ updatePlanningForm();
 const manualDateEl=document.getElementById("manualWorkoutDate"); if(manualDateEl) manualDateEl.value=todayISO();
 manualExercises=[{name:"",sets:3}];
 renderManualExercises();
-renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); drawCharts(); drawPushupChart(); initAuth(); detectRecoveryFromUrl(); handleWithingsReturn(); renderDraftResumeCard();
+renderWorkout("A"); updateDashboard(); renderMeasurementsHistory(); v133RenderHome(); v131RenderHome(); renderHomeDashboard(); renderHistory(); renderPushups(); renderFitness(); renderPlanning(); renderProgressDashboard(); drawCharts(); drawPushupChart(); initAuth(); detectRecoveryFromUrl(); handleWithingsReturn(); renderDraftResumeCard();
 
 function latestWeight(){
   const arr=[...(db.measurements||[])].reverse();

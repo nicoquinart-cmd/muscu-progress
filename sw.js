@@ -1,4 +1,4 @@
-const CACHE="fitpilot-v4-4-2-2";
+const CACHE="fitpilot-v4-5";
 self.addEventListener("fetch",event=>{
   if(event.request.method!=="GET") return;
   const url=new URL(event.request.url);
