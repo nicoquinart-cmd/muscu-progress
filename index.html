@@ -268,6 +268,10 @@
     .generator-grid,.admin-detail-grid{grid-template-columns:1fr}
     nav.tabs .tab{min-width:78px}
   }
+
+  #planningDays{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:8px;overflow-x:auto;padding-bottom:6px}
+  #planningDays>.card{margin:0;min-width:120px}
+  @media(max-width:620px){#planningDays{grid-template-columns:1fr;overflow-x:visible}#planningDays>.card{min-width:0}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -546,6 +550,20 @@
   </div>
 </div>
 
+
+<div id="sportActivityOverlay" class="auth-overlay hidden" style="z-index:10017">
+  <div class="auth-box" style="max-width:520px">
+    <div class="row between"><div><div class="sub">Activité sportive</div><h2 id="sportActivityTitle">🎾 Tennis</h2></div><button class="btn secondary small" onclick="closeSportActivity()">✕</button></div>
+    <div id="sportCustomNameField" class="field hidden" style="margin-top:10px"><label>Nom de l’activité</label><input id="sportActivityName" placeholder="Ex. Padel, Natation, Vélo…"></div>
+    <div class="row" style="margin-top:10px">
+      <div class="field"><label>Date</label><input id="sportActivityDate" type="date"></div>
+      <div class="field"><label>Durée (min)</label><input id="sportActivityDuration" type="number" min="1" step="5" value="60"></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Commentaire (facultatif)</label><input id="sportActivityNote" placeholder="Ex. match, entraînement…"></div>
+    <button class="btn full" style="margin-top:14px" onclick="saveSportActivity()">Enregistrer l’activité</button>
+    <div id="sportActivityMsg" class="sub" style="margin-top:8px"></div>
+  </div>
+</div>
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
     <div class="row between">
@@ -562,7 +580,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.0</span>
+      <span class="pill">v4.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -633,7 +651,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.0</span>
+      <span class="pill">v4.1</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -663,7 +681,7 @@
           <h2 style="color:white;margin-top:4px">Ton copilote d’entraînement</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.0</span>
+        <span class="pill" style="background:white;color:#111827">v4.1</span>
       </div>
 
       <button class="btn full" style="margin-top:16px;background:white;color:#111827" onclick="openStartSessionPanel()">
@@ -678,6 +696,10 @@
         <button class="btn secondary" onclick="openCardioShortcut('treadmill')">🏃 Tapis</button>
         <button class="btn secondary" onclick="openCardioShortcut('rower')">🚣 Rameur</button>
         <button class="btn secondary" onclick="openPushupChallenge()">💪 Challenge Pompes</button>
+        <button class="btn secondary" onclick="openSportActivity('Tennis')">🎾 Tennis</button>
+        <button class="btn secondary" onclick="openSportActivity('Football')">⚽ Football</button>
+        <button class="btn secondary" onclick="openSportActivity('Running')">🏃 Running</button>
+        <button class="btn secondary" onclick="openSportActivity('custom')">＋ Autre activité</button>
       </div>
     </div>
 
@@ -752,37 +774,7 @@
       <button id="v133PlannedBtn" class="btn full" style="margin-top:12px" onclick="v133StartPlanned()">▶ Démarrer la séance planifiée</button>
     </div>
 
-    <div class="card">
-      <div class="row between">
-        <h2>🎯 Cette semaine</h2>
-        <strong id="v133WeekCount">0 / 3</strong>
-      </div>
-      <div style="height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin-top:10px">
-        <div id="v133WeekBar" style="height:100%;width:0;background:#111827;border-radius:20px"></div>
-      </div>
-      <div id="v133WeekText" class="sub" style="margin-top:8px"></div>
-    </div>
-
-    <div class="card">
-      <div class="row between">
-        <h2>📅 Prochains jours</h2>
-        <button class="btn secondary small" onclick="showPage('planning')">Voir le planning →</button>
-      </div>
-      <div id="v133Planning3"></div>
-    </div>
-
-    <div class="card">
-      <div class="row between">
-        <h2>📈 Mes progrès</h2>
-        <button class="btn secondary small" onclick="showPage('progress')">Voir mes progrès →</button>
-      </div>
-      <div class="grid" style="margin-top:8px">
-        <div class="card stat"><strong id="v133SessionsDone">0</strong><span>séances réalisées</span></div>
-        <div class="card stat"><strong id="v133Weight">—</strong><span>poids</span></div>
-        <div class="card stat"><strong id="v133Waist">—</strong><span>taille</span></div>
-      </div>
-    </div>
-  </section>
+    </section>
 
 
   <section id="mysessions" class="page">
@@ -980,14 +972,14 @@
     <div class="card hero">
       <div class="sub">Organisation de la semaine</div>
       <h2 style="color:white;margin-top:4px">📅 Planning</h2>
-      <div class="sub">Visualise et planifie précisément les 14 prochains jours.</div>
+      <div class="sub">Visualise et planifie précisément les 7 prochains jours.</div>
     </div>
 
     <div class="card">
       <div class="row between">
-        <button class="btn secondary small" onclick="changePlanningRange(-14)">← 14 jours</button>
+        <button class="btn secondary small" onclick="changePlanningRange(-7)">← 7 jours</button>
         <strong id="planningRangeLabel"></strong>
-        <button class="btn secondary small" onclick="changePlanningRange(14)">14 jours →</button>
+        <button class="btn secondary small" onclick="changePlanningRange(7)">7 jours →</button>
       </div>
     </div>
 
@@ -1003,6 +995,10 @@
             <option value="workout">Musculation</option>
             <option value="treadmill">Tapis</option>
             <option value="fitness">Fitness</option>
+            <option value="tennis">🎾 Tennis</option>
+            <option value="football">⚽ Football</option>
+            <option value="running">🏃 Running</option>
+            <option value="other">＋ Autre activité</option>
             <option value="rest">Repos</option>
           </select>
         </div>
@@ -1028,6 +1024,10 @@
       <div id="planFitnessFields" class="row hidden" style="margin-top:10px">
         <div class="field"><label>Nom du cours</label><input id="planFitnessName" placeholder="Ex. BodyPump"></div>
         <div class="field"><label>Durée (min)</label><input id="planFitnessDuration" type="number" min="1" step="5" placeholder="Ex. 45"></div>
+      </div>
+      <div id="planSportFields" class="row hidden" style="margin-top:10px">
+        <div id="planSportNameField" class="field hidden"><label>Nom de l’activité</label><input id="planSportName" placeholder="Ex. Padel, Natation, Vélo…"></div>
+        <div class="field"><label>Durée (min)</label><input id="planSportDuration" type="number" min="1" step="5" placeholder="Ex. 60"></div>
       </div>
 
       <button class="btn" style="margin-top:12px" onclick="savePlanningItem()">Enregistrer dans le planning</button>
@@ -1905,6 +1905,34 @@ async function saveSmartWorkout(){
   setTimeout(()=>closeSmartWorkoutGenerator(),650);
 }
 
+
+let pendingSportType="Tennis";
+function openSportActivity(type){
+  pendingSportType=type;
+  const custom=type==="custom";
+  document.getElementById("sportActivityTitle").textContent=custom?"＋ Autre activité":({"Tennis":"🎾 Tennis","Football":"⚽ Football","Running":"🏃 Running"}[type]||type);
+  document.getElementById("sportCustomNameField").classList.toggle("hidden",!custom);
+  document.getElementById("sportActivityName").value="";
+  document.getElementById("sportActivityDate").value=new Date().toISOString().slice(0,10);
+  document.getElementById("sportActivityMsg").textContent="";
+  document.getElementById("sportActivityOverlay").classList.remove("hidden");
+}
+function closeSportActivity(){document.getElementById("sportActivityOverlay")?.classList.add("hidden");}
+async function saveSportActivity(){
+  if(!currentUser)return;
+  const custom=pendingSportType==="custom";
+  const name=custom?document.getElementById("sportActivityName").value.trim():pendingSportType;
+  const duration=Number(document.getElementById("sportActivityDuration").value)||0;
+  const date=document.getElementById("sportActivityDate").value;
+  const note=document.getElementById("sportActivityNote").value.trim();
+  if(!name||!date||duration<=0){document.getElementById("sportActivityMsg").textContent="Renseigne l’activité, la date et la durée.";return;}
+  const {error}=await supa.from("sport_activities").insert({user_id:currentUser.id,activity_name:name,activity_date:date,duration_minutes:duration,note});
+  if(error){document.getElementById("sportActivityMsg").textContent="Erreur : "+error.message;return;}
+  document.getElementById("sportActivityMsg").textContent="✓ Activité enregistrée.";
+  setTimeout(closeSportActivity,500);
+  if(typeof renderHistory==="function")renderHistory();
+}
+
 let quickWorkoutExercises=[];
 
 function renderQuickWorkoutBuilder(){
@@ -2370,7 +2398,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.0";
+const FITPILOT_VERSION="4.1";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -4215,6 +4243,12 @@ function updatePlanningForm(){
   document.getElementById("planWorkoutFields").classList.toggle("hidden",type!=="workout");
   document.getElementById("planTreadmillFields").classList.toggle("hidden",type!=="treadmill");
   document.getElementById("planFitnessFields").classList.toggle("hidden",type!=="fitness");
+  const sportTypes=["tennis","football","running","other"];
+  const sportBox=document.getElementById("planSportFields");
+  if(sportBox)sportBox.classList.toggle("hidden",!sportTypes.includes(type));
+  const sportNameField=document.getElementById("planSportNameField");
+  if(sportNameField)sportNameField.classList.toggle("hidden",type!=="other");
+
 }
 
 function planningLabel(item){
@@ -4580,7 +4614,7 @@ function renderPlanning(){
   }
 
   let out="";
-  for(let i=0;i<14;i++){
+  for(let i=0;i<7;i++){
     const d=new Date(start);
     d.setDate(start.getDate()+i);
     const date=isoDate(d);
