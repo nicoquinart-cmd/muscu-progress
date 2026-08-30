@@ -340,6 +340,23 @@
     #planningDays{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;overflow:visible!important}
     .fp-sticky-action{bottom:68px}
   }
+
+  /* FitPilot 4.6 — Workout Experience */
+  .workout-topbar{position:sticky;top:0;z-index:10;background:rgba(248,251,252,.95);backdrop-filter:blur(12px);padding:8px 0}
+  .workout-progress{height:7px;background:#e7eef1;border-radius:999px;overflow:hidden;margin-top:8px}
+  .workout-progress>div{height:100%;background:var(--brand-cyan);border-radius:999px;transition:width .25s ease}
+  .quick-adjust{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+  .quick-adjust button{border:1px solid #d7e4e8;background:#fff;border-radius:12px;padding:9px 5px;font-weight:800;color:var(--brand-navy)}
+  .rest-card{background:linear-gradient(135deg,#081e3b,#0b496b);color:#fff;text-align:center}
+  .rest-card .sub{color:rgba(255,255,255,.72)}
+  .rest-time{font-size:42px;font-weight:900;letter-spacing:-1px}
+  .feeling-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+  .feeling-btn{border:1px solid #d8e5e9;background:#fff;border-radius:16px;padding:14px 7px;font-weight:800;color:#081e3b}
+  .pr-banner{padding:12px;border-radius:15px;background:#fff8df;border:1px solid #f1d57b;color:#624a00;margin-top:10px}
+  .workout-summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  .workout-summary-stat{background:#f6fafb;border:1px solid #e0eaed;border-radius:16px;padding:14px;text-align:center}
+  .workout-summary-stat strong{display:block;font-size:25px;color:#081e3b}
+  .swap-option{width:100%;text-align:left;border:1px solid #dbe7ea;background:#fff;border-radius:15px;padding:12px;margin-top:8px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -387,97 +404,94 @@
 
 <div id="immersiveOverlay" class="immersive-overlay hidden">
   <div class="immersive-shell">
-    <div class="card">
+    <div class="workout-topbar">
       <div class="row between">
-        <div>
-          <div class="sub">Mode immersif</div><div id="draftSaveStatus" class="sub" style="margin-top:3px">☁️ Séance sauvegardée</div>
-          <h2 id="immersiveExerciseTitle">Exercice</h2>
-          <div id="immersiveExerciseVisual" class="exercise-visual hidden" style="margin-top:10px"><img id="immersiveExerciseImage" alt=""></div>
-          <div id="immersiveSetLabel" class="sub">Série 1 / 3</div>
-        </div>
-        <button class="btn secondary small" onclick="closeImmersiveWorkout()">✕ Quitter</button>
+        <div><strong id="immersiveSessionTitle">Séance</strong><div id="draftSaveStatus" class="sub">☁️ Sauvegardée</div></div>
+        <button class="btn secondary small" onclick="closeImmersiveWorkout()">✕</button>
       </div>
-      <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
-      <div class="card" style="margin-top:10px">
-        <div class="row between">
-          <div>
-            <div class="sub">Nombre de séries</div>
-            <strong id="immersiveSeriesCountLabel">4 séries</strong><div id="immersiveSeriesDots" class="series-dots"></div>
-          </div>
-          <div class="row">
-            <button class="btn secondary small" type="button" onclick="changeImmersiveSeriesCount(-1)">−</button>
-            <button class="btn secondary small" type="button" onclick="changeImmersiveSeriesCount(1)">＋</button>
-          </div>
-        </div>
-      </div>
-      <div id="immersiveSuggestion" class="hint" style="margin-top:8px"></div>
-      <div class="card" style="margin-top:10px">
-        <div class="row between">
-          <div>
-            <div class="sub">Prochain exercice</div>
-            <strong id="immersiveNextExercise">—</strong>
-          </div>
-          <button class="btn secondary small" onclick="openExerciseSwap()">🔄 Changer l’exercice</button>
-        </div>
-      </div>
+      <div class="workout-progress"><div id="immersiveWorkoutProgress" style="width:0%"></div></div>
     </div>
 
-    <div id="immersiveSwapCard" class="card hidden">
-      <div class="row between">
-        <h2>🔄 Remplacer l’exercice</h2>
-        <button class="btn secondary small" onclick="closeExerciseSwap()">✕</button>
-      </div>
-      <div class="sub" style="margin-bottom:10px">Choisis un autre exercice si la machine est occupée.</div>
-      <div class="field">
-        <label>Exercice de remplacement</label>
-        <select id="immersiveSwapSelect"></select>
-      </div>
-      <button class="btn full" style="margin-top:12px" onclick="confirmExerciseSwap()">Utiliser cet exercice</button>
+    <div class="card">
+      <div class="sub" id="immersiveSetLabel">Série 1 / 4</div>
+      <h1 id="immersiveExerciseTitle" style="margin:5px 0 8px">Exercice</h1>
+      <div id="immersiveExerciseVisual" class="exercise-visual hidden"><img id="immersiveExerciseImage" alt=""></div>
+      <div id="immersiveSeriesDots" class="series-dots" style="margin-top:10px"></div>
+      <div id="immersivePrevious" class="hint" style="margin-top:10px"></div>
+      <div id="immersiveSuggestion" class="hint" style="margin-top:8px"></div>
+      <div id="immersivePRBanner" class="pr-banner hidden"></div>
     </div>
 
     <div id="immersiveInputCard" class="card">
       <div class="row">
-        <div class="field">
-          <label>Charge (kg)</label>
-          <input id="immersiveWeight" type="number" min="0" step="0.5" inputmode="decimal">
-        </div>
-        <div class="field">
-          <label>Répétitions</label>
-          <input id="immersiveReps" type="number" min="0" step="1" inputmode="numeric">
-        </div>
+        <div class="field"><label>Charge</label><input id="immersiveWeight" type="number" min="0" step="0.5" inputmode="decimal"></div>
+        <div class="field"><label>Répétitions</label><input id="immersiveReps" type="number" min="0" step="1" inputmode="numeric"></div>
       </div>
-      <button class="btn full" style="margin-top:14px" onclick="validateImmersiveSet()">✓ Valider la série</button>
+      <div class="quick-adjust">
+        <button onclick="adjustImmersiveValue('weight',-2.5)">−2,5 kg</button>
+        <button onclick="adjustImmersiveValue('weight',2.5)">+2,5 kg</button>
+        <button onclick="adjustImmersiveValue('reps',-1)">−1 rep</button>
+        <button onclick="adjustImmersiveValue('reps',1)">+1 rep</button>
+      </div>
+      <button class="btn full" style="margin-top:14px;font-size:17px;padding:14px" onclick="validateImmersiveSet()">✓ Série terminée</button>
     </div>
 
     <div id="immersiveRatingCard" class="card hidden">
-      <h2>Comment était cette série ?</h2>
-      <div class="sub">Note ton effort avant de passer à la série suivante.</div>
-      <div class="effort-grid">
-        <button class="effort-btn" onclick="rateImmersiveSet(1)">1<br><span class="sub">Très facile</span></button>
-        <button class="effort-btn" onclick="rateImmersiveSet(2)">2<br><span class="sub">Facile</span></button>
-        <button class="effort-btn" onclick="rateImmersiveSet(3)">3<br><span class="sub">Correct</span></button>
-        <button class="effort-btn" onclick="rateImmersiveSet(4)">4<br><span class="sub">Difficile</span></button>
-        <button class="effort-btn" onclick="rateImmersiveSet(5)">5<br><span class="sub">Maximal</span></button>
+      <h2>Ton ressenti ?</h2>
+      <div class="sub">Un seul appui suffit pour adapter tes prochaines séances.</div>
+      <div class="feeling-grid">
+        <button class="feeling-btn" onclick="rateImmersiveSet(2)">😊<br>Facile</button>
+        <button class="feeling-btn" onclick="rateImmersiveSet(3)">👍<br>Bien</button>
+        <button class="feeling-btn" onclick="rateImmersiveSet(5)">🥵<br>Difficile</button>
       </div>
     </div>
 
+    <div id="immersiveRestCard" class="card rest-card hidden">
+      <div class="sub">Récupération</div>
+      <div id="immersiveRest" class="rest-time">60 s</div>
+      <div class="fp-actions">
+        <button class="btn secondary" onclick="addImmersiveRest(30)">+30 s</button>
+        <button class="btn secondary" onclick="skipImmersiveRest()">Passer</button>
+      </div>
+      <div style="margin-top:12px;text-align:left"><div class="sub">Ensuite</div><strong id="immersiveNextExercise">—</strong></div>
+    </div>
 
     <div class="card">
       <div class="row between">
-        <div>
-          <div class="sub">Repos</div>
-          <strong id="immersiveRest">—</strong>
-        </div>
-        <button class="btn secondary small" onclick="skipImmersiveRest()">Passer le repos</button>
+        <div><div class="sub">Nombre de séries</div><strong id="immersiveSeriesCountLabel">4 séries</strong></div>
+        <div class="row"><button class="btn secondary small" onclick="changeImmersiveSeriesCount(-1)">−</button><button class="btn secondary small" onclick="changeImmersiveSeriesCount(1)">＋</button></div>
       </div>
+      <button class="btn secondary full" style="margin-top:10px" onclick="openExerciseSwap()">🔄 Machine occupée / changer</button>
     </div>
+
+    <div id="immersiveSwapCard" class="card hidden">
+      <div class="row between"><h2>🔄 Alternatives</h2><button class="btn secondary small" onclick="closeExerciseSwap()">✕</button></div>
+      <div class="sub">Choisis un exercice équivalent.</div>
+      <div id="immersiveSwapSuggestions"></div>
+      <div class="field" style="margin-top:10px"><label>Ou choisir dans la liste</label><select id="immersiveSwapSelect"></select></div>
+      <button class="btn full" style="margin-top:10px" onclick="confirmExerciseSwap()">Utiliser cet exercice</button>
+    </div>
+
     <div class="immersive-sticky-action">
-      <button id="finishExerciseBtn" class="btn full" type="button" onclick="finishImmersiveExercise()">✅ Terminer l’exercice</button>
-      <div id="finishExerciseHint" class="sub" style="margin-top:7px;text-align:center">Quand tu as fini cet exercice, passe au suivant.</div>
+      <button id="finishExerciseBtn" class="btn full" onclick="finishImmersiveExercise()">✅ Terminer l’exercice</button>
+      <div id="finishExerciseHint" class="sub" style="margin-top:6px;text-align:center">Passe au suivant quand tu as terminé.</div>
     </div>
   </div>
 </div>
 
+<div id="workoutSummaryOverlay" class="auth-overlay hidden" style="z-index:10030;overflow:auto;padding:16px">
+  <div class="auth-box" style="max-width:600px">
+    <div style="text-align:center"><div style="font-size:48px">🎉</div><div class="sub">Séance terminée</div><h1 id="workoutSummaryTitle">Bravo !</h1></div>
+    <div class="workout-summary-grid">
+      <div class="workout-summary-stat"><strong id="summaryDuration">0</strong><span>minutes</span></div>
+      <div class="workout-summary-stat"><strong id="summaryExercises">0</strong><span>exercices</span></div>
+      <div class="workout-summary-stat"><strong id="summarySets">0</strong><span>séries</span></div>
+      <div class="workout-summary-stat"><strong id="summaryCalories">0</strong><span>kcal estimées</span></div>
+    </div>
+    <div id="summaryRecords" class="pr-banner hidden"></div>
+    <button class="btn full" style="margin-top:16px" onclick="closeWorkoutSummary()">Terminer</button>
+  </div>
+</div>
 
 <div id="sessionWizardOverlay" class="auth-overlay hidden" style="z-index:10015;overflow:auto;padding:16px">
   <div class="auth-box" style="max-width:620px">
@@ -665,7 +679,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.5</span>
+      <span class="pill">v4.6</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -736,7 +750,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.5</span>
+      <span class="pill">v4.6</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -766,7 +780,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.5</span>
+        <span class="pill" style="background:white;color:#111827">v4.6</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -1343,7 +1357,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 4.5</div>
+      <div class="sub">FitPilot • 4.6</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('connections')"><div class="row between"><div><h3 class="fp-section-title">🔗 Connexions</h3><div class="sub">Withings et futurs services</div></div><strong>›</strong></div></div>
@@ -2369,7 +2383,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.5";
+const FITPILOT_VERSION="4.6";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3306,8 +3320,18 @@ function openExerciseSwap(){
   select.innerHTML=names.map(n=>`<option value="${String(n).replace(/"/g,"&quot;")}">${n}</option>`).join("");
   card.classList.remove("hidden");
   card.scrollIntoView({behavior:"smooth",block:"center"});
+
+  const guide=exerciseGuide(current);
+  const alternatives=allKnownExerciseNames().filter(n=>n!==current && exerciseGuide(n).muscles===guide.muscles).slice(0,3);
+  const box=document.getElementById("immersiveSwapSuggestions");
+  if(box)box.innerHTML=alternatives.length?alternatives.map(n=>`<button class="swap-option" onclick="selectSwapAlternative('${n.replace(/'/g,"\\'")}')"><strong>${n}</strong><span class="sub" style="display:block">${exerciseGuide(n).muscles}</span></button>`).join(""):'<div class="sub" style="margin-top:8px">Choisis une alternative dans la liste.</div>';
+
 }
 
+function selectSwapAlternative(name){
+  const sel=document.getElementById("immersiveSwapSelect");if(sel)sel.value=name;
+  confirmExerciseSwap();
+}
 function closeExerciseSwap(){
   document.getElementById("immersiveSwapCard")?.classList.add("hidden");
 }
@@ -3332,6 +3356,57 @@ function confirmExerciseSwap(){
   saveWorkoutDraft();
 }
 
+
+
+let workoutSessionRecords=[];
+
+function adjustImmersiveValue(kind,delta){
+  const id=kind==="weight"?"immersiveWeight":"immersiveReps";
+  const el=document.getElementById(id);if(!el)return;
+  const current=Number(el.value)||0;
+  const next=Math.max(0,current+delta);
+  el.value=kind==="weight"?Math.round(next*2)/2:Math.round(next);
+}
+
+function bestExercisePerformance(name){
+  let best={weight:0,reps:0,score:0};
+  (db.workouts||[]).forEach(w=>(w.exercises||[]).forEach(ex=>{
+    if(ex.name!==name)return;
+    (ex.sets||[]).forEach(s=>{
+      const weight=Number(s.weight)||0,reps=Number(s.reps)||0;
+      const score=weight>0?weight*(1+reps/30):reps;
+      if(score>best.score)best={weight,reps,score};
+    });
+  }));
+  return best;
+}
+
+function checkImmersiveRecord(name,weight,reps){
+  const previous=bestExercisePerformance(name);
+  const score=weight>0?weight*(1+reps/30):reps;
+  if(score>previous.score && (weight>0||reps>0)){
+    const rec={name,weight,reps,score};
+    workoutSessionRecords.push(rec);
+    const el=document.getElementById("immersivePRBanner");
+    if(el){el.innerHTML=`🏆 <strong>Nouveau record</strong><br>${name} • ${weight?`${weight} kg × `:""}${reps} reps`;el.classList.remove("hidden");}
+    return true;
+  }
+  return false;
+}
+
+function addImmersiveRest(seconds){
+  immersiveRestSeconds=Math.max(0,(Number(immersiveRestSeconds)||0)+seconds);
+  const el=document.getElementById("immersiveRest");if(el)el.textContent=`${immersiveRestSeconds} s`;
+}
+
+function workoutCompletedSets(){
+  return [...document.querySelectorAll("#exerciseList .exercise .check")].filter(x=>x.classList.contains("done")).length;
+}
+
+function closeWorkoutSummary(){
+  document.getElementById("workoutSummaryOverlay")?.classList.add("hidden");
+  showPage("home",document.querySelectorAll(".tab")[0]);
+}
 
 function ensureImmersiveSetCount(exerciseIndex,count=4){
  const ex=currentWorkoutExercises[exerciseIndex];if(!ex)return;
@@ -3375,6 +3450,7 @@ function finishImmersiveExercise(){
     if(!confirm(`${completed} série(s) validée(s) sur ${ex.sets}. Terminer l’exercice quand même ?`))return;
   }
 
+  document.getElementById("immersiveRestCard")?.classList.add("hidden");
   clearInterval(immersiveRestTimer);
   immersiveRestTimer=null;
   document.getElementById("immersiveRest").textContent="—";
@@ -3407,10 +3483,12 @@ function startImmersiveWorkout(){
   currentWorkoutExercises.forEach(ex=>ex.sets=4);
   renderCurrentWorkoutExercises();
 
+  workoutSessionRecords=[];
   immersiveExerciseIndex=0;
   immersiveSetIndex=0;
   workoutHasActuallyStarted=true;
   document.getElementById("immersiveOverlay")?.classList.remove("hidden");
+  const st=document.getElementById("immersiveSessionTitle");if(st)st.textContent=currentSession||"Séance";
   renderImmersiveStep();
   saveWorkoutDraft(true);
 }
@@ -3444,6 +3522,12 @@ function renderImmersiveStep(){
 
   const nodes=currentImmersiveNodes();
   if(!nodes)return;
+
+  const pr=document.getElementById("immersivePRBanner");if(pr)pr.classList.add("hidden");
+  const totalSets=currentWorkoutExercises.reduce((s,x)=>s+(Number(x.sets)||4),0);
+  const completed=workoutCompletedSets();
+  const prog=document.getElementById("immersiveWorkoutProgress");if(prog)prog.style.width=`${Math.min(100,Math.round(completed/Math.max(1,totalSets)*100))}%`;
+
 
   document.getElementById("immersiveExerciseTitle").textContent=ex.name;
 
@@ -3511,6 +3595,7 @@ function validateImmersiveSet(){
   nodes.weightInput.value=weight;
   nodes.repsInput.value=reps;
   nodes.check.classList.add("done");
+  checkImmersiveRecord(currentWorkoutExercises[immersiveExerciseIndex].name,weight,reps);
   saveWorkoutDraft();
 
   document.getElementById("immersiveInputCard").classList.add("hidden");
@@ -3523,6 +3608,7 @@ function rateImmersiveSet(rating){
   saveWorkoutDraft();
 
   document.getElementById("immersiveRatingCard").classList.add("hidden");
+  document.getElementById("immersiveRestCard")?.classList.remove("hidden");
   startImmersiveRest(60);
 
   const ex=currentWorkoutExercises[immersiveExerciseIndex];
@@ -3570,6 +3656,7 @@ function skipImmersiveRest(){
   immersiveRestTimer=null;
   immersiveRestSeconds=0;
   document.getElementById("immersiveRest").textContent="Go !";
+  setTimeout(()=>document.getElementById("immersiveRestCard")?.classList.add("hidden"),350);
 }
 
 function renderWorkout(code){
@@ -3717,48 +3804,39 @@ function toggleSet(btn){
 function finishWorkout(){
   const exercises=[];
   document.querySelectorAll("#exerciseList .exercise").forEach((node,idx)=>{
-    const inputs=[...node.querySelectorAll("input")];
-    const sets=[];
-    const checks=[...node.querySelectorAll(".check")];
+    const inputs=[...node.querySelectorAll("input")],sets=[],checks=[...node.querySelectorAll(".check")];
     for(let i=0;i<inputs.length;i+=2){
-      const setIndex=i/2;
-      sets.push({
-        weight:Number(inputs[i].value)||0,
-        reps:Number(inputs[i+1].value)||0,
-        rating:checks[setIndex]?.dataset.rating ? Number(checks[setIndex].dataset.rating) : null
-      });
+      const si=i/2;
+      if(checks[si]?.classList.contains("done") || Number(inputs[i+1].value)>0){
+        sets.push({weight:Number(inputs[i].value)||0,reps:Number(inputs[i+1].value)||0,rating:checks[si]?.dataset.rating?Number(checks[si].dataset.rating):null});
+      }
     }
     exercises.push({name:currentWorkoutExercises[idx].name,sets});
   });
-
   const duration=Number(document.getElementById("treadmillDuration")?.value)||0;
   const incline=Number(document.getElementById("treadmillIncline")?.value)||0;
   const speed=Number(document.getElementById("treadmillSpeed")?.value)||0;
-  const treadmill = duration>0 ? {duration,incline,speed} : null;
+  const treadmill=duration>0?{duration,incline,speed}:null;
   const workoutDuration=Math.max(1,Math.round((Date.now()-(workoutStartedAt||Date.now()))/60000));
   const calories_estimate=estimateStrengthCalories(workoutDuration);
-
-  db.workouts.push({
-    date:todayISO(),
-    session:currentSession,
-    exercises,
-    treadmill,
-    duration_minutes:workoutDuration,
-    calories_estimate
-  });
-  clearInterval(workoutElapsedTimer);
-  workoutStartedAt=null;
-  saveDB();
-  clearWorkoutDraft();
-
-  const d=document.getElementById("treadmillDuration");
-  const i=document.getElementById("treadmillIncline");
-  const s=document.getElementById("treadmillSpeed");
-  if(d)d.value=""; if(i)i.value=""; if(s)s.value="";
-
-  alert("Séance enregistrée. Bravo !");
+  const totalSets=exercises.reduce((s,e)=>s+e.sets.length,0);
+  db.workouts.push({date:todayISO(),session:currentSession,exercises,treadmill,duration_minutes:workoutDuration,calories_estimate});
+  clearInterval(workoutElapsedTimer);workoutStartedAt=null;saveDB();clearWorkoutDraft();
+  ["treadmillDuration","treadmillIncline","treadmillSpeed"].forEach(id=>{const e=document.getElementById(id);if(e)e.value=""});
+  closeImmersiveWorkout();
+  document.getElementById("summaryDuration").textContent=workoutDuration;
+  document.getElementById("summaryExercises").textContent=exercises.filter(e=>e.sets.length).length;
+  document.getElementById("summarySets").textContent=totalSets;
+  document.getElementById("summaryCalories").textContent=Math.round(calories_estimate||0);
+  const title=document.getElementById("workoutSummaryTitle");if(title)title.textContent=`Bravo • ${currentSession||"Séance"}`;
+  const rec=document.getElementById("summaryRecords");
+  if(rec){
+    const unique=[...new Map(workoutSessionRecords.map(r=>[r.name,r])).values()];
+    if(unique.length){rec.innerHTML=`🏆 <strong>${unique.length} nouveau${unique.length>1?"x":""} record${unique.length>1?"s":""}</strong><br>${unique.map(r=>`${r.name} : ${r.weight?`${r.weight} kg × `:""}${r.reps} reps`).join("<br>")}`;rec.classList.remove("hidden");}
+    else rec.classList.add("hidden");
+  }
+  document.getElementById("workoutSummaryOverlay")?.classList.remove("hidden");
   renderWorkout(getNextSession());
-  showPage("home",document.querySelectorAll(".tab")[0]);
 }
 
 function saveMeasurement(){
