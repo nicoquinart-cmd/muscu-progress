@@ -768,6 +768,21 @@
   }
   .v5-next-small .sub{color:rgba(255,255,255,.58)!important;font-size:12px}
   .v5-next-small strong{font-size:13px;color:#dce9f8;text-align:right}
+
+  /* FitPilot V5.0.4 — workout type in history */
+  .history-workout-type{
+    display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;
+    background:#dbe9f8;color:#0a4d9f;border:1px solid #abc7e5;
+    font-size:11px;font-weight:900;
+  }
+  .history-type-detail{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:#dce9f6;border:1px solid #afc6dc;border-radius:14px;
+    padding:11px 13px;margin-bottom:12px;
+  }
+  .history-type-detail span{color:#657b91;font-size:12px;font-weight:800}
+  .history-type-detail strong{color:#0b2347}
+  #historyWorkoutTypeFilters{background:#e5eef6!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1126,7 +1141,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.3</span>
+      <span class="pill">v5.0.4</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1197,7 +1212,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.3</span>
+      <span class="pill">v5.0.4</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1611,6 +1626,20 @@
       <button class="fp-chip" onclick="setHistoryFilter('pushups',this)">💪 Pompes</button>
     </div>
 
+    <div id="historyWorkoutTypeFilters" class="fp-card" style="margin-top:10px;padding:10px">
+      <div class="sub" style="margin-bottom:7px;font-weight:800">Type de séance</div>
+      <div class="fp-chip-row">
+        <button class="fp-chip active" onclick="setHistoryWorkoutTypeFilter('all',this)">Toutes</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Haut du corps',this)">💪 Haut du corps</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Full Body',this)">⚡ Full Body</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Épaules & dos',this)">🏋️ Épaules & dos</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Bas du corps',this)">🦵 Bas du corps</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Abdos & Gainage',this)">🎯 Abdos & Gainage</button>
+        <button class="fp-chip" onclick="setHistoryWorkoutTypeFilter('Libre',this)">✨ Libre</button>
+      </div>
+      <input id="historyWorkoutTypeFilter" type="hidden" value="all">
+    </div>
+
     <div class="grid">
       <div class="card stat"><strong id="historyTotalActivities">0</strong><span>activités</span></div>
       <div class="card stat"><strong id="historyMonthActivities">0</strong><span>ce mois</span></div>
@@ -1629,7 +1658,14 @@
         </select></div>
       </div>
       <div id="historyWorkoutFields" style="margin-top:10px">
-        <div class="row"><div class="field"><label>Programme</label><select id="historyWorkoutSession"><option value="A">Séance A</option><option value="B">Séance B</option><option value="C">Séance C</option><option value="Libre">Séance libre</option></select></div>
+        <div class="row"><div class="field"><label>Type de séance</label><select id="historyWorkoutSession">
+          <option value="Haut du corps">💪 Haut du corps</option>
+          <option value="Full Body">⚡ Full Body</option>
+          <option value="Épaules & dos">🏋️ Épaules & dos</option>
+          <option value="Bas du corps">🦵 Bas du corps</option>
+          <option value="Abdos & Gainage">🎯 Abdos & Gainage</option>
+          <option value="Libre">✨ Séance libre</option>
+        </select></div>
         <div class="field"><label>Durée (min)</label><input id="historyWorkoutDuration" type="number" min="1"></div></div>
         <div id="historyWorkoutExercisesEditor" style="margin-top:10px"></div>
       </div>
@@ -1774,7 +1810,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.0.3</div>
+      <div class="sub">FitPilot • 5.0.4</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2819,7 +2855,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.0.3";
+const FITPILOT_VERSION="5.0.4";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -4442,16 +4478,73 @@ function updateDashboard(){
   renderTodayPlan();
 }
 
+
+function normalizeWorkoutType(session){
+  const s=String(session||"").trim();
+  const legacy={
+    "A":"Haut du corps",
+    "Séance A":"Haut du corps",
+    "Séance A — Haut du corps":"Haut du corps",
+    "B":"Full Body",
+    "Séance B":"Full Body",
+    "Séance B — Full Body":"Full Body",
+    "C":"Épaules & dos",
+    "Séance C":"Épaules & dos",
+    "Séance C — Dos / épaules / bras":"Épaules & dos",
+    "Dos / épaules / bras":"Épaules & dos",
+    "Dos / épaules / bras C":"Épaules & dos",
+    "Epaules & dos":"Épaules & dos",
+    "Epaules et dos":"Épaules & dos",
+    "Abdos & gainage":"Abdos & Gainage",
+    "Séance libre":"Libre"
+  };
+  return legacy[s]||s||"Libre";
+}
+
+function workoutTypeIcon(type){
+  const t=normalizeWorkoutType(type);
+  if(t==="Haut du corps")return "💪";
+  if(t==="Full Body")return "⚡";
+  if(t==="Épaules & dos")return "🏋️";
+  if(t==="Bas du corps")return "🦵";
+  if(t==="Abdos & Gainage")return "🎯";
+  if(t==="Libre")return "✨";
+  return "🏋️";
+}
+
+function ensureHistoryWorkoutTypeOption(value){
+  const select=document.getElementById("historyWorkoutSession");
+  if(!select)return;
+  const normalized=normalizeWorkoutType(value);
+  if(![...select.options].some(o=>o.value===normalized)){
+    const opt=document.createElement("option");
+    opt.value=normalized;
+    opt.textContent=`🏋️ ${normalized}`;
+    select.appendChild(opt);
+  }
+  select.value=normalized;
+}
+
+function setHistoryWorkoutTypeFilter(value,btn){
+  const hidden=document.getElementById("historyWorkoutTypeFilter");
+  if(hidden)hidden.value=value;
+  document.querySelectorAll("#historyWorkoutTypeFilters .fp-chip").forEach(x=>x.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  renderHistory();
+}
+
 function buildActivityHistory(){
   const items=[];
 
   (db.workouts||[]).forEach((w,index)=>{
-    let type="workout",icon="🏋️",label="Musculation";
+    let type="workout",icon="🏋️",label="Musculation",workoutType="";
     if(w.session==="Tapis"||w.treadmill){type="treadmill";icon="🏃";label="Tapis";}
     else if(w.session==="Rameur"||w.cardio?.type==="rower"){type="rower";icon="🚣";label="Rameur";}
-    else if(w.session==="Libre"){label="Séance libre";}
-    else if(w.session&&PROGRAM[w.session]){label=PROGRAM[w.session].title;} else if(customSessionByCode(w.session)){label=customSessionByCode(w.session).name;}
-    else if(w.session){label=`Séance ${w.session}`;}
+    else{
+      workoutType=normalizeWorkoutType(w.session);
+      icon=workoutTypeIcon(workoutType);
+      label=workoutType==="Libre"?"Séance libre":workoutType;
+    }
 
     const detail=[];
     if(w.duration_minutes)detail.push(`${Math.round(Number(w.duration_minutes))} min`);
@@ -4466,7 +4559,7 @@ function buildActivityHistory(){
 
     items.push({
       key:`workout-${index}`,source:"workout",sourceIndex:index,id:w.id||null,
-      type,icon,label,date:w.date||"",sort:w.created_at||`${w.date||""}T12:00:00`,
+      type,icon,label,workoutType,date:w.date||"",sort:w.created_at||`${w.date||""}T12:00:00`,
       detail:detail.join(" • ")
     });
   });
@@ -4533,7 +4626,11 @@ function renderHistory(){
   if(!box)return;
   const all=buildActivityHistory();
   const filter=document.getElementById("historyTypeFilter")?.value||"all";
-  const shown=filter==="all"?all:all.filter(x=>x.type===filter);
+  const workoutTypeFilter=document.getElementById("historyWorkoutTypeFilter")?.value||"all";
+  let shown=filter==="all"?all:all.filter(x=>x.type===filter);
+  if(workoutTypeFilter!=="all"){
+    shown=shown.filter(x=>x.source==="workout" && x.type==="workout" && normalizeWorkoutType(x.workoutType)===workoutTypeFilter);
+  }
 
   const total=document.getElementById("historyTotalActivities");
   const month=document.getElementById("historyMonthActivities");
@@ -4552,7 +4649,8 @@ function renderHistory(){
       <div class="row between">
         <div style="min-width:0">
           <strong>${x.icon} ${x.label}</strong>
-          <div class="sub" style="margin-top:4px">${x.detail||""}</div>
+          ${x.type==="workout"?`<div style="margin-top:6px"><span class="history-workout-type">${normalizeWorkoutType(x.workoutType)}</span></div>`:""}
+          <div class="sub" style="margin-top:5px">${x.detail||""}</div>
         </div>
         <div style="text-align:right"><span class="pill">${d}</span><div class="sub" style="margin-top:5px">Voir le détail ›</div></div>
       </div>
@@ -4570,7 +4668,8 @@ function openHistoryDetail(key){
   if(item.source==="workout"){
     const w=db.workouts[item.sourceIndex];
     if(item.type==="workout"){
-      body=(w.exercises||[]).length?(w.exercises||[]).map(ex=>`
+      body=`<div class="history-type-detail"><span>Type de séance</span><strong>${workoutTypeIcon(w.session)} ${normalizeWorkoutType(w.session)}</strong></div>`;
+      body+=(w.exercises||[]).length?(w.exercises||[]).map(ex=>`
         <div class="history-exercise">
           <strong>${ex.name}</strong>
           <div class="sub" style="margin-top:5px">${(ex.sets||[]).map((s,i)=>`S${i+1}: ${s.weight||0} kg × ${s.reps||0}${s.rating?` • effort ${s.rating}/5`:""}`).join("<br>")}</div>
@@ -4688,7 +4787,7 @@ function openPastActivityEditor(){
   document.getElementById("historyEditDate").value=todayISO();
   document.getElementById("historyEditActivityType").disabled=false;
   document.getElementById("historyEditActivityType").value="workout";
-  document.getElementById("historyWorkoutSession").value="A";
+  ensureHistoryWorkoutTypeOption("Haut du corps");
   document.getElementById("historyWorkoutDuration").value="40";
   document.getElementById("historyFitnessName").value="";
   document.getElementById("historyFitnessDuration").value="";
@@ -4720,7 +4819,7 @@ function editHistoryItem(key){
   if(item.source==="workout"){
     const w=db.workouts[item.sourceIndex];
     if(item.type==="workout"){
-      document.getElementById("historyWorkoutSession").value=w.session||"Libre";
+      ensureHistoryWorkoutTypeOption(w.session||"Libre");
       document.getElementById("historyWorkoutDuration").value=w.duration_minutes||40;
       renderHistoryWorkoutExerciseEditor(w.exercises||[]);
     }else if(item.type==="treadmill"){
@@ -4808,7 +4907,7 @@ async function saveHistoryActivity(){
   if(!date){alert("Indique une date.");return;}
 
   if(type==="workout"){
-    const session=document.getElementById("historyWorkoutSession").value;
+    const session=normalizeWorkoutType(document.getElementById("historyWorkoutSession").value);
     const duration=Number(document.getElementById("historyWorkoutDuration").value)||40;
     const obj={
       date,session,exercises:collectHistoryExercises(),treadmill:null,
