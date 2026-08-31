@@ -363,6 +363,30 @@
   .immersive-help{margin-top:10px;border:1px solid #dce7eb;border-radius:17px;padding:13px;background:#f8fbfc}
   .immersive-help .exercise-visual{margin-top:10px}
   .immersive-help ul{margin:6px 0 0 18px;padding:0}
+
+  /* FitPilot 4.6.2 — Démarrer shortcuts */
+  .start-presets-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:12px}
+  .start-preset{
+    border:1px solid #dbe7ea;background:#fff;border-radius:19px;padding:15px;
+    text-align:left;cursor:pointer;min-height:132px;display:flex;flex-direction:column;
+    justify-content:space-between;box-shadow:0 5px 16px rgba(8,30,59,.035)
+  }
+  .start-preset:hover{border-color:#93dbe4}
+  .start-preset:active{transform:scale(.985)}
+  .start-preset-icon{font-size:28px;line-height:1;margin-bottom:12px}
+  .start-preset strong{display:block;font-size:16px;color:var(--brand-navy)}
+  .start-preset .sub{margin-top:5px;font-size:12px}
+  .start-preset-meta{margin-top:10px;display:flex;gap:5px;flex-wrap:wrap}
+  .start-free{background:linear-gradient(135deg,#081e3b,#0d536f);border-color:#081e3b}
+  .start-free strong{color:#fff}
+  .start-free .sub{color:rgba(255,255,255,.74)}
+  .start-free .fp-tag{background:rgba(255,255,255,.14);color:#fff}
+  #manualWorkoutBuilder.hidden{display:none}
+  @media(max-width:430px){
+    .start-presets-grid{gap:9px}
+    .start-preset{padding:13px;min-height:126px}
+    .start-preset strong{font-size:15px}
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -693,7 +717,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6.1</span>
+      <span class="pill">v4.6.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -764,7 +788,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6.1</span>
+      <span class="pill">v4.6.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -794,7 +818,7 @@
           <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
           <div id="v133TodayDate" class="sub"></div>
         </div>
-        <span class="pill" style="background:white;color:#111827">v4.6.1</span>
+        <span class="pill" style="background:white;color:#111827">v4.6.2</span>
       </div>
 
       <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -1003,27 +1027,102 @@
   <section id="startworkout" class="page">
 
     <div class="fp-page-head">
-      <div class="sub">Séance rapide</div>
+      <div class="sub">Choisis ton entraînement</div>
       <h2>▶️ Démarrer</h2>
-      <div class="sub">Choisis tes exercices puis démarre immédiatement.</div>
+      <div class="sub">Une séance prête en un seul appui.</div>
     </div>
 
     <div class="fp-card">
-      <h3 class="fp-section-title">Choisis tes exercices</h3>
-      <div class="sub">Appuie pour ajouter ou retirer un exercice.</div>
-      <div id="quickWorkoutExerciseChoices" style="margin-top:10px"></div>
-      <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice personnalisé</button>
+      <div>
+        <h3 class="fp-section-title">Séances rapides</h3>
+        <div class="sub">Choisis une zone : FitPilot prépare directement les exercices.</div>
+      </div>
+
+      <div class="start-presets-grid">
+        <button class="start-preset" onclick="startWorkoutPreset('upper')">
+          <div>
+            <div class="start-preset-icon">💪</div>
+            <strong>Haut du corps</strong>
+            <div class="sub">Pectoraux • dos • bras</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
+        </button>
+
+        <button class="start-preset" onclick="startWorkoutPreset('full')">
+          <div>
+            <div class="start-preset-icon">⚡</div>
+            <strong>Full Body</strong>
+            <div class="sub">Tout le corps</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~45 min</span></div>
+        </button>
+
+        <button class="start-preset" onclick="startWorkoutPreset('shoulders_back')">
+          <div>
+            <div class="start-preset-icon">🏋️</div>
+            <strong>Épaules & dos</strong>
+            <div class="sub">Dos • épaules • posture</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
+        </button>
+
+        <button class="start-preset" onclick="startWorkoutPreset('lower')">
+          <div>
+            <div class="start-preset-icon">🦵</div>
+            <strong>Bas du corps</strong>
+            <div class="sub">Jambes • fessiers</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
+        </button>
+
+        <button class="start-preset" onclick="startWorkoutPreset('core')">
+          <div>
+            <div class="start-preset-icon">🎯</div>
+            <strong>Abdos & Gainage</strong>
+            <div class="sub">Centre du corps • stabilité</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">5 exercices</span><span class="fp-tag">~25 min</span></div>
+        </button>
+
+        <button class="start-preset start-free" onclick="startFreeWorkout()">
+          <div>
+            <div class="start-preset-icon">✨</div>
+            <strong>Séance libre</strong>
+            <div class="sub">Construis ta séance comme tu veux.</div>
+          </div>
+          <div class="start-preset-meta"><span class="fp-tag">100 % libre</span></div>
+        </button>
+      </div>
     </div>
 
     <div class="fp-card" style="margin-top:12px">
       <div class="row between">
-        <div><h3 class="fp-section-title">Ta séance</h3><div class="sub" id="quickWorkoutCountLabel">0 exercice</div></div>
+        <div>
+          <h3 class="fp-section-title">Composer manuellement</h3>
+          <div class="sub">Tu veux choisir chaque exercice toi-même ?</div>
+        </div>
+        <button id="manualBuilderToggleBtn" class="btn secondary small" onclick="toggleManualWorkoutBuilder()">Afficher</button>
       </div>
-      <div id="quickWorkoutSelected" style="margin-top:8px"></div>
     </div>
 
-    <div class="fp-sticky-action">
-      <button id="quickWorkoutStartBtn" class="btn full" onclick="startQuickWorkout()">▶️ Démarrer • 0 exercice</button>
+    <div id="manualWorkoutBuilder" class="hidden">
+      <div class="fp-card" style="margin-top:10px">
+        <h3 class="fp-section-title">Choisis tes exercices</h3>
+        <div class="sub">Appuie pour ajouter ou retirer un exercice.</div>
+        <div id="quickWorkoutExerciseChoices" style="margin-top:10px"></div>
+        <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice personnalisé</button>
+      </div>
+
+      <div class="fp-card" style="margin-top:12px">
+        <div class="row between">
+          <div><h3 class="fp-section-title">Ta séance</h3><div class="sub" id="quickWorkoutCountLabel">0 exercice</div></div>
+        </div>
+        <div id="quickWorkoutSelected" style="margin-top:8px"></div>
+      </div>
+
+      <div class="fp-sticky-action">
+        <button id="quickWorkoutStartBtn" class="btn full" onclick="startQuickWorkout()">▶️ Démarrer • 0 exercice</button>
+      </div>
     </div>
 
   </section>
@@ -1371,7 +1470,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 4.6.1</div>
+      <div class="sub">FitPilot • 4.6.2</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('connections')"><div class="row between"><div><h3 class="fp-section-title">🔗 Connexions</h3><div class="sub">Withings et futurs services</div></div><strong>›</strong></div></div>
@@ -2415,7 +2514,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.6.1";
+const FITPILOT_VERSION="4.6.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -4699,6 +4798,80 @@ function openStartSessionChooser(){
   el.classList.remove("hidden");
   el.scrollIntoView({behavior:"smooth",block:"center"});
 }
+
+const FITPILOT_START_PRESETS={
+  upper:{
+    title:"Haut du corps",
+    desc:"Pectoraux • dos • épaules • bras",
+    exercises:[
+      ["Chest Press","8–12"],["Lat Pulldown","8–12"],["Seated Row","8–12"],
+      ["Shoulder Press","8–12"],["Biceps Curl","10–15"],["Triceps Pushdown","10–15"]
+    ]
+  },
+  full:{
+    title:"Full Body",
+    desc:"Jambes • dos • pectoraux • épaules • gainage",
+    exercises:[
+      ["Leg Press","10–12"],["Leg Curl","10–12"],["Chest Press","8–12"],
+      ["Seated Row","8–12"],["Shoulder Press","8–12"],["Planche","30–45 s"]
+    ]
+  },
+  shoulders_back:{
+    title:"Épaules & dos",
+    desc:"Dos • épaules • posture",
+    exercises:[
+      ["Lat Pulldown","8–12"],["Seated Row","8–12"],["Shoulder Press","8–12"],
+      ["Lateral Raise","12–15"],["Cable Face Pull","12–15"],["Biceps Curl","10–15"]
+    ]
+  },
+  lower:{
+    title:"Bas du corps",
+    desc:"Quadriceps • ischios • fessiers",
+    exercises:[
+      ["Leg Press","10–12"],["Leg Curl","10–12"],["Leg Extension","10–15"],
+      ["Hip Thrust","8–12"],["Goblet Squat","10–12"],["Fentes","10–12"]
+    ]
+  },
+  core:{
+    title:"Abdos & Gainage",
+    desc:"Sangle abdominale • stabilité • contrôle",
+    exercises:[
+      ["Planche","30–45 s"],["Dead Bug","10–12"],["Abdominal Crunch","12–15"],
+      ["Planche","30–45 s"],["Dead Bug","10–12"]
+    ]
+  }
+};
+
+function startWorkoutPreset(code){
+  const preset=FITPILOT_START_PRESETS[code];
+  if(!preset)return;
+  currentSession=preset.title;
+  currentWorkoutExercises=preset.exercises.map(x=>({name:x[0],sets:4,target:x[1]}));
+
+  const picker=document.getElementById("sessionPicker");
+  if(picker){
+    if(![...picker.options].some(o=>o.value===preset.title)){
+      const opt=document.createElement("option");
+      opt.value=preset.title; opt.textContent=preset.title; picker.appendChild(opt);
+    }
+    picker.value=preset.title;
+  }
+
+  document.getElementById("workoutTitle").textContent=`${preset.title}`;
+  document.getElementById("workoutDesc").textContent=preset.desc;
+  renderCurrentWorkoutExercises();
+  showPage("workout");
+}
+
+function toggleManualWorkoutBuilder(){
+  const panel=document.getElementById("manualWorkoutBuilder");
+  const btn=document.getElementById("manualBuilderToggleBtn");
+  if(!panel)return;
+  panel.classList.toggle("hidden");
+  if(btn)btn.textContent=panel.classList.contains("hidden")?"Afficher":"Masquer";
+  if(!panel.classList.contains("hidden"))renderQuickWorkoutBuilder();
+}
+
 function startFreeWorkout(){
   currentSession="Libre";
   currentWorkoutExercises=[];
