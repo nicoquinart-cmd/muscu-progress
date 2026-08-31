@@ -705,6 +705,49 @@
       box-shadow:0 0 60px rgba(0,0,0,.22)!important;
     }
   }
+
+  /* FitPilot V5.0.2 — softer cards */
+  :root{
+    --fp-card-soft:#eef3f8;--fp-card-soft-2:#e4edf6;--fp-border-soft:#b8c9da;
+  }
+  .card,.fp-card{
+    background:var(--fp-card-soft)!important;
+    border:1px solid var(--fp-border-soft)!important;
+    box-shadow:0 5px 16px rgba(0,0,0,.08)!important;
+  }
+  .v5-home-tile{
+    background:linear-gradient(145deg,#f2f6fa,#e5edf5)!important;
+    border:1px solid #b5c6d8!important;
+    box-shadow:0 6px 16px rgba(0,0,0,.10)!important;
+  }
+  #resumeWorkoutCard{
+    background:linear-gradient(145deg,#dce9f6,#cbddec)!important;
+    border:1px solid #8eafce!important;
+    box-shadow:0 8px 18px rgba(0,0,0,.12)!important;
+  }
+  #home #quickCardioPanel,#home #startSessionPanel{background:#eaf2f8!important}
+  #startworkout>.fp-card:first-of-type{background:#e7eef6!important;border-color:#aebfd1!important}
+  #startworkout .start-preset{background:#f0f5fa!important;border-color:#bfcedd!important;box-shadow:none!important}
+  #startworkout .start-free{background:linear-gradient(145deg,#dce9fa,#cfdef3)!important;border-color:#78a3e9!important}
+  #mysessions>.fp-card,#planning>.fp-card,#progress>.fp-card,#history>.fp-card,#more>.fp-card,
+  #fitness>.fp-card,#pushups>.fp-card,#profile>.fp-card,#connections>.fp-card,#calories>.fp-card,#admin>.fp-card{
+    background:#eaf1f7!important;
+  }
+  .fp-kpi,.card.stat,.history-item,.fp-settings-card{background:#f0f5fa!important;border-color:#c0cfdd!important}
+  #workout>.card:not(:first-child),.exercise{background:#eaf1f7!important;border-color:#bacbdc!important}
+  #exerciseList{background:transparent!important;border:0!important;box-shadow:none!important}
+  input,select,textarea{background:#f7fafc!important;border-color:#bdcddd!important}
+  .btn.secondary{background:#e6eef5!important;border-color:#bfd0df!important;color:#17324f!important}
+  .fp-chip{background:#e9f0f6!important;border-color:#bdcddd!important}
+  .fp-chip.active{background:#0b6ff2!important;color:#fff!important}
+  nav.tabs{background:#edf3f8!important;border-top-color:#b9c9d9!important}
+  nav.tabs .tab.active{background:#e3edf7!important}
+  #immersiveInputCard,#immersiveExerciseCard,.immersive-help,
+  #workoutSummaryOverlay .v5-summary-section,#workoutSummaryOverlay .workout-summary-grid{
+    background:#eaf1f7!important;border-color:#b8cada!important
+  }
+  .workout-summary-stat{background:#eaf1f7!important;border-bottom-color:#c5d3e0!important}
+  header{background:#f5f8fb!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1049,7 +1092,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.1</span>
+      <span class="pill">v5.0.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1120,7 +1163,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.1</span>
+      <span class="pill">v5.0.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1697,7 +1740,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.0.1</div>
+      <div class="sub">FitPilot • 5.0.2</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2742,7 +2785,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.0.1";
+const FITPILOT_VERSION="5.0.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
