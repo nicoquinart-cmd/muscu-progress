@@ -812,6 +812,34 @@
   .fitness-history-detail-grid span{display:block;font-size:10px;color:#657b91;font-weight:800}
   .fitness-history-detail-grid strong{display:block;margin-top:4px;font-size:13px;color:#0b2347}
   @media(max-width:420px){.fitness-history-detail-grid{grid-template-columns:1fr 1fr}.fitness-history-detail-grid>div:last-child{grid-column:1/-1}}
+
+  /* FitPilot V5.2 — immersive Fitness */
+  .fitness-launch-card{background:linear-gradient(145deg,#dbe8f5,#cbddeb);border:1px solid #9fb9d1;border-radius:20px;padding:15px;box-shadow:0 8px 20px rgba(0,0,0,.11)}
+  .fitness-eyebrow{font-size:10px;font-weight:900;letter-spacing:1.1px;color:#56718d}.fitness-launch-card h3{margin:4px 0 0;color:#0b2347}
+  .fitness-launch-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#0b6ff2;color:#fff}
+  .fitness-course-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+  .fitness-course-launch{border:1px solid #aec2d5;background:#edf3f8;border-radius:15px;padding:13px 8px;display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;text-align:left;align-items:center;color:#0b2347}
+  .fitness-course-launch>span{grid-row:1/3;font-size:26px}.fitness-course-launch strong{font-size:13px}.fitness-course-launch small{font-size:10px;color:#6b7f93;margin-top:2px}
+  .fitness-other-course{width:100%;margin-top:9px;border:1px dashed #8faac3;background:transparent;color:#335878;border-radius:13px;padding:10px;font-weight:800}
+  .fitness-dashboard-card{margin-top:12px;background:#e4edf5;border:1px solid #afc2d3;border-radius:18px;padding:14px}
+  .fitness-mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.fitness-mini-stats div{text-align:center;background:#d7e5f1;border-radius:12px;padding:9px}.fitness-mini-stats strong{display:block;font-size:20px}.fitness-mini-stats span{font-size:10px;color:#60778f}
+  .fitness-secondary{margin-top:12px}.fitness-secondary>summary{color:#d7e6f6;font-weight:800;padding:8px 2px;cursor:pointer}
+  .fitness-setup-shell,.fitness-summary-shell{width:min(520px,100%);min-height:100vh;margin:auto;background:#021936;padding:70px 16px 28px;color:#fff;position:relative}
+  .fitness-close{position:absolute;right:16px;top:20px;width:38px;height:38px;border-radius:50%;border:1px solid #31516f;background:#0b2a50;color:#fff}
+  .fitness-setup-emoji{text-align:center;font-size:58px}.fitness-setup-shell h1{text-align:center;color:#fff;margin:8px 0 24px}
+  .fitness-setup-block{background:#0a2b52;border:1px solid #254b72;border-radius:17px;padding:14px;margin-top:10px}.fitness-setup-block>span{font-size:11px;color:#a9bfd5;font-weight:800}
+  .fitness-duration-picker{display:grid;grid-template-columns:50px 1fr 50px;align-items:center;margin-top:10px}.fitness-duration-picker strong{text-align:center;font-size:25px}.fitness-duration-picker button{height:42px;border-radius:12px;background:#123b67;color:#fff;border:1px solid #315b84;font-size:20px}
+  .fitness-setup-intensity{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.fitness-setup-intensity button{border:1px solid #315b84;background:#123b67;color:#fff;border-radius:12px;padding:10px 3px}.fitness-setup-intensity strong{display:block;font-size:10px;margin-top:4px}.fitness-setup-intensity button.active{background:#0b6ff2;border-color:#67a4ff}
+  .fitness-setup-kcal{text-align:center;color:#b9cde0;margin:18px 0}.fitness-setup-kcal strong{color:#fff}.fitness-big-start{height:54px;font-size:16px}
+  .fitness-live-shell{width:min(520px,100%);height:100vh;margin:auto;background:#021936;color:#fff;display:flex;flex-direction:column}
+  .fitness-live-top{height:66px;padding:12px 14px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;border-bottom:1px solid #173b60}.fitness-live-top button{width:36px;height:36px;border-radius:50%;border:0;background:#0c2b50;color:#fff}.fitness-live-top>div{text-align:center}.fitness-live-top>span{font-size:10px;background:#123d6c;padding:6px 8px;border-radius:999px}
+  .fitness-live-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}.fitness-live-status{font-size:10px;font-weight:900;letter-spacing:1px;color:#7f9bb7}.fitness-live-status span{display:inline-block;width:7px;height:7px;background:#22c55e;border-radius:50%;margin-right:5px}
+  .fitness-live-timer{font-size:66px;font-weight:900;letter-spacing:-3px;margin-top:16px}.fitness-live-calories{display:flex;align-items:center;gap:12px;margin-top:35px}.fitness-live-calories>span{font-size:34px}.fitness-live-calories strong{display:block;font-size:30px}.fitness-live-calories small{display:block;color:#8da7c1}
+  .fitness-live-progress{width:100%;height:8px;background:#173b60;border-radius:999px;margin-top:34px;overflow:hidden}.fitness-live-progress div{height:100%;background:#0b6ff2;width:0%}
+  .fitness-live-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px calc(18px + env(safe-area-inset-bottom));background:#061e3b}.fitness-live-actions button{height:58px;border-radius:15px;font-size:20px;font-weight:900}.fitness-live-actions span{display:block;font-size:10px;margin-top:2px}.fitness-pause{background:#12375e;border:1px solid #315579;color:#fff}.fitness-finish{background:#0b6ff2;border:1px solid #0b6ff2;color:#fff}
+  .fitness-summary-shell{padding-top:0;background:#e9f0f6;color:#0b2347}.fitness-summary-hero{background:#021936;color:#fff;margin:0 -16px;padding:30px 16px;text-align:center}.fitness-summary-check{width:48px;height:48px;border-radius:50%;background:#22c55e;display:grid;place-items:center;margin:auto;font-size:26px;font-weight:900}.fitness-summary-hero h2{color:#fff;margin:8px 0 2px}
+  .fitness-summary-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.fitness-summary-numbers div,.fitness-summary-card{background:#f0f5fa;border:1px solid #b9c9d9;border-radius:15px;padding:12px}.fitness-summary-numbers span{display:block;font-size:9px;color:#6a7e92}.fitness-summary-numbers strong{display:block;margin-top:4px;font-size:13px}
+  .fitness-summary-card{margin-top:10px}.fitness-summary-feelings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.fitness-summary-feelings button{background:#e2ebf3;border:1px solid #bdccda;border-radius:12px;padding:10px;font-size:22px}.fitness-summary-feelings span{display:block;font-size:9px;color:#60758b}.fitness-summary-feelings button.active{border:2px solid #0b6ff2;background:#d8e8fb}.fitness-save-summary{margin-top:12px;height:50px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1126,6 +1154,87 @@
 
 
 
+
+  <div id="fitnessSetupOverlay" class="auth-overlay hidden">
+    <div class="fitness-setup-shell">
+      <button class="fitness-close" onclick="closeFitnessSetup()">✕</button>
+      <div id="fitnessSetupEmoji" class="fitness-setup-emoji">🏋️</div>
+      <div class="sub" style="text-align:center">TON COURS</div>
+      <h1 id="fitnessSetupName">BodyPump</h1>
+      <div class="fitness-setup-block">
+        <span>Durée prévue</span>
+        <div class="fitness-duration-picker">
+          <button onclick="changeFitnessSetupDuration(-5)">−</button>
+          <strong><span id="fitnessSetupDuration">45</span> min</strong>
+          <button onclick="changeFitnessSetupDuration(5)">＋</button>
+        </div>
+      </div>
+      <div class="fitness-setup-block">
+        <span>Intensité prévue</span>
+        <div class="fitness-setup-intensity">
+          <button data-setup-intensity="light" onclick="setFitnessSetupIntensity('light',this)">🟢<strong>Douce</strong></button>
+          <button class="active" data-setup-intensity="moderate" onclick="setFitnessSetupIntensity('moderate',this)">🔵<strong>Modérée</strong></button>
+          <button data-setup-intensity="high" onclick="setFitnessSetupIntensity('high',this)">🔴<strong>Intense</strong></button>
+        </div>
+      </div>
+      <div class="fitness-setup-kcal">🔥 Environ <strong id="fitnessSetupKcal">—</strong> kcal pour ce cours</div>
+      <button class="btn full fitness-big-start" onclick="startImmersiveFitness()">▶ Démarrer le cours</button>
+    </div>
+  </div>
+
+  <div id="fitnessLiveOverlay" class="auth-overlay hidden">
+    <div class="fitness-live-shell">
+      <div class="fitness-live-top">
+        <button onclick="confirmCloseFitnessLive()">✕</button>
+        <div><span id="fitnessLiveEmoji">🏋️</span> <strong id="fitnessLiveName">BodyPump</strong></div>
+        <span id="fitnessLiveIntensityBadge">Modérée</span>
+      </div>
+      <div class="fitness-live-center">
+        <div class="fitness-live-status"><span></span> COURS EN COURS</div>
+        <div id="fitnessLiveTimer" class="fitness-live-timer">00:00</div>
+        <div class="sub">Temps écoulé</div>
+        <div class="fitness-live-calories">
+          <span>🔥</span>
+          <div><strong id="fitnessLiveCalories">0</strong><small>kcal estimées</small></div>
+        </div>
+        <div class="fitness-live-progress"><div id="fitnessLiveProgressBar"></div></div>
+        <div id="fitnessLiveTarget" class="sub">Objectif : 45 min</div>
+      </div>
+      <div class="fitness-live-actions">
+        <button id="fitnessPauseBtn" class="fitness-pause" onclick="toggleFitnessPause()">Ⅱ <span>Pause</span></button>
+        <button class="fitness-finish" onclick="finishImmersiveFitness()">■ <span>Terminer</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fitnessSummaryOverlay" class="auth-overlay hidden">
+    <div class="fitness-summary-shell">
+      <div class="fitness-summary-hero">
+        <div class="fitness-summary-check">✓</div>
+        <h2>Bravo !</h2>
+        <div id="fitnessSummaryCourse">BodyPump terminé</div>
+      </div>
+      <div class="fitness-summary-numbers">
+        <div><span>Durée</span><strong id="fitnessSummaryDuration">45 min</strong></div>
+        <div><span>Calories</span><strong id="fitnessSummaryCalories">🔥 300 kcal</strong></div>
+        <div><span>Intensité</span><strong id="fitnessSummaryIntensity">Modérée</strong></div>
+      </div>
+      <div class="fitness-summary-card">
+        <strong>Comment tu te sens ?</strong>
+        <div class="fitness-summary-feelings">
+          <button onclick="setImmersiveFitnessFeeling(2,this)">😊<span>Facile</span></button>
+          <button class="active" onclick="setImmersiveFitnessFeeling(3,this)">🙂<span>Bien</span></button>
+          <button onclick="setImmersiveFitnessFeeling(5,this)">🥵<span>Difficile</span></button>
+        </div>
+      </div>
+      <div class="fitness-summary-card">
+        <label>Une note ? <span class="sub">(facultatif)</span></label>
+        <textarea id="fitnessSummaryNote" rows="3" placeholder="Tes sensations, ce que tu veux retenir…"></textarea>
+      </div>
+      <button class="btn full fitness-save-summary" onclick="saveImmersiveFitness()">Enregistrer ma séance</button>
+    </div>
+  </div>
+
 <div id="activityHubOverlay" class="auth-overlay hidden" style="z-index:10016">
   <div class="auth-box" style="max-width:520px">
     <div class="row between">
@@ -1170,7 +1279,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.1.1</span>
+      <span class="pill">v5.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1241,7 +1350,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.1.1</span>
+      <span class="pill">v5.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1401,85 +1510,63 @@
 
 
   
+  
   <section id="fitness" class="page">
     <div class="fp-page-head">
       <div class="sub">Cours collectifs & cardio</div>
-      <h2>🧘 Fitness</h2>
-      <div class="sub">Choisis ton cours, ton intensité et suis ta progression.</div>
+      <h2>Fitness</h2>
+      <div class="sub">Choisis ton cours et lance-toi.</div>
     </div>
 
-    <div class="fp-card">
+    <div class="fitness-launch-card">
       <div class="row between">
-        <div><h3 class="fp-section-title">⭐ Mes cours favoris</h3><div class="sub">Un appui prépare directement le cours.</div></div>
-        <button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button>
+        <div><div class="fitness-eyebrow">DÉMARRER UN COURS</div><h3>Qu’est-ce qu’on fait aujourd’hui ?</h3></div>
+        <div class="fitness-launch-icon">▶</div>
       </div>
-      <div id="fitnessFavorites" class="fitness-quick-grid" style="margin-top:10px"></div>
+      <div id="fitnessImmersiveCourses" class="fitness-course-grid"></div>
+      <button class="fitness-other-course" onclick="openFitnessCustomCourse()">＋ Autre cours</button>
     </div>
 
-    <div class="fp-card fitness-week-card" style="margin-top:12px">
-      <div class="row between"><div><div class="sub">OBJECTIF SEMAINE</div><h3 class="fp-section-title">Ma semaine Fitness</h3></div><span id="fitnessGoalLabel" class="pill">0 / 3 cours</span></div>
-      <div class="goal-ring" style="margin-top:12px"><div id="fitnessGoalBar" style="width:0%"></div></div>
-      <div class="fitness-week-stats">
-        <div><strong id="fitnessWeekMinutes">0</strong><span>min</span></div>
+    <div class="fitness-dashboard-card">
+      <div class="row between"><div><div class="fitness-eyebrow">CETTE SEMAINE</div><strong>Mon objectif</strong></div><span id="fitnessGoalLabel" class="pill">0 / 3 cours</span></div>
+      <div class="goal-ring" style="margin-top:10px"><div id="fitnessGoalBar" style="width:0%"></div></div>
+      <div class="fitness-mini-stats">
+        <div><strong id="fitnessWeekMinutes">0</strong><span>minutes</span></div>
         <div><strong id="fitnessWeekCalories">0</strong><span>kcal</span></div>
       </div>
     </div>
 
-    <div class="fp-card" style="margin-top:12px">
-      <h3 class="fp-section-title">▶️ Démarrer / enregistrer un cours</h3>
-      <div class="row">
-        <div class="field"><label>Date</label><input id="fitnessDate" type="date"></div>
-        <div class="field"><label>Cours</label><input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="BodyPump, Cycling..." oninput="updateFitnessCaloriesPreview()">
-          <datalist id="fitnessCourseSuggestions"><option value="BodyPump"><option value="Cycling / RPM"><option value="BodyCombat"><option value="Pilates"><option value="Yoga"><option value="CAF"><option value="Cross Training"><option value="BodyAttack"><option value="Stretching"></datalist>
-        </div>
-        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" value="45" oninput="updateFitnessCaloriesPreview()"></div>
+    <details class="fitness-secondary">
+      <summary>⭐ Mes favoris et statistiques</summary>
+      <div class="fp-card" style="margin-top:10px">
+        <div class="row between"><strong>Mes cours favoris</strong><button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button></div>
+        <div id="fitnessFavorites" class="fitness-quick-grid" style="margin-top:10px"></div>
       </div>
-
-      <div class="field" style="margin-top:8px">
-        <label>Intensité ressentie</label>
-        <input id="fitnessIntensity" type="hidden" value="moderate">
-        <div class="fitness-intensity-grid">
-          <button type="button" data-fit-intensity="light" onclick="selectFitnessIntensity('light');updateFitnessCaloriesPreview()"><span>🟢</span><strong>Douce</strong><small>Effort confortable</small></button>
-          <button type="button" class="active" data-fit-intensity="moderate" onclick="selectFitnessIntensity('moderate');updateFitnessCaloriesPreview()"><span>🔵</span><strong>Modérée</strong><small>Effort soutenu</small></button>
-          <button type="button" data-fit-intensity="high" onclick="selectFitnessIntensity('high');updateFitnessCaloriesPreview()"><span>🔴</span><strong>Intense</strong><small>Effort élevé</small></button>
-        </div>
+      <div class="grid" style="margin-top:10px">
+        <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
+        <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes</span></div>
+        <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal</span></div>
       </div>
-
-      <div id="fitnessCaloriesPreview" class="fitness-calorie-preview">
-        <div><span>🔥</span><div><strong>Calories estimées</strong><div class="sub">Renseigne le cours et la durée.</div></div></div>
-        <strong id="fitnessCaloriesBig">—</strong>
-      </div>
-
-      <div class="field" style="margin-top:12px">
-        <label>Ressenti après le cours</label>
-        <input id="fitnessFeeling" type="hidden" value="3">
-        <div class="fitness-feeling-grid">
-          <button type="button" data-fit-feeling="2" onclick="selectFitnessFeeling(2)">😊<span>Facile</span></button>
-          <button type="button" class="active" data-fit-feeling="3" onclick="selectFitnessFeeling(3)">🙂<span>Bien</span></button>
-          <button type="button" data-fit-feeling="5" onclick="selectFitnessFeeling(5)">🥵<span>Difficile</span></button>
-        </div>
-      </div>
-
-      <div class="field" style="margin-top:10px"><label>Note <span class="sub">(facultatif)</span></label><textarea id="fitnessNote" rows="2" placeholder="Tes sensations, ce que tu veux retenir…"></textarea></div>
-      <button class="btn full" style="margin-top:12px" onclick="saveFitnessClass()">💾 Enregistrer le cours</button>
-    </div>
-
-    <div class="grid" style="margin-top:12px">
-      <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
-      <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes</span></div>
-      <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal estimées</span></div>
-    </div>
+      <div class="fp-card" style="margin-top:10px"><strong>Mes cours ce mois-ci</strong><div id="fitnessCourseStats" class="fitness-course-stats" style="margin-top:8px"></div></div>
+    </details>
 
     <div class="fp-card" style="margin-top:12px">
-      <h3 class="fp-section-title">📊 Mes cours ce mois-ci</h3>
-      <div id="fitnessCourseStats" class="fitness-course-stats"></div>
+      <div class="row between"><strong>🕘 Derniers cours</strong><button class="btn secondary small" onclick="showPage('history')">Tout voir</button></div>
+      <div id="fitnessHistory" style="margin-top:8px"></div>
     </div>
 
-    <div class="fp-card" style="margin-top:12px">
-      <h3 class="fp-section-title">🕘 Mes derniers cours</h3>
-      <div id="fitnessHistory"></div>
+    <!-- compatibility inputs, used by save/sync logic -->
+    <div class="hidden">
+      <input id="fitnessDate" type="date">
+      <input id="fitnessName" type="text">
+      <input id="fitnessDuration" type="number" value="45">
+      <input id="fitnessIntensity" type="hidden" value="moderate">
+      <input id="fitnessFeeling" type="hidden" value="3">
+      <textarea id="fitnessNote"></textarea>
+      <div id="fitnessCaloriesPreview"><span id="fitnessCaloriesBig"></span><span class="sub"></span></div>
     </div>
   </section>
+
 
 
 
@@ -1883,7 +1970,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.1.1</div>
+      <div class="sub">FitPilot • 5.2</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2942,7 +3029,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.1.1";
+const FITPILOT_VERSION="5.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3446,6 +3533,144 @@ function activityKcalFromMET(met, minutes){
   const weight=profileWeightKg();
   if(!weight || !minutes || minutes<=0) return null;
   return Math.max(1,Math.round(met*3.5*weight/200*minutes));
+}
+
+
+const FITNESS_IMMERSIVE_COURSES=[
+  {name:"BodyPump",emoji:"🏋️",duration:45},
+  {name:"Cycling / RPM",emoji:"🚴",duration:45},
+  {name:"BodyCombat",emoji:"🥊",duration:45},
+  {name:"Pilates",emoji:"🧘",duration:45},
+  {name:"Yoga",emoji:"🪷",duration:45},
+  {name:"CAF",emoji:"🎯",duration:30},
+  {name:"Cross Training",emoji:"⚡",duration:45},
+  {name:"BodyAttack",emoji:"🔥",duration:45}
+];
+let fitnessSetupState={name:"BodyPump",emoji:"🏋️",duration:45,intensity:"moderate"};
+let fitnessLiveState=null;
+let fitnessLiveTimerId=null;
+let fitnessSummaryFeeling=3;
+
+function renderImmersiveFitnessCourses(){
+  const box=document.getElementById("fitnessImmersiveCourses"); if(!box)return;
+  const favorites=fitnessFavoriteList();
+  const ordered=[...FITNESS_IMMERSIVE_COURSES].sort((a,b)=>(favorites.includes(b.name)?1:0)-(favorites.includes(a.name)?1:0));
+  box.innerHTML=ordered.slice(0,6).map(c=>`
+    <button class="fitness-course-launch" onclick='openFitnessSetup(${JSON.stringify(c.name)},${JSON.stringify(c.emoji)},${c.duration})'>
+      <span>${c.emoji}</span><strong>${c.name}</strong><small>${c.duration} min</small>
+    </button>`).join("");
+}
+function openFitnessCustomCourse(){
+  const name=prompt("Nom du cours Fitness :"); if(!name)return;
+  openFitnessSetup(name,"🏃",45);
+}
+function openFitnessSetup(name,emoji="🏃",duration=45){
+  fitnessSetupState={name,emoji,duration:Number(duration)||45,intensity:"moderate"};
+  document.getElementById("fitnessSetupName").textContent=name;
+  document.getElementById("fitnessSetupEmoji").textContent=emoji;
+  document.getElementById("fitnessSetupDuration").textContent=fitnessSetupState.duration;
+  document.querySelectorAll("[data-setup-intensity]").forEach(b=>b.classList.toggle("active",b.dataset.setupIntensity==="moderate"));
+  updateFitnessSetupCalories();
+  document.getElementById("fitnessSetupOverlay").classList.remove("hidden");
+}
+function closeFitnessSetup(){document.getElementById("fitnessSetupOverlay")?.classList.add("hidden");}
+function changeFitnessSetupDuration(delta){
+  fitnessSetupState.duration=Math.max(5,Math.min(180,fitnessSetupState.duration+delta));
+  document.getElementById("fitnessSetupDuration").textContent=fitnessSetupState.duration;
+  updateFitnessSetupCalories();
+}
+function setFitnessSetupIntensity(value,btn){
+  fitnessSetupState.intensity=value;
+  document.querySelectorAll("[data-setup-intensity]").forEach(b=>b.classList.remove("active"));
+  btn?.classList.add("active"); updateFitnessSetupCalories();
+}
+function updateFitnessSetupCalories(){
+  const kcal=estimateFitnessCalories(fitnessSetupState.name,fitnessSetupState.duration,fitnessSetupState.intensity);
+  const el=document.getElementById("fitnessSetupKcal"); if(el)el.textContent=Math.round(kcal);
+}
+function startImmersiveFitness(){
+  closeFitnessSetup();
+  fitnessLiveState={
+    ...fitnessSetupState,
+    startedAt:Date.now(),elapsedBeforePause:0,paused:false,pauseStartedAt:null
+  };
+  document.getElementById("fitnessLiveName").textContent=fitnessLiveState.name;
+  document.getElementById("fitnessLiveEmoji").textContent=fitnessLiveState.emoji;
+  document.getElementById("fitnessLiveIntensityBadge").textContent=fitnessIntensityLabel(fitnessLiveState.intensity);
+  document.getElementById("fitnessLiveTarget").textContent=`Objectif : ${fitnessLiveState.duration} min`;
+  document.getElementById("fitnessLiveOverlay").classList.remove("hidden");
+  clearInterval(fitnessLiveTimerId);
+  fitnessLiveTimerId=setInterval(renderFitnessLive,1000);
+  renderFitnessLive();
+}
+function fitnessElapsedSeconds(){
+  if(!fitnessLiveState)return 0;
+  if(fitnessLiveState.paused)return Math.max(0,Math.floor(fitnessLiveState.elapsedBeforePause/1000));
+  return Math.max(0,Math.floor((fitnessLiveState.elapsedBeforePause+(Date.now()-fitnessLiveState.startedAt))/1000));
+}
+function renderFitnessLive(){
+  if(!fitnessLiveState)return;
+  const sec=fitnessElapsedSeconds(),min=Math.floor(sec/60),s=sec%60;
+  document.getElementById("fitnessLiveTimer").textContent=`${String(min).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  const kcal=activityKcalFromMET(fitnessMET(fitnessLiveState.name,fitnessLiveState.intensity),sec/60);
+  document.getElementById("fitnessLiveCalories").textContent=Math.round(kcal);
+  const pct=Math.min(100,(sec/(fitnessLiveState.duration*60))*100);
+  document.getElementById("fitnessLiveProgressBar").style.width=pct+"%";
+}
+function toggleFitnessPause(){
+  if(!fitnessLiveState)return;
+  const btn=document.getElementById("fitnessPauseBtn");
+  if(!fitnessLiveState.paused){
+    fitnessLiveState.elapsedBeforePause+=Date.now()-fitnessLiveState.startedAt;
+    fitnessLiveState.paused=true;fitnessLiveState.pauseStartedAt=Date.now();
+    btn.innerHTML="▶ <span>Reprendre</span>";
+  }else{
+    fitnessLiveState.paused=false;fitnessLiveState.startedAt=Date.now();fitnessLiveState.pauseStartedAt=null;
+    btn.innerHTML="Ⅱ <span>Pause</span>";
+  }
+  renderFitnessLive();
+}
+function confirmCloseFitnessLive(){
+  if(confirm("Quitter ce cours ? La séance en cours ne sera pas enregistrée.")){
+    clearInterval(fitnessLiveTimerId);fitnessLiveTimerId=null;fitnessLiveState=null;
+    document.getElementById("fitnessLiveOverlay")?.classList.add("hidden");
+  }
+}
+function finishImmersiveFitness(){
+  if(!fitnessLiveState)return;
+  const sec=fitnessElapsedSeconds();
+  clearInterval(fitnessLiveTimerId);fitnessLiveTimerId=null;
+  fitnessLiveState.finalSeconds=sec;
+  fitnessLiveState.finalMinutes=Math.max(1,Math.round(sec/60));
+  fitnessLiveState.finalCalories=Math.round(activityKcalFromMET(fitnessMET(fitnessLiveState.name,fitnessLiveState.intensity),sec/60));
+  document.getElementById("fitnessLiveOverlay").classList.add("hidden");
+  document.getElementById("fitnessSummaryCourse").textContent=`${fitnessLiveState.name} terminé`;
+  document.getElementById("fitnessSummaryDuration").textContent=`${fitnessLiveState.finalMinutes} min`;
+  document.getElementById("fitnessSummaryCalories").textContent=`🔥 ${fitnessLiveState.finalCalories} kcal`;
+  document.getElementById("fitnessSummaryIntensity").textContent=fitnessIntensityLabel(fitnessLiveState.intensity);
+  fitnessSummaryFeeling=3;
+  document.querySelectorAll(".fitness-summary-feelings button").forEach((b,i)=>b.classList.toggle("active",i===1));
+  document.getElementById("fitnessSummaryNote").value="";
+  document.getElementById("fitnessSummaryOverlay").classList.remove("hidden");
+}
+function setImmersiveFitnessFeeling(value,btn){
+  fitnessSummaryFeeling=value;
+  document.querySelectorAll(".fitness-summary-feelings button").forEach(b=>b.classList.remove("active"));
+  btn?.classList.add("active");
+}
+async function saveImmersiveFitness(){
+  if(!fitnessLiveState)return;
+  document.getElementById("fitnessDate").value=todayISO();
+  document.getElementById("fitnessName").value=fitnessLiveState.name;
+  document.getElementById("fitnessDuration").value=fitnessLiveState.finalMinutes;
+  document.getElementById("fitnessIntensity").value=fitnessLiveState.intensity;
+  document.getElementById("fitnessFeeling").value=String(fitnessSummaryFeeling);
+  document.getElementById("fitnessNote").value=document.getElementById("fitnessSummaryNote").value||"";
+  await saveFitnessClass();
+  document.getElementById("fitnessSummaryOverlay").classList.add("hidden");
+  fitnessLiveState=null;
+  renderImmersiveFitnessCourses();
+  showPage("fitness");
 }
 
 const FITNESS_MET_RANGES={
@@ -5806,6 +6031,7 @@ function renderFitnessFriendly(){
 }
 
 function renderFitness(){
+  renderImmersiveFitnessCourses();
   const fitness=db.fitness||[];
   const ym=todayISO().slice(0,7);
   const month=fitness.filter(x=>x.date?.startsWith(ym));
