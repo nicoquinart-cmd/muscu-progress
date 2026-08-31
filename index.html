@@ -748,6 +748,26 @@
   }
   .workout-summary-stat{background:#eaf1f7!important;border-bottom-color:#c5d3e0!important}
   header{background:#f5f8fb!important}
+
+  /* FitPilot V5.0.3 — clearer rest screen */
+  .v5-current-card{
+    width:100%;max-width:420px;margin-top:22px;padding:15px 16px;
+    border-radius:16px;background:#eaf1f7;color:#0b2347;text-align:left;
+    border:1px solid #b8cada;
+  }
+  .v5-current-card strong{
+    display:block;font-size:20px;margin-top:3px;color:#0b2347;
+  }
+  .v5-series-progress{
+    margin-top:9px;font-weight:900;color:#0b6ff2;font-size:14px;
+  }
+  .v5-next-small{
+    width:100%;max-width:420px;margin-top:12px;padding:0 4px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    color:#fff;text-align:left;
+  }
+  .v5-next-small .sub{color:rgba(255,255,255,.58)!important;font-size:12px}
+  .v5-next-small strong{font-size:13px;color:#dce9f8;text-align:right}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -849,14 +869,28 @@
       <div class="sub">Série terminée !</div>
       <h2 style="color:#fff;margin-top:8px">Repos</h2>
       <div id="immersiveRest" class="rest-time">60 s</div>
+
       <div class="fp-actions">
         <button class="btn secondary" onclick="addImmersiveRest(30)">＋ 30 sec</button>
         <button class="btn secondary" onclick="skipImmersiveRest()">⏭ Passer</button>
       </div>
-      <div class="v5-next-card"><div class="sub">Prochain exercice</div><strong id="immersiveNextExercise">—</strong><div id="v5NextSetInfo" class="sub" style="margin-top:4px"></div></div>
-      <div class="v5-coach-tip"><div style="font-weight:900">💡 Conseil du coach</div><div class="sub" style="color:#dce9f8;margin-top:4px">Garde le dos droit, les épaules basses et contrôle la descente.</div></div>
-    </div>
 
+      <div class="v5-current-card">
+        <div class="sub">Exercice en cours</div>
+        <strong id="v5RestCurrentExercise">—</strong>
+        <div id="v5RestSeriesProgress" class="v5-series-progress">0 / 0 séries réalisées</div>
+      </div>
+
+      <div class="v5-coach-tip">
+        <div style="font-weight:900">💡 Conseil pour cet exercice</div>
+        <div id="v5RestCoachTip" class="sub" style="color:#dce9f8;margin-top:5px">—</div>
+      </div>
+
+      <div class="v5-next-small">
+        <span class="sub">Prochain exercice</span>
+        <strong id="immersiveNextExercise">—</strong>
+      </div>
+    </div>
     <div class="card">
       <div class="row between">
         <div><div class="sub">Nombre de séries</div><strong id="immersiveSeriesCountLabel">4 séries</strong></div>
@@ -1092,7 +1126,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.2</span>
+      <span class="pill">v5.0.3</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1163,7 +1197,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.2</span>
+      <span class="pill">v5.0.3</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1740,7 +1774,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.0.2</div>
+      <div class="sub">FitPilot • 5.0.3</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2785,7 +2819,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.0.2";
+const FITPILOT_VERSION="5.0.3";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3477,10 +3511,27 @@ function setImmersiveRestMode(active){
   const rest=document.getElementById("immersiveRestCard");
   if(!rest)return;
   rest.classList.toggle("hidden",!active);
+
   if(active){
     const ex=currentWorkoutExercises[immersiveExerciseIndex];
-    const info=document.getElementById("v5NextSetInfo");
-    if(info && ex) info.textContent=`Série ${Math.min((immersiveSetIndex||0)+1,Number(ex.sets)||4)} • ${ex.target||"8–12"} reps`;
+    if(!ex)return;
+
+    const currentName=document.getElementById("v5RestCurrentExercise");
+    if(currentName)currentName.textContent=ex.name;
+
+    const node=document.querySelectorAll("#exerciseList .exercise")[immersiveExerciseIndex];
+    const checks=[...(node?.querySelectorAll(".check")||[])];
+    const completed=checks.filter(x=>x.classList.contains("done")).length;
+    const total=Math.max(1,Number(ex.sets)||4);
+    const series=document.getElementById("v5RestSeriesProgress");
+    if(series)series.textContent=`${completed} / ${total} série${total>1?"s":""} réalisée${completed>1?"s":""}`;
+
+    const guide=exerciseGuide(ex.name);
+    const coach=document.getElementById("v5RestCoachTip");
+    if(coach)coach.textContent=guide?.tip||"Garde un mouvement contrôlé et une posture stable.";
+
+    const next=document.getElementById("immersiveNextExercise");
+    if(next)next.textContent=nextExerciseName();
   }
 }
 
