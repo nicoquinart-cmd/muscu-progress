@@ -783,6 +783,35 @@
   .history-type-detail span{color:#657b91;font-size:12px;font-weight:800}
   .history-type-detail strong{color:#0b2347}
   #historyWorkoutTypeFilters{background:#e5eef6!important}
+
+  /* FitPilot V5.1 — Fitness */
+  .fitness-week-card{background:linear-gradient(145deg,#dce9f6,#cbddec)!important}
+  .fitness-week-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .fitness-week-stats>div{background:rgba(255,255,255,.42);border:1px solid #b2c8dc;border-radius:13px;padding:10px;text-align:center}
+  .fitness-week-stats strong{display:block;font-size:22px;color:#0b2347}.fitness-week-stats span{font-size:11px;color:#657b91}
+  .fitness-intensity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
+  .fitness-intensity-grid button{background:#e5edf5;border:1px solid #b9c9da;border-radius:13px;padding:10px 5px;color:#17324f}
+  .fitness-intensity-grid button span,.fitness-intensity-grid button strong,.fitness-intensity-grid button small{display:block}
+  .fitness-intensity-grid button strong{font-size:12px;margin-top:4px}.fitness-intensity-grid button small{font-size:9px;color:#728398;margin-top:3px}
+  .fitness-intensity-grid button.active{border:2px solid #0b6ff2;background:#dceafa}
+  .fitness-calorie-preview{margin-top:12px;background:#dce9f6;border:1px solid #a9c2da;border-radius:15px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .fitness-calorie-preview>div{display:flex;align-items:center;gap:9px}.fitness-calorie-preview>div>span{font-size:25px}
+  #fitnessCaloriesBig{font-size:20px;color:#0b6ff2;white-space:nowrap}
+  .fitness-feeling-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
+  .fitness-feeling-grid button{background:#e7eef5;border:1px solid #bccddd;border-radius:13px;padding:9px;font-size:20px}
+  .fitness-feeling-grid button span{display:block;font-size:10px;color:#657b91;margin-top:3px}
+  .fitness-feeling-grid button.active{border:2px solid #0b6ff2;background:#dceafa}
+  .fitness-course-stat{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;padding:10px 2px;border-bottom:1px solid #c6d4e1}
+  .fitness-course-stat:last-child{border-bottom:0}
+  .fitness-history-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .fitness-history-meta span{font-size:10px;font-weight:800;background:#dce7f1;border-radius:999px;padding:4px 7px;color:#4f657b}
+
+  /* FitPilot V5.1.1 — Fitness persistence & history */
+  .fitness-history-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .fitness-history-detail-grid>div{background:#dfe9f3;border:1px solid #b9cadb;border-radius:12px;padding:10px;text-align:center}
+  .fitness-history-detail-grid span{display:block;font-size:10px;color:#657b91;font-weight:800}
+  .fitness-history-detail-grid strong{display:block;margin-top:4px;font-size:13px;color:#0b2347}
+  @media(max-width:420px){.fitness-history-detail-grid{grid-template-columns:1fr 1fr}.fitness-history-detail-grid>div:last-child{grid-column:1/-1}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1141,7 +1170,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.4</span>
+      <span class="pill">v5.1.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1212,7 +1241,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0.4</span>
+      <span class="pill">v5.1.1</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1371,50 +1400,87 @@
   </section>
 
 
+  
   <section id="fitness" class="page">
-
     <div class="fp-page-head">
-      <div class="sub">Bouge comme tu aimes</div>
+      <div class="sub">Cours collectifs & cardio</div>
       <h2>🧘 Fitness</h2>
-      <div class="sub">Tes favoris d’abord, tes statistiques ensuite.</div>
+      <div class="sub">Choisis ton cours, ton intensité et suis ta progression.</div>
     </div>
 
     <div class="fp-card">
-      <div class="row between"><div><h3 class="fp-section-title">⭐ Mes favoris</h3><div class="sub">Un appui pour préparer ton cours.</div></div><button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button></div>
+      <div class="row between">
+        <div><h3 class="fp-section-title">⭐ Mes cours favoris</h3><div class="sub">Un appui prépare directement le cours.</div></div>
+        <button class="btn secondary small" onclick="editFitnessFavorites()">Modifier</button>
+      </div>
       <div id="fitnessFavorites" class="fitness-quick-grid" style="margin-top:10px"></div>
     </div>
 
-    <div class="fp-card" style="margin-top:12px">
-      <div class="row between"><h3 class="fp-section-title">🎯 Cette semaine</h3><span id="fitnessGoalLabel" class="pill">0 / 3 cours</span></div>
+    <div class="fp-card fitness-week-card" style="margin-top:12px">
+      <div class="row between"><div><div class="sub">OBJECTIF SEMAINE</div><h3 class="fp-section-title">Ma semaine Fitness</h3></div><span id="fitnessGoalLabel" class="pill">0 / 3 cours</span></div>
       <div class="goal-ring" style="margin-top:12px"><div id="fitnessGoalBar" style="width:0%"></div></div>
-      <div id="fitnessGoalMinutes" class="sub" style="margin-top:8px">0 minute cette semaine</div>
-    </div>
-
-    <div class="grid" style="margin-top:12px">
-      <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
-      <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes ce mois</span></div>
-      <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal estimées</span></div>
+      <div class="fitness-week-stats">
+        <div><strong id="fitnessWeekMinutes">0</strong><span>min</span></div>
+        <div><strong id="fitnessWeekCalories">0</strong><span>kcal</span></div>
+      </div>
     </div>
 
     <div class="fp-card" style="margin-top:12px">
       <h3 class="fp-section-title">▶️ Démarrer / enregistrer un cours</h3>
       <div class="row">
         <div class="field"><label>Date</label><input id="fitnessDate" type="date"></div>
-        <div class="field"><label>Nom du cours</label><input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="BodyPump, Cycling..." oninput="updateFitnessCaloriesPreview()">
-          <datalist id="fitnessCourseSuggestions"><option value="BodyPump"><option value="Cycling"><option value="RPM"><option value="Yoga"><option value="Pilates"><option value="BodyAttack"><option value="BodyCombat"><option value="CAF"><option value="Stretching"><option value="Cross Training"></datalist>
+        <div class="field"><label>Cours</label><input id="fitnessName" type="text" list="fitnessCourseSuggestions" placeholder="BodyPump, Cycling..." oninput="updateFitnessCaloriesPreview()">
+          <datalist id="fitnessCourseSuggestions"><option value="BodyPump"><option value="Cycling / RPM"><option value="BodyCombat"><option value="Pilates"><option value="Yoga"><option value="CAF"><option value="Cross Training"><option value="BodyAttack"><option value="Stretching"></datalist>
         </div>
-        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" oninput="updateFitnessCaloriesPreview()"></div>
+        <div class="field"><label>Durée (min)</label><input id="fitnessDuration" type="number" min="1" step="5" value="45" oninput="updateFitnessCaloriesPreview()"></div>
       </div>
-      <div id="fitnessCaloriesPreview" class="hint" style="margin-top:10px">🔥 Estimation : renseigne le cours et la durée.</div>
-      <button class="btn full" style="margin-top:12px" onclick="saveFitnessClass()">Enregistrer le cours</button>
+
+      <div class="field" style="margin-top:8px">
+        <label>Intensité ressentie</label>
+        <input id="fitnessIntensity" type="hidden" value="moderate">
+        <div class="fitness-intensity-grid">
+          <button type="button" data-fit-intensity="light" onclick="selectFitnessIntensity('light');updateFitnessCaloriesPreview()"><span>🟢</span><strong>Douce</strong><small>Effort confortable</small></button>
+          <button type="button" class="active" data-fit-intensity="moderate" onclick="selectFitnessIntensity('moderate');updateFitnessCaloriesPreview()"><span>🔵</span><strong>Modérée</strong><small>Effort soutenu</small></button>
+          <button type="button" data-fit-intensity="high" onclick="selectFitnessIntensity('high');updateFitnessCaloriesPreview()"><span>🔴</span><strong>Intense</strong><small>Effort élevé</small></button>
+        </div>
+      </div>
+
+      <div id="fitnessCaloriesPreview" class="fitness-calorie-preview">
+        <div><span>🔥</span><div><strong>Calories estimées</strong><div class="sub">Renseigne le cours et la durée.</div></div></div>
+        <strong id="fitnessCaloriesBig">—</strong>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>Ressenti après le cours</label>
+        <input id="fitnessFeeling" type="hidden" value="3">
+        <div class="fitness-feeling-grid">
+          <button type="button" data-fit-feeling="2" onclick="selectFitnessFeeling(2)">😊<span>Facile</span></button>
+          <button type="button" class="active" data-fit-feeling="3" onclick="selectFitnessFeeling(3)">🙂<span>Bien</span></button>
+          <button type="button" data-fit-feeling="5" onclick="selectFitnessFeeling(5)">🥵<span>Difficile</span></button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px"><label>Note <span class="sub">(facultatif)</span></label><textarea id="fitnessNote" rows="2" placeholder="Tes sensations, ce que tu veux retenir…"></textarea></div>
+      <button class="btn full" style="margin-top:12px" onclick="saveFitnessClass()">💾 Enregistrer le cours</button>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div class="card stat"><strong id="fitnessMonthClasses">0</strong><span>cours ce mois</span></div>
+      <div class="card stat"><strong id="fitnessMonthMinutes">0</strong><span>minutes</span></div>
+      <div class="card stat"><strong id="fitnessMonthCalories">0</strong><span>kcal estimées</span></div>
     </div>
 
     <div class="fp-card" style="margin-top:12px">
-      <h3 class="fp-section-title">Derniers cours</h3>
-      <div id="fitnessHistory"></div>
+      <h3 class="fp-section-title">📊 Mes cours ce mois-ci</h3>
+      <div id="fitnessCourseStats" class="fitness-course-stats"></div>
     </div>
 
+    <div class="fp-card" style="margin-top:12px">
+      <h3 class="fp-section-title">🕘 Mes derniers cours</h3>
+      <div id="fitnessHistory"></div>
+    </div>
   </section>
+
 
 
   
@@ -1486,7 +1552,14 @@
         </div>
       </div>
       <div id="planWorkoutFields" class="row" style="margin-top:10px">
-        <div class="field"><label>Séance</label><select id="planWorkoutSession"><option value="A">Séance A</option><option value="B">Séance B</option><option value="C">Séance C</option></select></div>
+        <div class="field"><label>Type de séance</label><select id="planWorkoutSession">
+          <option value="Haut du corps">💪 Haut du corps</option>
+          <option value="Full Body">⚡ Full Body</option>
+          <option value="Épaules & dos">🏋️ Épaules & dos</option>
+          <option value="Bas du corps">🦵 Bas du corps</option>
+          <option value="Abdos & Gainage">🎯 Abdos & Gainage</option>
+          <option value="Libre">✨ Séance libre</option>
+        </select></div>
       </div>
       <div id="planTreadmillFields" class="row hidden" style="margin-top:10px">
         <div class="field"><label>Durée (min)</label><input id="planTreadmillDuration" type="number" min="1" step="5"></div>
@@ -1810,7 +1883,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.0.4</div>
+      <div class="sub">FitPilot • 5.1.1</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2716,7 +2789,18 @@ async function syncFromCloud(){
       workouts:(w.data||[]).map(x=>({id:x.id,date:x.workout_date,session:x.session_type,exercises:x.exercises||[],treadmill:x.treadmill||null,manual:!!x.manual,duration_minutes:x.duration_minutes||null,calories_estimate:x.calories_estimate||null,duration_minutes:x.duration_minutes==null?null:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate)})),
       measurements:(m.data||[]).map(x=>({id:x.id,date:x.measure_date,weight:x.weight==null?null:Number(x.weight),waist:x.waist==null?null:Number(x.waist),fat_pct:x.fat_pct==null?null:Number(x.fat_pct),muscle_pct:x.muscle_pct==null?null:Number(x.muscle_pct)})),
       pushups:(p.data||[]).map(x=>({id:x.id,date:x.pushup_date,count:Number(x.count),ts:new Date(x.created_at).getTime(),created_at:x.created_at,pending_cloud:false})),
-      fitness:(f.data||[]).map(x=>({id:x.id,date:x.class_date,name:x.class_name,duration:Number(x.duration_minutes),calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),created_at:x.created_at,pending_cloud:false})),
+      fitness:(f.data||[]).map(x=>({
+        id:x.id,
+        date:x.class_date,
+        name:x.class_name,
+        duration:Number(x.duration_minutes),
+        intensity:x.intensity||"moderate",
+        feeling:x.feeling==null?3:Number(x.feeling),
+        note:x.note||"",
+        calories_estimate:x.calories_estimate==null?null:Number(x.calories_estimate),
+        created_at:x.created_at,
+        pending_cloud:false
+      })),
       planning:(pl.data||[]).map(x=>({id:x.id,plan_date:x.plan_date,type:x.activity_type,workout_session:x.workout_session,duration_minutes:x.duration_minutes,incline:x.incline,speed:x.speed,fitness_name:x.fitness_name}))
     };
     saveLocalDB(); setSyncStatus("Synchronisé",true);
@@ -2806,6 +2890,9 @@ async function syncAllToCloud(){
         class_date:x.date,
         class_name:x.name,
         duration_minutes:x.duration,
+        intensity:x.intensity||"moderate",
+        feeling:x.feeling==null?3:Number(x.feeling),
+        note:x.note||null,
         calories_estimate:x.calories_estimate||null
       }).select("*").single();
 
@@ -2855,7 +2942,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.0.4";
+const FITPILOT_VERSION="5.1.1";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3361,17 +3448,23 @@ function activityKcalFromMET(met, minutes){
   return Math.max(1,Math.round(met*3.5*weight/200*minutes));
 }
 
-function fitnessMET(name){
-  const n=String(name||"").toLowerCase();
-  if(n.includes("rpm")||n.includes("cycling")||n.includes("bike")) return 8.0;
-  if(n.includes("bodycombat")||n.includes("combat")) return 7.5;
-  if(n.includes("bodyattack")||n.includes("attack")||n.includes("cross")) return 8.0;
-  if(n.includes("bodypump")||n.includes("pump")) return 6.0;
-  if(n.includes("caf")) return 5.5;
-  if(n.includes("yoga")) return 2.8;
-  if(n.includes("pilates")) return 3.0;
-  if(n.includes("stretch")) return 2.3;
-  return 6.0;
+const FITNESS_MET_RANGES={
+  "bodypump":{light:4.5,moderate:6.0,high:7.0},
+  "cycling":{light:5.5,moderate:8.0,high:10.0},
+  "rpm":{light:5.5,moderate:8.0,high:10.0},
+  "bodycombat":{light:5.5,moderate:7.5,high:9.5},
+  "bodyattack":{light:6.0,moderate:8.0,high:10.0},
+  "cross training":{light:5.5,moderate:8.0,high:10.0},
+  "caf":{light:4.0,moderate:5.5,high:7.0},
+  "pilates":{light:2.5,moderate:3.2,high:4.0},
+  "yoga":{light:2.2,moderate:2.8,high:3.5},
+  "stretching":{light:2.0,moderate:2.3,high:2.8}
+};
+function fitnessMET(name,intensity="moderate"){
+  const n=String(name||"").toLowerCase().trim();
+  const key=Object.keys(FITNESS_MET_RANGES).find(k=>n.includes(k));
+  const range=key?FITNESS_MET_RANGES[key]:{light:4.5,moderate:6.0,high:7.5};
+  return range[intensity]||range.moderate;
 }
 
 function treadmillMET(speedKmh,inclinePct){
@@ -3385,8 +3478,8 @@ function treadmillMET(speedKmh,inclinePct){
   return Math.max(2, vo2/3.5);
 }
 
-function estimateFitnessCalories(name,duration){
-  return activityKcalFromMET(fitnessMET(name),Number(duration)||0);
+function estimateFitnessCalories(name,duration,intensity="moderate"){
+  return activityKcalFromMET(fitnessMET(name,intensity),Number(duration)||0);
 }
 function estimateTreadmillCalories(duration,speed,incline){
   return activityKcalFromMET(treadmillMET(speed,incline),Number(duration)||0);
@@ -3497,8 +3590,14 @@ function updateFitnessCaloriesPreview(){
   const e=document.getElementById("fitnessCaloriesPreview"); if(!e)return;
   const name=document.getElementById("fitnessName")?.value||"";
   const d=Number(document.getElementById("fitnessDuration")?.value)||0;
-  const kcal=estimateFitnessCalories(name,d);
-  e.textContent=d?`🔥 Estimation : ${caloriesText(kcal)}`:"🔥 Estimation : renseigne le cours et la durée.";
+  const intensity=document.getElementById("fitnessIntensity")?.value||"moderate";
+  const kcal=estimateFitnessCalories(name,d,intensity);
+  const labels={light:"Douce",moderate:"Modérée",high:"Intense"};
+  const met=fitnessMET(name,intensity);
+  const big=document.getElementById("fitnessCaloriesBig");
+  if(big)big.textContent=d?`${Math.round(kcal)} kcal`:"—";
+  const info=e.querySelector(".sub");
+  if(info)info.textContent=d?`${name||"Cours Fitness"} • ${labels[intensity]} • MET ${met.toFixed(1)}`:"Renseigne le cours et la durée.";
 }
 
 function updateQuickCardioCalories(){
@@ -4566,7 +4665,8 @@ function buildActivityHistory(){
 
   (db.fitness||[]).forEach((f,index)=>{
     const detail=[`${Number(f.duration)||0} min`];
-    if(f.calories_estimate!=null&&Number(f.calories_estimate)>0)detail.push(`🔥 ~${Math.round(Number(f.calories_estimate))} kcal`);
+    detail.push(`Intensité ${fitnessIntensityLabel(f.intensity||"moderate")}`);
+    if(f.calories_estimate!=null&&Number(f.calories_estimate)>0)detail.push(`🔥 ${Math.round(Number(f.calories_estimate))} kcal`);
     items.push({
       key:`fitness-${index}`,source:"fitness",sourceIndex:index,id:f.id||null,
       type:"fitness",icon:"🧘",label:f.name||"Fitness",date:f.date||"",
@@ -4684,7 +4784,14 @@ function openHistoryDetail(key){
     body=`<div class="sub">Durée : ${s.duration||0} min${s.note?`<br>Note : ${s.note}`:""}</div>`;
   }else if(item.source==="fitness"){
     const f=db.fitness[item.sourceIndex];
-    body=`<div class="sub">Cours : ${f.name}<br>Durée : ${f.duration} min${f.intensity?`<br>Intensité : ${f.intensity==="light"?"Douce":f.intensity==="high"?"Intense":"Modérée"}`:""}${f.feeling?`<br>Ressenti : ${f.feeling}/5`:""}${f.calories_estimate?`<br>Calories : ~${Math.round(f.calories_estimate)} kcal`:""}</div>`;
+    const feelingText=Number(f.feeling)>=5?"Difficile":Number(f.feeling)<=2?"Facile":"Bien";
+    body=`<div class="history-type-detail"><span>Intensité</span><strong>${fitnessIntensityLabel(f.intensity||"moderate")}</strong></div>
+      <div class="fitness-history-detail-grid">
+        <div><span>Durée</span><strong>${f.duration||0} min</strong></div>
+        <div><span>Calories</span><strong>🔥 ${Math.round(Number(f.calories_estimate)||0)} kcal</strong></div>
+        <div><span>Ressenti</span><strong>${feelingText}</strong></div>
+      </div>
+      ${f.note?`<div class="sub" style="margin-top:10px">📝 ${f.note}</div>`:""}`;
   }else{
     body=`<div class="sub">Total du jour : ${item.pushupCount} pompes</div>`;
   }
@@ -4833,6 +4940,10 @@ function editHistoryItem(key){
     const f=db.fitness[item.sourceIndex];
     document.getElementById("historyFitnessName").value=f.name||"";
     document.getElementById("historyFitnessDuration").value=f.duration||"";
+    const intensityInput=document.getElementById("fitnessIntensity");
+    if(intensityInput)intensityInput.value=f.intensity||"moderate";
+    const feelingInput=document.getElementById("fitnessFeeling");
+    if(feelingInput)feelingInput.value=String(f.feeling==null?3:f.feeling);
   }else{
     document.getElementById("historyEditIndex").value=item.sourceDate;
     document.getElementById("historyPushupCount").value=item.pushupCount||"";
@@ -4953,23 +5064,23 @@ async function saveHistoryActivity(){
     if(!name||duration<=0){alert("Indique le cours et la durée.");return;}
     const intensity=document.getElementById("fitnessIntensity")?.value||"moderate";
   const feeling=Number(document.getElementById("fitnessFeeling")?.value)||3;
-  const calories_estimate=estimateFitnessCalories(name,duration) * (intensity==="light"?0.85:intensity==="high"?1.15:1);
+  const calories_estimate=estimateFitnessCalories(name,duration,intensity);
     if(existingSource==="fitness"){
       const idx=Number(existingIndex);
       const old=db.fitness[idx];
-      db.fitness[idx]={...old,date,name,duration,calories_estimate};
+      db.fitness[idx]={...old,date,name,duration,intensity,feeling,calories_estimate};
       saveLocalDB();
       if(currentUser&&old?.id){
-        const {error}=await supa.from("fitness_classes").update({class_date:date,class_name:name,duration_minutes:duration,calories_estimate}).eq("id",old.id).eq("user_id",currentUser.id);
+        const {error}=await supa.from("fitness_classes").update({class_date:date,class_name:name,duration_minutes:duration,intensity,feeling,calories_estimate}).eq("id",old.id).eq("user_id",currentUser.id);
         if(error){alert("Modification locale enregistrée, mais erreur cloud : "+error.message);return;}
       }else{
         db.fitness[idx].pending_cloud=true; saveDB();
       }
     }else{
-      const local={date,name,duration,intensity,feeling,calories_estimate,created_at:new Date().toISOString(),pending_cloud:true};
+      const local={date,name,duration,intensity,feeling,note:"",calories_estimate,created_at:new Date().toISOString(),pending_cloud:true};
       db.fitness.push(local); saveLocalDB();
       if(currentUser){
-        const {data,error}=await supa.from("fitness_classes").insert({user_id:currentUser.id,class_date:date,class_name:name,duration_minutes:duration,calories_estimate}).select("*").single();
+        const {data,error}=await supa.from("fitness_classes").insert({user_id:currentUser.id,class_date:date,class_name:name,duration_minutes:duration,intensity,feeling,calories_estimate}).select("*").single();
         if(!error){local.id=data.id;local.created_at=data.created_at;local.pending_cloud=false;saveLocalDB();}
       }
     }
@@ -5026,12 +5137,33 @@ function updatePlanningForm(){
 
 }
 
+
+function ensurePlanningWorkoutTypeOption(value){
+  const select=document.getElementById("planWorkoutSession");
+  if(!select)return;
+  const normalized=normalizeWorkoutType(value);
+  if(![...select.options].some(o=>o.value===normalized)){
+    const opt=document.createElement("option");
+    opt.value=normalized;
+    opt.textContent=`${workoutTypeIcon(normalized)} ${normalized}`;
+    select.appendChild(opt);
+  }
+  select.value=normalized;
+}
+
 function planningLabel(item){
   if(!item)return "Aucune activité planifiée";
-  if(item.type==="workout")return "Musculation — Séance "+(item.workout_session||"");
-  if(item.type==="treadmill")return `Tapis — ${item.duration_minutes||0} min`;
-  if(item.type==="fitness")return `Fitness — ${item.fitness_name||"Cours"}${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
-  return "Repos";
+  if(item.type==="workout"){
+    const session=normalizeWorkoutType(item.workout_session||"Libre");
+    return `${workoutTypeIcon(session)} ${session==="Libre"?"Séance libre":session}`;
+  }
+  if(item.type==="treadmill")return `🏃 Tapis — ${item.duration_minutes||0} min`;
+  if(item.type==="fitness")return `🧘 Fitness — ${item.fitness_name||"Cours"}${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  if(item.type==="tennis")return `🎾 Tennis${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  if(item.type==="football")return `⚽ Football${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  if(item.type==="running")return `🏃 Running${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  if(item.type==="other")return `${item.sport_name||"Autre activité"}${item.duration_minutes?` • ${item.duration_minutes} min`:""}`;
+  return "😴 Repos";
 }
 
 
@@ -5483,7 +5615,7 @@ function editPlanningItem(date){
   const item=db.planning.find(x=>x.plan_date===date);
   if(!item){
     document.getElementById("planType").value="workout";
-    document.getElementById("planWorkoutSession").value="A";
+    ensurePlanningWorkoutTypeOption("Haut du corps");
     document.getElementById("planTreadmillDuration").value="";
     document.getElementById("planTreadmillIncline").value="";
     document.getElementById("planTreadmillSpeed").value="";
@@ -5495,7 +5627,7 @@ function editPlanningItem(date){
   }
 
   document.getElementById("planType").value=item.type;
-  document.getElementById("planWorkoutSession").value=item.workout_session||"A";
+  ensurePlanningWorkoutTypeOption(item.workout_session||"Haut du corps");
   document.getElementById("planTreadmillDuration").value=item.duration_minutes||"";
   document.getElementById("planTreadmillIncline").value=item.incline||"";
   document.getElementById("planTreadmillSpeed").value=item.speed||"";
@@ -5511,7 +5643,7 @@ function savePlanningItem(){
   const item={plan_date:date,type};
 
   if(type==="workout"){
-    item.workout_session=document.getElementById("planWorkoutSession").value;
+    item.workout_session=normalizeWorkoutType(document.getElementById("planWorkoutSession").value);
   }
 
   if(type==="treadmill"){
@@ -5592,6 +5724,7 @@ function quickStartFitness(name){
   if(duration && !duration.value)duration.value=45;
   document.getElementById("fitnessIntensity").value="moderate";
   selectFitnessIntensity("moderate");
+  updateFitnessCaloriesPreview();
   input?.scrollIntoView({behavior:"smooth",block:"center"});
 }
 
@@ -5611,6 +5744,16 @@ function selectFitnessIntensity(level){
   const input=document.getElementById("fitnessIntensity");
   if(input)input.value=level;
   document.querySelectorAll("[data-fit-intensity]").forEach(b=>b.classList.toggle("active",b.dataset.fitIntensity===level));
+}
+
+function selectFitnessFeeling(value){
+  const input=document.getElementById("fitnessFeeling");
+  if(input)input.value=String(value);
+  document.querySelectorAll("[data-fit-feeling]").forEach(b=>b.classList.toggle("active",Number(b.dataset.fitFeeling)===Number(value)));
+}
+
+function fitnessIntensityLabel(value){
+  return value==="light"?"Douce":value==="high"?"Intense":"Modérée";
 }
 
 function mondayISO(){
@@ -5653,31 +5796,58 @@ function renderFitnessFriendly(){
   const bar=document.getElementById("fitnessGoalBar");
   const label=document.getElementById("fitnessGoalLabel");
   const mins=document.getElementById("fitnessGoalMinutes");
+  const weekMinutes=weekRows.reduce((s,x)=>s+(Number(x.duration)||0),0);
+  const weekCalories=weekRows.reduce((s,x)=>s+(Number(x.calories_estimate)||0),0);
   if(bar)bar.style.width=pct+"%";
   if(label)label.textContent=`${weekRows.length} / ${goal} cours`;
-  if(mins)mins.textContent=`${weekRows.reduce((s,x)=>s+(Number(x.duration)||0),0)} minutes cette semaine`;
+  if(mins)mins.textContent=`${weekMinutes} minutes cette semaine`;
+  const wm=document.getElementById("fitnessWeekMinutes"); if(wm)wm.textContent=Math.round(weekMinutes);
+  const wk=document.getElementById("fitnessWeekCalories"); if(wk)wk.textContent=Math.round(weekCalories);
 }
 
 function renderFitness(){
+  const fitness=db.fitness||[];
   const ym=todayISO().slice(0,7);
-  const month=db.fitness.filter(x=>x.date.startsWith(ym));
+  const month=fitness.filter(x=>x.date?.startsWith(ym));
   const mins=month.reduce((s,x)=>s+(Number(x.duration)||0),0);
-  const a=document.getElementById("fitnessMonthMinutes"), b=document.getElementById("fitnessMonthClasses");
-  if(a)a.textContent=mins; if(b)b.textContent=month.length;
+  const kcal=month.reduce((s,x)=>s+(Number(x.calories_estimate)||0),0);
+  const a=document.getElementById("fitnessMonthMinutes"),b=document.getElementById("fitnessMonthClasses"),c=document.getElementById("fitnessMonthCalories");
+  if(a)a.textContent=Math.round(mins); if(b)b.textContent=month.length; if(c)c.textContent=Math.round(kcal);
+
+  const stats=document.getElementById("fitnessCourseStats");
+  if(stats){
+    const counts={};
+    month.forEach(x=>counts[x.name]=(counts[x.name]||0)+1);
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    stats.innerHTML=sorted.length?sorted.map(([name,count])=>{
+      const meta=fitnessCourseMeta(name);
+      return `<div class="fitness-course-stat"><span>${meta.emoji}</span><strong>${name}</strong><span class="pill">${count} cours</span></div>`;
+    }).join(""):'<div class="sub">Tes statistiques apparaîtront après ton premier cours du mois.</div>';
+  }
+
   const box=document.getElementById("fitnessHistory"); if(!box)return;
-  const rows=[...db.fitness].sort((a,b)=>b.date.localeCompare(a.date));
-  box.innerHTML=rows.length?rows.map(x=>`
-    <div class="history-item">
+  const rows=[...fitness].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  box.innerHTML=rows.length?rows.slice(0,8).map(x=>{
+    const meta=fitnessCourseMeta(x.name);
+    const intensity=fitnessIntensityLabel(x.intensity||"moderate");
+    const feel=Number(x.feeling)>=5?"🥵":Number(x.feeling)<=2?"😊":"🙂";
+    return `<div class="history-item fitness-history-item">
       <div class="row between">
-        <div><strong>${x.name}</strong><div class="sub">${new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div></div>
+        <div><strong>${meta.emoji} ${x.name}</strong><div class="sub">${new Date(x.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"short"})}</div></div>
         <span class="pill">${x.duration} min</span>
       </div>
-    </div>`).join(""):'<div class="sub">Aucun cours enregistré pour le moment.</div>';
+      <div class="fitness-history-meta"><span>${intensity}</span><span>🔥 ${Math.round(Number(x.calories_estimate)||0)} kcal</span><span>${feel}</span></div>
+      ${x.note?`<div class="sub" style="margin-top:6px">${x.note}</div>`:""}
+    </div>`;
+  }).join(""):'<div class="sub">Aucun cours enregistré pour le moment.</div>';
 }
 async function saveFitnessClass(){
   const date=document.getElementById("fitnessDate")?.value||todayISO();
   const name=(document.getElementById("fitnessName")?.value||"").trim();
   const duration=parseInt(document.getElementById("fitnessDuration")?.value,10);
+  const intensity=document.getElementById("fitnessIntensity")?.value||"moderate";
+  const feeling=Number(document.getElementById("fitnessFeeling")?.value)||3;
+  const note=(document.getElementById("fitnessNote")?.value||"").trim();
 
   if(!name){
     alert("Indique le nom du cours.");
@@ -5689,13 +5859,16 @@ async function saveFitnessClass(){
   }
 
   const calories_estimate=typeof estimateFitnessCalories==="function"
-    ? estimateFitnessCalories(name,duration)
+    ? estimateFitnessCalories(name,duration,intensity)
     : null;
 
   const localItem={
     date,
     name,
     duration,
+    intensity,
+    feeling,
+    note,
     calories_estimate,
     created_at:new Date().toISOString(),
     pending_cloud:true
@@ -5706,7 +5879,11 @@ async function saveFitnessClass(){
   saveLocalDB();
 
   document.getElementById("fitnessName").value="";
-  document.getElementById("fitnessDuration").value="";
+  document.getElementById("fitnessDuration").value="45";
+  document.getElementById("fitnessNote").value="";
+  selectFitnessIntensity("moderate");
+  selectFitnessFeeling(3);
+  updateFitnessCaloriesPreview();
   renderFitness();
   renderHistory();
 
@@ -5724,6 +5901,9 @@ async function saveFitnessClass(){
       class_date:date,
       class_name:name,
       duration_minutes:duration,
+      intensity,
+      feeling,
+      note:note||null,
       calories_estimate:calories_estimate
     })
     .select("*")
