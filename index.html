@@ -579,6 +579,132 @@
     background:var(--fp-navy)!important
   }
   #more .fp-settings-card{box-shadow:none}
+
+  /* FitPilot V5.0.1 — dark app shell, no white page background */
+  html,body{
+    background:#021936!important;
+    min-height:100%!important;
+  }
+  body{
+    margin:0!important;
+    color:#0b2347!important;
+  }
+  .app{
+    background:#021936!important;
+    min-height:100vh!important;
+    max-width:760px!important;
+    margin:0 auto!important;
+    padding-bottom:92px!important;
+  }
+  main,.pages,.page-container{
+    background:#021936!important;
+  }
+  .page{
+    background:#021936!important;
+    min-height:calc(100vh - 145px)!important;
+    padding:14px!important;
+  }
+  #home{
+    background:#021936!important;
+    min-height:calc(100vh - 145px)!important;
+  }
+
+  /* White content appears as intentional floating cards, never as page background */
+  #startworkout>.fp-card,
+  #mysessions>.fp-card,
+  #planning>.fp-card,
+  #progress>.fp-card,
+  #history>.fp-card,
+  #more>.fp-card,
+  #fitness>.fp-card,
+  #pushups>.fp-card,
+  #profile>.fp-card,
+  #connections>.fp-card,
+  #calories>.fp-card,
+  #admin>.fp-card,
+  #workout>.card{
+    background:#fff!important;
+  }
+
+  /* Headers sit directly on navy background */
+  .fp-page-head{
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    padding:8px 2px 14px!important;
+    margin-bottom:2px!important;
+  }
+  .fp-page-head h1,.fp-page-head h2,.fp-page-head h3{
+    color:#fff!important;
+  }
+  .fp-page-head .sub{
+    color:rgba(255,255,255,.68)!important;
+  }
+
+  /* Start screen: dark page + elegant white session list */
+  #startworkout .fp-page-head{
+    background:transparent!important;
+  }
+  #startworkout .fp-page-head h2{
+    color:#fff!important;
+  }
+  #startworkout .fp-page-head .sub{
+    color:rgba(255,255,255,.68)!important;
+  }
+  #startworkout>.fp-card:first-of-type{
+    background:#fff!important;
+    border-radius:20px!important;
+    padding:14px!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.18)!important;
+  }
+  #startworkout .start-preset{
+    background:#fff!important;
+  }
+  #startworkout .start-free{
+    background:#eef5ff!important;
+  }
+
+  /* Secondary pages keep navy around their cards */
+  #progress .fp-kpis,
+  #history .grid,
+  #fitness .grid,
+  #pushups .grid{
+    background:transparent!important;
+  }
+  #progress .fp-kpi,
+  #history .card.stat,
+  #fitness .card.stat,
+  #pushups .card.stat{
+    background:#fff!important;
+  }
+
+  /* Workout page: navy shell around white cards */
+  #workout{
+    background:#021936!important;
+  }
+  #workout>.card:first-child{
+    background:linear-gradient(145deg,#07254a,#021936)!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.18)!important;
+  }
+  #workout #exerciseList{
+    background:transparent!important;
+  }
+
+  /* Bottom navigation remains white like the approved mockup */
+  nav.tabs{
+    background:#fff!important;
+  }
+
+  /* Desktop/tablet: navy gutter instead of white */
+  @media(min-width:761px){
+    body{
+      background:#011329!important;
+    }
+    .app{
+      box-shadow:0 0 60px rgba(0,0,0,.22)!important;
+    }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -923,7 +1049,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0</span>
+      <span class="pill">v5.0.1</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -994,7 +1120,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.0</span>
+      <span class="pill">v5.0.1</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -1571,7 +1697,7 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 5.0</div>
+      <div class="sub">FitPilot • 5.0.1</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
@@ -2616,7 +2742,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.0";
+const FITPILOT_VERSION="5.0.1";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
