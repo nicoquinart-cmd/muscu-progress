@@ -387,6 +387,198 @@
     .start-preset{padding:13px;min-height:126px}
     .start-preset strong{font-size:15px}
   }
+
+  /* =========================================================
+     FitPilot V5.0 — visual system
+     Inspired by the approved navy / electric-blue mobile mockup
+     ========================================================= */
+  :root{
+    --fp-navy:#021936;
+    --fp-navy-2:#07254a;
+    --fp-blue:#0867f2;
+    --fp-blue-2:#0b7cff;
+    --fp-bg:#f4f7fb;
+    --fp-card:#ffffff;
+    --fp-text:#0b2347;
+    --fp-muted:#6f7f96;
+    --fp-line:#dfe7f1;
+    --fp-soft:#eef4fb;
+    --fp-warn:#ffb020;
+    --fp-danger:#e5484d;
+    --fp-radius:18px;
+    --fp-shadow:0 10px 28px rgba(2,25,54,.08);
+  }
+  html,body{background:var(--fp-bg);color:var(--fp-text)}
+  body{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .app{max-width:760px;margin:0 auto;padding-bottom:92px}
+  header{background:#fff;border-bottom:1px solid var(--fp-line);padding:14px 16px;position:sticky;top:0;z-index:40}
+  header .brand-name{font-weight:900;letter-spacing:.4px;color:var(--fp-navy)}
+  header .brand-name span{color:var(--fp-blue)}
+  header .brand-tagline{color:var(--fp-muted)}
+  header>.sub{display:none}
+  .brand-mark{background:var(--fp-blue)!important;border-radius:13px!important}
+  .pill{background:#eaf2ff;color:var(--fp-blue);border-radius:999px;font-weight:800}
+  .page{padding:14px}
+  .card,.fp-card{
+    background:#fff;border:1px solid var(--fp-line);border-radius:var(--fp-radius);
+    box-shadow:0 4px 14px rgba(2,25,54,.035)
+  }
+  .fp-page-head{
+    background:linear-gradient(145deg,var(--fp-navy),#082b59)!important;
+    color:#fff;border:none;border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:var(--fp-shadow)
+  }
+  .fp-page-head h2,.fp-page-head h1{color:#fff}
+  .fp-page-head .sub{color:rgba(255,255,255,.72)}
+  .btn{background:var(--fp-blue);border-color:var(--fp-blue);border-radius:12px;font-weight:800}
+  .btn.secondary{background:#fff;color:var(--fp-text);border-color:var(--fp-line)}
+  input,select,textarea{border:1px solid #cfdae8!important;border-radius:12px!important;background:#fff!important;color:var(--fp-text)!important}
+  .sub{color:var(--fp-muted)}
+  .hint{background:#f2f7fd;border-color:#d7e6f7;color:#46617f}
+  .fp-tag{background:#eef4fb!important;color:#49617b!important;border:none!important}
+  .fp-kpi{border-radius:16px;border:1px solid var(--fp-line);background:#fff}
+  .fp-chip{border-color:var(--fp-line);background:#fff;color:var(--fp-text)}
+  .fp-chip.active{background:var(--fp-blue);border-color:var(--fp-blue);color:#fff}
+
+  /* Primary nav: 5 clean destinations */
+  nav.tabs{
+    position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%);
+    width:min(760px,100%)!important;z-index:90!important;background:#fff!important;
+    border-top:1px solid var(--fp-line)!important;display:grid!important;
+    grid-template-columns:repeat(5,1fr)!important;padding:6px 4px calc(6px + env(safe-area-inset-bottom))!important;
+    box-shadow:0 -8px 26px rgba(2,25,54,.08)!important;overflow:visible!important
+  }
+  nav.tabs .tab{
+    min-width:0!important;border:0!important;background:transparent!important;color:#64748b!important;
+    padding:7px 2px!important;font-size:0!important;display:flex!important;flex-direction:column!important;
+    align-items:center!important;gap:3px!important;border-radius:12px!important;font-weight:800!important
+  }
+  nav.tabs .tab::first-line{font-size:0}
+  nav.tabs .tab[data-label]::after{content:attr(data-label);font-size:10px;line-height:1.1}
+  nav.tabs .tab .nav-icon{font-size:20px;line-height:1}
+  nav.tabs .tab.active{color:var(--fp-blue)!important}
+  nav.tabs .tab.active .nav-play{background:var(--fp-blue);color:#fff}
+  .nav-play{width:42px;height:42px;border:1px solid #b7c9df;border-radius:50%;display:grid;place-items:center;font-size:18px;margin-top:-18px;background:#fff;box-shadow:0 6px 16px rgba(2,25,54,.12)}
+
+  /* Home */
+  #home{padding:0 0 14px;background:var(--fp-navy);min-height:calc(100vh - 142px)}
+  .v5-home-top{padding:18px 16px 8px;color:#fff}
+  .v5-home-top .sub{color:rgba(255,255,255,.72)}
+  .v5-home-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .v5-streak{display:flex;align-items:center;gap:5px;font-weight:900;color:#ffbd3d}
+  .v5-home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;padding:10px 14px}
+  .v5-home-tile{
+    min-height:132px;border:0;border-radius:16px;background:#fff;color:var(--fp-text);padding:14px;
+    text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    box-shadow:0 5px 14px rgba(0,0,0,.08);cursor:pointer
+  }
+  .v5-home-tile:active{transform:scale(.985)}
+  .v5-home-tile .icon{font-size:31px;color:var(--fp-blue)}
+  .v5-home-tile strong{font-size:14px;color:var(--fp-text)}
+  .v5-home-tile .sub{font-size:11px;line-height:1.3}
+  .v5-home-wide{grid-column:1/-1;min-height:88px;flex-direction:row;text-align:left;justify-content:flex-start;padding:14px 18px}
+  .v5-home-wide .icon{width:44px;height:44px;border:1px solid #7daff8;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
+  #home #resumeWorkoutCard,#home #quickCardioPanel,#home #startSessionPanel{margin:12px 14px}
+
+  /* Start page */
+  #startworkout .fp-page-head{background:#fff!important;color:var(--fp-text);box-shadow:none;border:0;padding:4px 2px 12px;margin-bottom:0}
+  #startworkout .fp-page-head h2{color:var(--fp-text)}
+  #startworkout .fp-page-head .sub{color:var(--fp-muted)}
+  #startworkout>.fp-card:first-of-type{border:0;box-shadow:none;padding:0;background:transparent}
+  #startworkout .start-presets-grid{display:flex;flex-direction:column;gap:9px}
+  #startworkout .start-preset{
+    min-height:0!important;border:1px solid var(--fp-line);border-radius:15px;padding:13px 14px;
+    display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px;
+    box-shadow:0 3px 10px rgba(2,25,54,.025)
+  }
+  #startworkout .start-preset>div:first-child{flex:1;display:grid;grid-template-columns:36px 1fr;column-gap:10px;align-items:center}
+  #startworkout .start-preset-icon{grid-row:1/3;margin:0;font-size:25px}
+  #startworkout .start-preset strong{font-size:15px}
+  #startworkout .start-preset .sub{font-size:11px;margin-top:2px}
+  #startworkout .start-preset-meta{margin:0;justify-content:flex-end;max-width:120px}
+  #startworkout .start-preset-meta .fp-tag:first-child{display:none}
+  #startworkout .start-free{background:#f7fbff;border:1.5px solid var(--fp-blue)}
+  #startworkout .start-free strong{color:var(--fp-blue)}
+  #startworkout .start-free .sub{color:var(--fp-muted)}
+  #startworkout .start-free .fp-tag{color:var(--fp-blue)!important;background:#eaf2ff!important}
+
+  /* Workout builder */
+  #workout>.card:first-child{background:var(--fp-navy);color:#fff;border:0}
+  #workout>.card:first-child h2{color:#fff}
+  #workout>.card:first-child .sub{color:rgba(255,255,255,.72)}
+  #workout>.card:first-child .hint{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#dce9f8}
+  #exerciseList{background:transparent;border:0;box-shadow:none;padding:0}
+  .exercise{background:#fff;border:1px solid var(--fp-line);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 3px 10px rgba(2,25,54,.03)}
+
+  /* Immersive workout */
+  .immersive-overlay{background:var(--fp-bg)!important}
+  .immersive-shell{max-width:620px!important;padding:0 0 100px!important}
+  .workout-topbar{
+    background:var(--fp-navy)!important;color:#fff!important;padding:13px 16px!important;
+    border-radius:0!important;box-shadow:none!important
+  }
+  .workout-topbar .sub{color:rgba(255,255,255,.7)}
+  .workout-progress{background:#17375d!important}
+  .workout-progress>div{background:var(--fp-blue-2)!important}
+  #immersiveExerciseCard,.v5-immersive-main{
+    margin:0!important;border:0!important;border-radius:0 0 20px 20px!important;box-shadow:none!important
+  }
+  #immersiveExerciseTitle{font-size:19px!important;text-align:center;margin-top:6px!important}
+  #immersiveSetLabel{text-align:center}
+  #immersivePrevious,#immersiveSuggestion{border-radius:13px}
+  #immersiveGuideBtn{background:#fff;color:#53657a;border:1px solid var(--fp-line)}
+  #immersiveInputCard{border-radius:16px;margin:10px 12px}
+  #immersiveInputCard input{font-size:22px;font-weight:900;text-align:center}
+  .quick-adjust button{border-color:var(--fp-line)!important;color:#4d617a!important}
+  .feeling-grid{grid-template-columns:repeat(3,1fr)!important}
+  .feeling-btn{border-radius:13px!important}
+  .feeling-btn.selected{border-color:var(--fp-blue)!important;background:#eaf2ff!important;color:var(--fp-blue)!important}
+  .immersive-sticky-action{
+    position:fixed!important;left:50%;bottom:68px;transform:translateX(-50%);
+    width:min(596px,calc(100% - 24px));z-index:60;background:transparent!important;padding:0!important
+  }
+  .immersive-sticky-action .btn{height:50px}
+  #immersiveRestCard{
+    position:fixed;inset:0;z-index:55;border:0;border-radius:0!important;margin:0!important;
+    background:var(--fp-navy)!important;padding:84px 18px 95px!important;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-start;color:#fff
+  }
+  #immersiveRestCard.hidden{display:none!important}
+  #immersiveRestCard .rest-time{
+    width:180px;height:180px;border-radius:50%;display:grid;place-items:center;margin:28px auto 22px;
+    border:12px solid #24476c;box-shadow:inset 0 0 0 7px var(--fp-blue);font-size:43px
+  }
+  #immersiveRestCard .fp-actions{width:100%;max-width:420px}
+  #immersiveRestCard .btn.secondary{background:#0b315e;color:#fff;border-color:#31577f}
+  #immersiveRestCard .v5-next-card{background:#fff;color:var(--fp-text);border-radius:16px;padding:14px;width:100%;max-width:420px;margin-top:22px;text-align:left}
+  #immersiveRestCard .v5-coach-tip{background:#0a2f5a;border-radius:16px;padding:14px;width:100%;max-width:420px;margin-top:12px;text-align:left;color:#fff}
+
+  /* Summary */
+  #workoutSummaryOverlay{background:var(--fp-bg)!important}
+  #workoutSummaryOverlay .auth-box{box-shadow:none!important;border:0!important;max-width:600px!important;padding:0 14px 100px!important;background:transparent!important}
+  .v5-summary-head{background:var(--fp-navy);color:#fff;margin:0 -14px 12px;padding:22px 18px 26px;text-align:center}
+  .workout-summary-grid{grid-template-columns:1fr!important;background:#fff;border:1px solid var(--fp-line);border-radius:16px;padding:4px 14px}
+  .workout-summary-stat{display:flex!important;justify-content:space-between!important;align-items:center!important;background:#fff!important;border:0!important;border-bottom:1px solid var(--fp-line)!important;border-radius:0!important;padding:12px 4px!important;text-align:left!important}
+  .workout-summary-stat:last-child{border-bottom:0!important}
+  .workout-summary-stat strong{order:2;font-size:15px!important}
+  .workout-summary-stat span{font-weight:700;color:#53657a}
+  .v5-summary-section{background:#fff;border:1px solid var(--fp-line);border-radius:16px;padding:14px;margin-top:12px}
+  .v5-summary-feeling{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .v5-summary-feeling button{border:1px solid var(--fp-line);background:#fff;border-radius:12px;padding:10px}
+  .v5-summary-feeling button.active{border-color:var(--fp-blue);background:#eaf2ff;color:var(--fp-blue)}
+
+  /* Exercise instructions */
+  .exercise-help,.immersive-help{background:#fff!important;border:1px solid var(--fp-line)!important;border-radius:15px!important;padding:14px!important}
+  .exercise-visual img{border-radius:15px!important;background:#fff!important}
+  .v5-guide-tabs{display:flex;border-bottom:1px solid var(--fp-line);margin:0 -2px 12px}
+  .v5-guide-tab{flex:1;border:0;background:transparent;padding:10px;color:#5a6e86;font-weight:800;border-bottom:2px solid transparent}
+  .v5-guide-tab.active{color:var(--fp-blue);border-bottom-color:var(--fp-blue)}
+  .exercise-help ul li::marker{color:var(--fp-danger)}
+
+  /* Secondary pages */
+  #progress .fp-page-head,#history .fp-page-head,#mysessions .fp-page-head,#planning .fp-page-head,#more .fp-page-head{
+    background:var(--fp-navy)!important
+  }
+  #more .fp-settings-card{box-shadow:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -442,7 +634,7 @@
       <div class="workout-progress"><div id="immersiveWorkoutProgress" style="width:0%"></div></div>
     </div>
 
-    <div class="card">
+    <div id="immersiveExerciseCard" class="card v5-immersive-main">
       <div class="sub" id="immersiveSetLabel">Série 1 / 4</div>
       <h1 id="immersiveExerciseTitle" style="margin:5px 0 8px">Exercice</h1>
       <button id="immersiveGuideBtn" class="btn secondary full" style="margin-top:8px" onclick="toggleImmersiveGuide()">👁️ Voir les consignes</button>
@@ -485,13 +677,15 @@
     </div>
 
     <div id="immersiveRestCard" class="card rest-card hidden">
-      <div class="sub">Récupération</div>
+      <div class="sub">Série terminée !</div>
+      <h2 style="color:#fff;margin-top:8px">Repos</h2>
       <div id="immersiveRest" class="rest-time">60 s</div>
       <div class="fp-actions">
-        <button class="btn secondary" onclick="addImmersiveRest(30)">+30 s</button>
-        <button class="btn secondary" onclick="skipImmersiveRest()">Passer</button>
+        <button class="btn secondary" onclick="addImmersiveRest(30)">＋ 30 sec</button>
+        <button class="btn secondary" onclick="skipImmersiveRest()">⏭ Passer</button>
       </div>
-      <div style="margin-top:12px;text-align:left"><div class="sub">Ensuite</div><strong id="immersiveNextExercise">—</strong></div>
+      <div class="v5-next-card"><div class="sub">Prochain exercice</div><strong id="immersiveNextExercise">—</strong><div id="v5NextSetInfo" class="sub" style="margin-top:4px"></div></div>
+      <div class="v5-coach-tip"><div style="font-weight:900">💡 Conseil du coach</div><div class="sub" style="color:#dce9f8;margin-top:4px">Garde le dos droit, les épaules basses et contrôle la descente.</div></div>
     </div>
 
     <div class="card">
@@ -519,7 +713,7 @@
 
 <div id="workoutSummaryOverlay" class="auth-overlay hidden" style="z-index:10030;overflow:auto;padding:16px">
   <div class="auth-box" style="max-width:600px">
-    <div style="text-align:center"><div style="font-size:48px">🎉</div><div class="sub">Séance terminée</div><h1 id="workoutSummaryTitle">Bravo !</h1></div>
+    <div class="v5-summary-head"><div style="font-size:30px">🎉</div><h2 style="color:#fff;margin:5px 0">Félicitations !</h2><div style="color:#dce9f8">Séance terminée</div><h3 id="workoutSummaryTitle" style="display:none">Bravo !</h3></div>
     <div class="workout-summary-grid">
       <div class="workout-summary-stat"><strong id="summaryDuration">0</strong><span>minutes</span></div>
       <div class="workout-summary-stat"><strong id="summaryExercises">0</strong><span>exercices</span></div>
@@ -527,7 +721,19 @@
       <div class="workout-summary-stat"><strong id="summaryCalories">0</strong><span>kcal estimées</span></div>
     </div>
     <div id="summaryRecords" class="pr-banner hidden"></div>
-    <button class="btn full" style="margin-top:16px" onclick="closeWorkoutSummary()">Terminer</button>
+    <div class="v5-summary-section">
+      <strong>Ressenti global</strong>
+      <div class="v5-summary-feeling">
+        <button onclick="setSummaryFeeling(this,'Facile')">😊<br><span class="sub">Facile</span></button>
+        <button onclick="setSummaryFeeling(this,'Bien')">🙂<br><span class="sub">Bien</span></button>
+        <button onclick="setSummaryFeeling(this,'Difficile')">😮‍💨<br><span class="sub">Difficile</span></button>
+      </div>
+    </div>
+    <div class="v5-summary-section">
+      <strong>Notes</strong>
+      <textarea id="summaryNotes" rows="3" placeholder="Tes sensations, ce qui a bien fonctionné…" style="margin-top:8px;width:100%"></textarea>
+    </div>
+    <button class="btn full" style="margin-top:16px" onclick="closeWorkoutSummary()">Enregistrer et terminer</button>
   </div>
 </div>
 
@@ -717,7 +923,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6.2</span>
+      <span class="pill">v5.0</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -788,7 +994,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v4.6.2</span>
+      <span class="pill">v5.0</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -796,46 +1002,36 @@
   
   
   
+  
   <section id="home" class="page active">
-    <div id="resumeWorkoutCard" class="card hidden">
-      <div class="row between">
+    <div class="v5-home-top">
+      <div class="v5-home-head">
         <div>
-          <div class="sub">Séance interrompue détectée</div>
-          <h2>🔄 Reprendre ma séance</h2>
-          <div id="resumeWorkoutText" class="sub">Ta séance en cours a été sauvegardée automatiquement.</div>
+          <div id="v5Greeting" style="font-weight:900;font-size:18px">Bonjour 👋</div>
+          <div class="sub">Que veux-tu faire aujourd’hui ?</div>
         </div>
-      </div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn" onclick="resumeDraftWorkout()">Reprendre</button>
-        <button class="btn secondary" onclick="discardDraftWorkout()">Abandonner</button>
+        <div class="v5-streak">🔥 <span id="v5Streak">0</span></div>
       </div>
     </div>
 
-    <div class="card hero">
+    <div id="resumeWorkoutCard" class="card hidden">
       <div class="row between">
-        <div>
-          <div id="v133Greeting" class="sub">Bonjour 👋</div>
-          <h2 style="color:white;margin-top:4px">Que veux-tu faire aujourd’hui ?</h2>
-          <div id="v133TodayDate" class="sub"></div>
-        </div>
-        <span class="pill" style="background:white;color:#111827">v4.6.2</span>
+        <div><div class="sub">Séance interrompue détectée</div><h2>🔄 Reprendre ma séance</h2><div id="resumeWorkoutText" class="sub">Ta séance en cours a été sauvegardée automatiquement.</div></div>
       </div>
+      <div class="row" style="margin-top:12px"><button class="btn" onclick="resumeDraftWorkout()">Reprendre</button><button class="btn secondary" onclick="discardDraftWorkout()">Abandonner</button></div>
+    </div>
 
-      <div class="quick-actions" style="margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-        <button class="btn secondary" onclick="openSessionWizard()">✨ Créer ma séance</button>
-        <button class="btn secondary" onclick="startFreeWorkout()">🏋️ Séance libre</button>
-        <button class="btn secondary" onclick="openStartSessionPanel()">📋 Programme</button>
-        <button class="btn secondary" onclick="showPage('fitness')">🧘 Fitness</button>
-        <button class="btn secondary" onclick="openPushupChallenge()">💪 Challenge Pompes</button>
-        <button class="btn secondary" onclick="openActivityHub()">＋ Autres activités</button>
-      </div>
+    <div class="v5-home-grid">
+      <button class="v5-home-tile" onclick="openSessionWizard()"><div class="icon">☆</div><strong>Créer ma séance</strong><div class="sub">Crée une séance personnalisée</div></button>
+      <button class="v5-home-tile" onclick="startFreeWorkout()"><div class="icon">🏋️</div><strong>Séance libre</strong><div class="sub">Séance sans contrainte</div></button>
+      <button class="v5-home-tile" onclick="openStartSessionPanel()"><div class="icon">▣</div><strong>Programme</strong><div class="sub">Suis ton programme et tes objectifs</div></button>
+      <button class="v5-home-tile" onclick="showPage('fitness')"><div class="icon">🏃</div><strong>Fitness</strong><div class="sub">Cours collectifs et activités cardio</div></button>
+      <button class="v5-home-tile v5-home-wide" onclick="openPushupChallenge()"><div class="icon">🏋</div><div><strong>Challenge Pompes</strong><div class="sub">Suis ta progression au quotidien</div></div></button>
+      <button class="v5-home-tile v5-home-wide" onclick="openActivityHub()"><div class="icon">＋</div><div><strong>Autres activités</strong><div class="sub">Rameur, Tennis, Football, Running et plus</div></div></button>
     </div>
 
     <div id="quickCardioPanel" class="card hidden">
-      <div class="row between">
-        <h2 id="quickCardioTitle">🚣 Rameur</h2>
-        <button class="btn secondary small" onclick="closeCardioShortcut()">✕</button>
-      </div>
+      <div class="row between"><h2 id="quickCardioTitle">🚣 Rameur</h2><button class="btn secondary small" onclick="closeCardioShortcut()">✕</button></div>
       <div class="row">
         <div class="field"><label>Durée (min)</label><input id="quickCardioDuration" oninput="updateQuickCardioCalories()" type="number" min="1" step="5" placeholder="30"></div>
         <div id="quickCardioInclineField" class="field hidden"><label>Inclinaison (%)</label><input id="quickCardioIncline" oninput="updateQuickCardioCalories()" type="number" min="0" step="0.5" placeholder="5"></div>
@@ -846,34 +1042,14 @@
     </div>
 
     <div id="startSessionPanel" class="card hidden">
-      <div class="row between">
-        <h2>📋 Programme</h2>
-        <button class="btn secondary small" onclick="closeStartSessionPanel()">✕</button>
-      </div>
+      <div class="row between"><h2>📋 Programme</h2><button class="btn secondary small" onclick="closeStartSessionPanel()">✕</button></div>
       <div class="sub" style="margin-bottom:12px">Choisis une séance préconfigurée.</div>
-
-      <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('A')">
-        <div class="row between">
-          <div><strong>🏋️ Haut du corps A</strong><div class="sub">Pecs • épaules • triceps</div></div>
-          <strong>›</strong>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('B')">
-        <div class="row between">
-          <div><strong>🏋️ Full Body B</strong><div class="sub">Corps entier • dépense énergétique</div></div>
-          <strong>›</strong>
-        </div>
-      </div>
-
-      <div class="card" style="cursor:pointer" onclick="v131StartWorkout('C')">
-        <div class="row between">
-          <div><strong>🏋️ Dos / épaules / bras C</strong><div class="sub">Dos • épaules • biceps • triceps</div></div>
-          <strong>›</strong>
-        </div>
-      </div>
+      <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('A')"><div class="row between"><div><strong>Haut du corps A</strong><div class="sub">Pecs • épaules • triceps</div></div><strong>›</strong></div></div>
+      <div class="card" style="margin-bottom:8px;cursor:pointer" onclick="v131StartWorkout('B')"><div class="row between"><div><strong>Full Body B</strong><div class="sub">Corps entier • dépense énergétique</div></div><strong>›</strong></div></div>
+      <div class="card" style="cursor:pointer" onclick="v131StartWorkout('C')"><div class="row between"><div><strong>Dos / épaules / bras C</strong><div class="sub">Dos • épaules • biceps • triceps</div></div><strong>›</strong></div></div>
     </div>
   </section>
+
 
 
   <section id="mysessions" class="page">
@@ -1024,108 +1200,33 @@
 
 
   
+  
   <section id="startworkout" class="page">
-
     <div class="fp-page-head">
       <div class="sub">Choisis ton entraînement</div>
-      <h2>▶️ Démarrer</h2>
-      <div class="sub">Une séance prête en un seul appui.</div>
+      <h2>Démarrer</h2>
     </div>
-
     <div class="fp-card">
-      <div>
-        <h3 class="fp-section-title">Séances rapides</h3>
-        <div class="sub">Choisis une zone : FitPilot prépare directement les exercices.</div>
-      </div>
-
+      <div class="sub" style="margin-bottom:10px">Choisis le type de séance</div>
       <div class="start-presets-grid">
-        <button class="start-preset" onclick="startWorkoutPreset('upper')">
-          <div>
-            <div class="start-preset-icon">💪</div>
-            <strong>Haut du corps</strong>
-            <div class="sub">Pectoraux • dos • bras</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
-        </button>
-
-        <button class="start-preset" onclick="startWorkoutPreset('full')">
-          <div>
-            <div class="start-preset-icon">⚡</div>
-            <strong>Full Body</strong>
-            <div class="sub">Tout le corps</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~45 min</span></div>
-        </button>
-
-        <button class="start-preset" onclick="startWorkoutPreset('shoulders_back')">
-          <div>
-            <div class="start-preset-icon">🏋️</div>
-            <strong>Épaules & dos</strong>
-            <div class="sub">Dos • épaules • posture</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
-        </button>
-
-        <button class="start-preset" onclick="startWorkoutPreset('lower')">
-          <div>
-            <div class="start-preset-icon">🦵</div>
-            <strong>Bas du corps</strong>
-            <div class="sub">Jambes • fessiers</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">6 exercices</span><span class="fp-tag">~40 min</span></div>
-        </button>
-
-        <button class="start-preset" onclick="startWorkoutPreset('core')">
-          <div>
-            <div class="start-preset-icon">🎯</div>
-            <strong>Abdos & Gainage</strong>
-            <div class="sub">Centre du corps • stabilité</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">5 exercices</span><span class="fp-tag">~25 min</span></div>
-        </button>
-
-        <button class="start-preset start-free" onclick="startFreeWorkout()">
-          <div>
-            <div class="start-preset-icon">✨</div>
-            <strong>Séance libre</strong>
-            <div class="sub">Construis ta séance comme tu veux.</div>
-          </div>
-          <div class="start-preset-meta"><span class="fp-tag">100 % libre</span></div>
-        </button>
+        <button class="start-preset" onclick="startWorkoutPreset('upper')"><div><div class="start-preset-icon">💪</div><strong>Haut du corps</strong><div class="sub">6–8 exercices</div></div><div class="start-preset-meta"><span class="fp-tag">45–60 min</span></div></button>
+        <button class="start-preset" onclick="startWorkoutPreset('full')"><div><div class="start-preset-icon">⚡</div><strong>Full Body</strong><div class="sub">8–10 exercices</div></div><div class="start-preset-meta"><span class="fp-tag">50–70 min</span></div></button>
+        <button class="start-preset" onclick="startWorkoutPreset('shoulders_back')"><div><div class="start-preset-icon">🏋️</div><strong>Épaules & Dos</strong><div class="sub">6–8 exercices</div></div><div class="start-preset-meta"><span class="fp-tag">45–60 min</span></div></button>
+        <button class="start-preset" onclick="startWorkoutPreset('lower')"><div><div class="start-preset-icon">🦵</div><strong>Bas du corps</strong><div class="sub">6–8 exercices</div></div><div class="start-preset-meta"><span class="fp-tag">50–70 min</span></div></button>
+        <button class="start-preset" onclick="startWorkoutPreset('core')"><div><div class="start-preset-icon">🎯</div><strong>Abdos & Gainage</strong><div class="sub">5–7 exercices</div></div><div class="start-preset-meta"><span class="fp-tag">20–30 min</span></div></button>
+        <button class="start-preset start-free" onclick="startFreeWorkout()"><div><div class="start-preset-icon">✨</div><strong>Séance libre</strong><div class="sub">Compose ta séance sans limite</div></div><div class="start-preset-meta"><span class="fp-tag">Libre</span></div></button>
       </div>
     </div>
-
     <div class="fp-card" style="margin-top:12px">
-      <div class="row between">
-        <div>
-          <h3 class="fp-section-title">Composer manuellement</h3>
-          <div class="sub">Tu veux choisir chaque exercice toi-même ?</div>
-        </div>
-        <button id="manualBuilderToggleBtn" class="btn secondary small" onclick="toggleManualWorkoutBuilder()">Afficher</button>
-      </div>
+      <div class="row between"><div><strong>Composer manuellement</strong><div class="sub">Choisis chaque exercice toi-même</div></div><button id="manualBuilderToggleBtn" class="btn secondary small" onclick="toggleManualWorkoutBuilder()">⌄</button></div>
     </div>
-
     <div id="manualWorkoutBuilder" class="hidden">
-      <div class="fp-card" style="margin-top:10px">
-        <h3 class="fp-section-title">Choisis tes exercices</h3>
-        <div class="sub">Appuie pour ajouter ou retirer un exercice.</div>
-        <div id="quickWorkoutExerciseChoices" style="margin-top:10px"></div>
-        <button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice personnalisé</button>
-      </div>
-
-      <div class="fp-card" style="margin-top:12px">
-        <div class="row between">
-          <div><h3 class="fp-section-title">Ta séance</h3><div class="sub" id="quickWorkoutCountLabel">0 exercice</div></div>
-        </div>
-        <div id="quickWorkoutSelected" style="margin-top:8px"></div>
-      </div>
-
-      <div class="fp-sticky-action">
-        <button id="quickWorkoutStartBtn" class="btn full" onclick="startQuickWorkout()">▶️ Démarrer • 0 exercice</button>
-      </div>
+      <div class="fp-card" style="margin-top:10px"><h3 class="fp-section-title">Choisis tes exercices</h3><div id="quickWorkoutExerciseChoices" style="margin-top:10px"></div><button class="btn secondary full" style="margin-top:10px" onclick="addQuickWorkoutExercise()">＋ Ajouter un exercice personnalisé</button></div>
+      <div class="fp-card" style="margin-top:12px"><div class="row between"><div><h3 class="fp-section-title">Ta séance</h3><div class="sub" id="quickWorkoutCountLabel">0 exercice</div></div></div><div id="quickWorkoutSelected" style="margin-top:8px"></div></div>
+      <div class="fp-sticky-action"><button id="quickWorkoutStartBtn" class="btn full" onclick="startQuickWorkout()">▶️ Démarrer • 0 exercice</button></div>
     </div>
-
   </section>
+
 
 <section id="planning" class="page">
 
@@ -1470,9 +1571,11 @@
     <div class="fp-page-head">
       <div class="sub">Réglages et services</div>
       <h2>☰ Plus</h2>
-      <div class="sub">FitPilot • 4.6.2</div>
+      <div class="sub">FitPilot • 5.0</div>
     </div>
     <div class="fp-card fp-settings-card" onclick="showPage('profile')"><div class="row between"><div><h3 class="fp-section-title">👤 Mon profil</h3><div class="sub">Informations personnelles et paramètres sportifs</div></div><strong>›</strong></div></div>
+    <div class="fp-card fp-settings-card" onclick="showPage('progress')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📈 Progrès</h3><div class="sub">Corps, entraînement et performances</div></div><strong>›</strong></div></div>
+    <div class="fp-card fp-settings-card" onclick="showPage('history')" style="margin-top:10px"><div class="row between"><div><h3 class="fp-section-title">📚 Historique</h3><div class="sub">Toutes tes séances et activités</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('connections')"><div class="row between"><div><h3 class="fp-section-title">🔗 Connexions</h3><div class="sub">Withings et futurs services</div></div><strong>›</strong></div></div>
     <div class="fp-card fp-settings-card" style="margin-top:10px" onclick="showPage('calories')"><div class="row between"><div><h3 class="fp-section-title">🔥 Calculateur calories</h3><div class="sub">Estimer une dépense énergétique</div></div><strong>›</strong></div></div>
     <div id="v131AdminLink" class="fp-card fp-settings-card hidden" style="margin-top:10px" onclick="showPage('admin')"><div class="row between"><div><h3 class="fp-section-title">⚙️ Administration</h3><div class="sub">Utilisateurs et configuration</div></div><strong>›</strong></div></div>
@@ -1526,15 +1629,13 @@
 
 </div>
 
-<nav class="tabs nav-scroll" style="grid-template-columns:repeat(8,minmax(78px,1fr))">
-    <button class="tab active" onclick="showPage('home',this)">🏠 Accueil</button>
-    <button class="tab" onclick="showPage('mysessions',this)">✨ Mes séances</button>
-    <button class="tab" onclick="showPage('startworkout',this)">▶️ Démarrer</button>
-    <button class="tab" onclick="showPage('planning',this)">📅 Planning</button>
-    <button class="tab" onclick="showPage('progress',this)">📈 Progrès</button>
-    <button class="tab" onclick="showPage('history',this)">📚 Historique</button>
-    <button class="tab" onclick="showPage('more',this)">☰ Plus</button>
-    <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)">⚙️ Admin</button>
+<nav class="tabs">
+    <button class="tab active" data-label="Accueil" onclick="showPage('home',this)"><span class="nav-icon">⌂</span></button>
+    <button class="tab" data-label="Mes séances" onclick="showPage('mysessions',this)"><span class="nav-icon">▣</span></button>
+    <button class="tab" data-label="Démarrer" onclick="showPage('startworkout',this)"><span class="nav-play">▶</span></button>
+    <button class="tab" data-label="Planning" onclick="showPage('planning',this)"><span class="nav-icon">□</span></button>
+    <button class="tab" data-label="Plus" onclick="showPage('more',this)"><span class="nav-icon">•••</span></button>
+    <button id="adminTab" class="tab hidden" onclick="showPage('admin',this)" style="display:none!important"></button>
   </nav>
 
 <script>
@@ -2039,6 +2140,7 @@ function renderQuickWorkoutBuilder(){
       </button>
       <button id="quick-guide-btn-${i}" class="btn secondary small exercise-help-toggle" onclick="event.stopPropagation();toggleQuickGuide(${i})">👁️ Voir les consignes</button>
       <div id="quick-guide-${i}" class="exercise-help hidden">
+        <div class="v5-guide-tabs"><button class="v5-guide-tab active" type="button">Comment faire ?</button><button class="v5-guide-tab" type="button">Conseils</button></div>
         <strong>Exécution</strong>${exerciseGuide(name).tip}
         <strong style="margin-top:8px">À éviter</strong>
         <ul>${exerciseGuide(name).errors.map(x=>`<li>${x}</li>`).join("")}</ul>
@@ -2514,7 +2616,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="4.6.2";
+const FITPILOT_VERSION="5.0";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3174,6 +3276,45 @@ function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 const FITPILOT_LAST_PAGE_KEY="fitpilot_last_page_v1";
 let fitpilotViewRestored=false;
+
+function fitPilotStreak(){
+  const dates=new Set();
+  (db.workouts||[]).forEach(x=>x.date&&dates.add(String(x.date).slice(0,10)));
+  (db.fitness||[]).forEach(x=>x.date&&dates.add(String(x.date).slice(0,10)));
+  (db.sports||[]).forEach(x=>x.date&&dates.add(String(x.date).slice(0,10)));
+  let d=new Date(),streak=0;
+  for(let i=0;i<365;i++){
+    const key=d.toISOString().slice(0,10);
+    if(dates.has(key))streak++;
+    else if(i>0)break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+function renderV5Home(){
+  const s=document.getElementById("v5Streak"); if(s)s.textContent=fitPilotStreak();
+  const g=document.getElementById("v5Greeting");
+  if(g){
+    const profileName=document.getElementById("profileName")?.value?.trim();
+    g.textContent=profileName?`Bonjour ${profileName.split(" ")[0]} 👋`:"Bonjour 👋";
+  }
+}
+function setSummaryFeeling(btn,value){
+  document.querySelectorAll(".v5-summary-feeling button").forEach(x=>x.classList.remove("active"));
+  btn?.classList.add("active");
+  try{sessionStorage.setItem("fitpilot_summary_feeling",value)}catch(e){}
+}
+function setImmersiveRestMode(active){
+  const rest=document.getElementById("immersiveRestCard");
+  if(!rest)return;
+  rest.classList.toggle("hidden",!active);
+  if(active){
+    const ex=currentWorkoutExercises[immersiveExerciseIndex];
+    const info=document.getElementById("v5NextSetInfo");
+    if(info && ex) info.textContent=`Série ${Math.min((immersiveSetIndex||0)+1,Number(ex.sets)||4)} • ${ex.target||"8–12"} reps`;
+  }
+}
+
 function showPage(id,btn){
   try{localStorage.setItem(FITPILOT_LAST_PAGE_KEY,id);}catch(e){}
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -3184,7 +3325,7 @@ function showPage(id,btn){
     const matching=[...document.querySelectorAll("nav.tabs .tab")].find(t=>(t.getAttribute("onclick")||"").includes(`'${id}'`));
     if(matching)matching.classList.add("active");
   }
-  if(id==="progress"||id==="home"){drawCharts(); if(id==="progress"){renderMeasurementsHistory();renderProgressDashboard();} if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
+  if(id==="home")renderV5Home(); if(id==="progress"||id==="home"){drawCharts(); if(id==="progress"){renderMeasurementsHistory();renderProgressDashboard();} if(id==="home"){v133RenderHome();renderHomeDashboard();}} if(id==="pushups"){renderPushups();drawPushupChart();} if(id==="fitness"){renderFitness();updateFitnessCaloriesPreview();} if(id==="planning")renderPlanning(); if(id==="history")renderHistory(); if(id==="home"||id==="workout"||id==="mysessions")renderCustomSessions(); if(id==="mysessions")renderMySessionsPage(); if(id==="startworkout")renderQuickWorkoutBuilder(); if(id==="home")renderDraftResumeCard(); if(id==="connections")loadWithingsStatus(); if(id==="profile")loadProfileIntoForms(); if(id==="admin")loadAdminDashboard();
 }
 function openWorkout(){
   showPage("workout",document.querySelectorAll(".tab")[1]);
@@ -3757,13 +3898,12 @@ function rateImmersiveSet(rating){
   saveWorkoutDraft();
 
   document.getElementById("immersiveRatingCard").classList.add("hidden");
-  document.getElementById("immersiveRestCard")?.classList.remove("hidden");
+  setImmersiveRestMode(true);
   startImmersiveRest(60);
 
   const ex=currentWorkoutExercises[immersiveExerciseIndex];
   if(immersiveSetIndex < Number(ex.sets||4)-1){
     immersiveSetIndex++;
-    renderImmersiveStep();
   }else{
     // Stay on the exercise. User explicitly decides when it is finished.
     const input=document.getElementById("immersiveInputCard");
@@ -3795,6 +3935,8 @@ function startImmersiveRest(seconds){
       clearInterval(immersiveRestTimer);
       immersiveRestTimer=null;
       document.getElementById("immersiveRest").textContent="Go !";
+      setImmersiveRestMode(false);
+      renderImmersiveStep();
       navigator.vibrate?.(150);
     }
   },1000);
@@ -3805,7 +3947,7 @@ function skipImmersiveRest(){
   immersiveRestTimer=null;
   immersiveRestSeconds=0;
   document.getElementById("immersiveRest").textContent="Go !";
-  setTimeout(()=>document.getElementById("immersiveRestCard")?.classList.add("hidden"),350);
+  setImmersiveRestMode(false); renderImmersiveStep();
 }
 
 function renderWorkout(code){
@@ -3896,6 +4038,7 @@ function renderCurrentWorkoutExercises(){
         <button id="exercise-help-btn-${idx}" class="btn secondary small" onclick="toggleExerciseHelp(${idx})">👁️ Voir les consignes</button>
       </div>
       <div id="exercise-help-${idx}" class="exercise-help hidden">
+        <div class="v5-guide-tabs"><button class="v5-guide-tab active" type="button">Comment faire ?</button><button class="v5-guide-tab" type="button">Conseils</button></div>
         <strong>Exécution</strong>${exerciseGuide(ex.name).tip}
         <strong style="margin-top:8px">À éviter</strong>
         <ul>${exerciseGuide(ex.name).errors.map(x=>`<li>${x}</li>`).join("")}</ul>
