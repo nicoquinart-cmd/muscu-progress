@@ -1284,7 +1284,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.2.1</span>
+      <span class="pill">v5.2.2</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1355,7 +1355,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.2.1</span>
+      <span class="pill">v5.2.2</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -3034,7 +3034,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.2.1";
+const FITPILOT_VERSION="5.2.2";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
@@ -3560,7 +3560,8 @@ function openFitnessCourseChooser(){renderFitnessCourseChooser();document.getEle
 function closeFitnessCourseChooser(){document.getElementById("fitnessChooserOverlay")?.classList.add("hidden");}
 function renderFitnessCourseChooser(){
  const box=document.getElementById("fitnessChooserCourses");if(!box)return;
- const favorites=fitnessFavoriteList();
+ let favorites=[];
+ try{favorites=(fitnessPrefs()?.favorites||[]);}catch(e){favorites=[];}
  const ordered=[...FITNESS_IMMERSIVE_COURSES].sort((a,b)=>(favorites.includes(b.name)?1:0)-(favorites.includes(a.name)?1:0));
  box.innerHTML=ordered.map(c=>`<button class="fitness-chooser-course" onclick='chooseImmersiveFitnessCourse(${JSON.stringify(c.name)},${JSON.stringify(c.emoji)},${c.duration})'><span class="fitness-chooser-emoji">${c.emoji}</span><span><strong>${c.name}</strong><small>${c.duration} min conseillé</small></span><b>›</b></button>`).join("");
 }
@@ -3568,7 +3569,7 @@ function chooseImmersiveFitnessCourse(name,emoji,duration){closeFitnessCourseCho
 function openFitnessCustomFromChooser(){const name=prompt("Nom du cours Fitness :");if(!name)return;closeFitnessCourseChooser();openFitnessSetup(name,"🏃",45);}
 function renderImmersiveFitnessCourses(){
   const box=document.getElementById("fitnessImmersiveCourses"); if(!box)return;
-  const favorites=fitnessFavoriteList();
+  const favorites=(fitnessPrefs().favorites||[]);
   const ordered=[...FITNESS_IMMERSIVE_COURSES].sort((a,b)=>(favorites.includes(b.name)?1:0)-(favorites.includes(a.name)?1:0));
   box.innerHTML=ordered.slice(0,6).map(c=>`
     <button class="fitness-course-launch" onclick='openFitnessSetup(${JSON.stringify(c.name)},${JSON.stringify(c.emoji)},${c.duration})'>
