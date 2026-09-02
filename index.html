@@ -841,7 +841,33 @@
   .fitness-summary-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.fitness-summary-numbers div,.fitness-summary-card{background:#f0f5fa;border:1px solid #b9c9d9;border-radius:15px;padding:12px}.fitness-summary-numbers span{display:block;font-size:9px;color:#6a7e92}.fitness-summary-numbers strong{display:block;margin-top:4px;font-size:13px}
   .fitness-summary-card{margin-top:10px}.fitness-summary-feelings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.fitness-summary-feelings button{background:#e2ebf3;border:1px solid #bdccda;border-radius:12px;padding:10px;font-size:22px}.fitness-summary-feelings span{display:block;font-size:9px;color:#60758b}.fitness-summary-feelings button.active{border:2px solid #0b6ff2;background:#d8e8fb}.fitness-save-summary{margin-top:12px;height:50px}
 .fitness-main-start{margin-top:18px;height:58px;border-radius:16px;font-size:16px}.fitness-start-hint{text-align:center;margin-top:8px}
-.fitness-chooser-shell{width:min(520px,100%);min-height:100vh;margin:auto;background:#021936;color:#fff;padding:18px 15px 32px}.fitness-chooser-head{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin-bottom:22px}.fitness-chooser-head h2{color:#fff;margin:2px 0}.fitness-back{width:40px;height:40px;border-radius:50%;border:1px solid #31516f;background:#0b2a50;color:#fff;font-size:29px}.fitness-chooser-intro{color:#b9cce0;margin-bottom:12px}.fitness-chooser-grid{display:flex;flex-direction:column;gap:8px}.fitness-chooser-course{width:100%;display:grid;grid-template-columns:48px 1fr 24px;align-items:center;text-align:left;gap:9px;background:#e7eef5;border:1px solid #b5c7d8;border-radius:15px;padding:11px;color:#0b2347}.fitness-chooser-emoji{width:42px;height:42px;display:grid;place-items:center;background:#d4e2ef;border-radius:12px;font-size:23px}.fitness-chooser-course strong,.fitness-chooser-course small{display:block}.fitness-chooser-course small{font-size:10px;color:#657b91;margin-top:3px}.fitness-chooser-course b{font-size:24px;color:#0b6ff2}.fitness-chooser-other{margin-top:12px;color:#bcd0e3;border-color:#456584}</style>
+.fitness-chooser-shell{width:min(520px,100%);min-height:100vh;margin:auto;background:#021936;color:#fff;padding:18px 15px 32px}.fitness-chooser-head{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin-bottom:22px}.fitness-chooser-head h2{color:#fff;margin:2px 0}.fitness-back{width:40px;height:40px;border-radius:50%;border:1px solid #31516f;background:#0b2a50;color:#fff;font-size:29px}.fitness-chooser-intro{color:#b9cce0;margin-bottom:12px}.fitness-chooser-grid{display:flex;flex-direction:column;gap:8px}.fitness-chooser-course{width:100%;display:grid;grid-template-columns:48px 1fr 24px;align-items:center;text-align:left;gap:9px;background:#e7eef5;border:1px solid #b5c7d8;border-radius:15px;padding:11px;color:#0b2347}.fitness-chooser-emoji{width:42px;height:42px;display:grid;place-items:center;background:#d4e2ef;border-radius:12px;font-size:23px}.fitness-chooser-course strong,.fitness-chooser-course small{display:block}.fitness-chooser-course small{font-size:10px;color:#657b91;margin-top:3px}.fitness-chooser-course b{font-size:24px;color:#0b6ff2}.fitness-chooser-other{margin-top:12px;color:#bcd0e3;border-color:#456584}
+  /* FitPilot V5.2.4 — Historique mobile overflow fix */
+  #history{overflow-x:hidden!important;max-width:100vw}
+  #history .fp-page-head,#history .fp-card,#history .grid,#history #historyList{max-width:100%;box-sizing:border-box}
+  #historyFilterChips,#historyWorkoutTypeFilters .fp-chip-row{
+    display:flex!important;flex-wrap:nowrap!important;gap:8px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    width:100%!important;max-width:100%!important;box-sizing:border-box;
+    padding:2px 2px 8px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+  #historyFilterChips::-webkit-scrollbar,#historyWorkoutTypeFilters .fp-chip-row::-webkit-scrollbar{display:none}
+  #historyFilterChips .fp-chip,#historyWorkoutTypeFilters .fp-chip-row .fp-chip{
+    flex:0 0 auto!important;white-space:nowrap!important;max-width:none!important;
+  }
+  #historyWorkoutTypeFilters{width:100%!important;max-width:100%!important;box-sizing:border-box;overflow:hidden!important}
+  #history .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+  #history .history-item{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+  #history .history-item .row{min-width:0}
+  #history .history-item .sub{overflow-wrap:anywhere}
+  @media(max-width:480px){
+    #history{padding-left:14px!important;padding-right:14px!important}
+    #history .fp-page-head .row.between{align-items:flex-start;gap:8px}
+    #history .fp-page-head .btn{flex:0 0 auto;padding-left:12px!important;padding-right:12px!important}
+    #historyWorkoutTypeFilters{padding:10px!important}
+  }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <link rel="icon" href="fitpilot-icon.svg" type="image/svg+xml">
@@ -1286,7 +1312,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.2.3</span>
+      <span class="pill">v5.2.4</span>
     </div>
     <div class="sub">Connecte-toi pour synchroniser tes données entre téléphone et ordinateur.</div>
     <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="ton@email.fr"></div>
@@ -1357,7 +1383,7 @@
           <div class="brand-tagline">Planifie · Entraîne-toi · Progresse</div>
         </div>
       </div>
-      <span class="pill">v5.2.3</span>
+      <span class="pill">v5.2.4</span>
     </div>
     <div class="sub">Planifie. Entraîne-toi. Progresse.</div>
   </header>
@@ -3036,7 +3062,7 @@ async function migrateLocalToCloud(){
 }
 
 
-const FITPILOT_VERSION="5.2.3";
+const FITPILOT_VERSION="5.2.4";
 let presenceTimer=null;
 
 async function recordConnectionEvent(eventType="session_start"){
